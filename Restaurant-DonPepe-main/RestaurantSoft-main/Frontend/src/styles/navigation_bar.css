@@ -1,0 +1,38 @@
+.navigation-bar {
+  margin-top: 1vw;
+  display: flex;
+  width: 98vw;
+  gap: 5px;
+  padding: 8px;
+  background-color: var(--primary-color);
+  border-radius: 8px;
+  height: 55px;
+
+  button {
+    border-radius: 8px;
+    flex: 1;
+    font-weight: 700;
+    font-size: 0.9rem;
+    background-color: transparent;
+
+    &:hover {
+      background-color: rgb(255, 255, 255);
+      transition: 0.25s;
+    }
+  }
+
+  .button-selected {
+    background-color: rgb(255, 255, 255);
+  }
+
+  @media (max-width: 720px) {
+    flex-wrap: wrap;
+    height: auto;
+    gap: 8px;
+    button {
+      font-weight: 700;
+      height: 50px;
+      flex: 1 1 calc(25% - 1rem);
+    }
+  }
+}

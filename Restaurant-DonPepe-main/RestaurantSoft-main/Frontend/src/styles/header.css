@@ -1,0 +1,110 @@
+header {
+  background-color: rgba(230, 241, 230, 0.424);
+  width: 100vw;
+  display: flex;
+  flex-direction: row;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  justify-content: space-between;
+  -webkit-backdrop-filter: blur(10px); /* soporte Safari */
+  backdrop-filter: blur(10px); /* efecto blur */
+
+  /*------------------------------------*/
+  .header-user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-left: 2vw;
+    width: 50%;
+
+    .header-icon-circle {
+      height: 80%;
+      clip-path: circle(50% at 50% 50%);
+      background-color: darkgreen;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      svg {
+        color: white;
+        width: 60%;
+        height: 60%;
+      }
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      h1 {
+        font-size: 1.3rem;
+      }
+      h2 {
+        font-size: 1rem;
+        font-weight: 400;
+      }
+    }
+  }
+  /*------------------------------------*/
+  .header-logout {
+    display: flex;
+    align-items: center;
+    margin-right: 2vw;
+
+    button {
+      background-color: white;
+      border-radius: 5px;
+      width: 150px;
+      height: 50%;
+
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      svg {
+        height: 70%;
+      }
+      span {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      &:hover {
+        background-color: darkgreen;
+        color: white;
+        transition: 0.9s;
+      }
+    }
+  }
+
+  @media (max-width: 1440px) {
+    height: clamp(72px, 6.9vw, 100px);
+  }
+
+  @media (max-width: 1024px) {
+    height: clamp(60px, 6.9vw, 72px);
+
+    .header-user-info {
+      .header-title {
+        h1 {
+          font-size: clamp(0.8rem, 3.5vw, 1.3rem);
+        }
+        h2 {
+          font-size: clamp(0.6rem, 2.9vw, 1rem);
+        }
+      }
+    }
+
+    .header-logout {
+      button {
+        width: 120px;
+        span {
+          font-size: 0.8rem;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}

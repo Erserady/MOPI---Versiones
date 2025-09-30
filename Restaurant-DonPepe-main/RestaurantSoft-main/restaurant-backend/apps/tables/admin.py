@@ -1,2 +1,8 @@
 from django.contrib import admin
-# Register models in each app's admin.py
+from .models import Table
+
+@admin.register(Table)
+class TableAdmin(admin.ModelAdmin):
+    list_display = ("number", "capacity", "status")
+    list_filter = ("status",)
+    search_fields = ("number",)

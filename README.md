@@ -1,6 +1,8 @@
 ******** Servidor de pruebas usando SQLite ********
 - Crear entorno virtual en visual
+
 python -m venv .venv
+
 .venv\Scripts\activate
 
 - Instalar dependencias

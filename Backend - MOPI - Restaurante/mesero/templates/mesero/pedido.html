@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Mesero - Nuevo Pedido</title></head>
+<body>
+  <h1>Crear Pedido (Mesero)</h1>
+  <form id="orderForm">
+    <label>order_id: <input name="order_id" required></label><br>
+    <label>mesa_id / tableNumber: <input name="mesa_id" required></label><br>
+    <label>cliente: <input name="cliente"></label><br>
+    <label>cantidad: <input type="number" name="cantidad" value="1"></label><br>
+    <label>pedido / items: <textarea name="pedido" required></textarea></label><br>
+    <label>nota: <textarea name="nota"></textarea></label><br>
+    <button type="submit">Enviar</button>
+  </form>
+
+  <div id="result"></div>
+  <script>
+    document.getElementById('orderForm').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const data = {
+        order_id: ev.target.order_id.value,
+        mesa_id: ev.target.mesa_id.value,
+        cliente: ev.target.cliente.value,
+        cantidad: parseInt(ev.target.cantidad.value || "1", 10),
+        pedido: ev.target.pedido.value,
+        nota: ev.target.nota.value
+      };
+      try {
+        const res = await fetch('/api/mesero-orders/', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(data),
+          credentials: 'same-origin'
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          document.getElementById('result').innerText = 'Error: ' + JSON.stringify(json);
+          return;
+        }
+        document.getElementById('result').innerText = 'Pedido creado: ' + JSON.stringify(json);
+      } catch (e) {
+        document.getElementById('result').innerText = 'Network error: ' + e.message;
+      }
+    });
+  </script>
+</body>
+</html>

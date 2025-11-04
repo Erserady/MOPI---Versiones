@@ -1,0 +1,14 @@
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import TableViewSet, WaiterOrderViewSet, mesero_pedido_view
+
+router = DefaultRouter()
+router.register(r'tables', TableViewSet, basename='table')
+router.register(r'mesero-orders', WaiterOrderViewSet, basename='mesero-order')
+
+urlpatterns = [
+    path('', include(router.urls)),            # -> /api/tables/  y /api/mesero-orders/
+    path('pedido/', mesero_pedido_view, name='mesero-pedido'),  # -> /mesero/pedido/ si se incluye a ese path
+    path('mesero/', include('mesero.urls')),  # -> /mesero/pedido/
+    path('api/', include('mesero.urls')),     # -> /api/tables/ y /api/mesero-orders/
+]

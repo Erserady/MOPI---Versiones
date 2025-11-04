@@ -3,6 +3,7 @@ import { User, Lock, ChefHat, Eye, EyeOff } from "lucide-react";
 import "../../styles/login.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { API_ENDPOINTS, apiFetch } from "../../config/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -24,11 +25,8 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const response = await fetch("http://localhost:8000/api/users/login/", {
+      const response = await apiFetch(API_ENDPOINTS.login, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ username, password }),
       });
 

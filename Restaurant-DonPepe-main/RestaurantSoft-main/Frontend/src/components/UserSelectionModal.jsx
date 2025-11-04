@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Lock } from "lucide-react";
 import "../styles/user_selection_modal.css";
+import { API_ENDPOINTS, apiFetch } from "../config/api";
 
 const UserSelectionModal = ({ isOpen, onClose, roleData, onUserSelect }) => {
   const [selectedUser, setSelectedUser] = useState(null);
@@ -24,11 +25,8 @@ const UserSelectionModal = ({ isOpen, onClose, roleData, onUserSelect }) => {
     
     try {
       // Verificar el PIN con el backend
-      const response = await fetch("http://localhost:8000/api/users/verify-pin/", {
+      const response = await apiFetch(API_ENDPOINTS.verifyPin, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           user_id: selectedUser.id,
           pin: pin

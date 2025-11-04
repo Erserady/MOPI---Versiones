@@ -4,6 +4,7 @@ import { ChefHat, UtensilsCrossed, Wallet, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import UserSelectionModal from "../../components/UserSelectionModal";
 import "../../styles/admin_dashboard_preview.css";
+import { API_ENDPOINTS } from "../../config/api";
 
 const AdminDashboardPreview = () => {
   const welcomeTitle = "Bienvenido";
@@ -29,7 +30,7 @@ const AdminDashboardPreview = () => {
       
       for (const roleInfo of roles) {
         try {
-          const response = await fetch(`http://localhost:8000/api/users/by-role/?role=${roleInfo.role}`);
+          const response = await fetch(API_ENDPOINTS.usersByRole(roleInfo.role));
           if (response.ok) {
             const users = await response.json();
             data[roleInfo.key] = {

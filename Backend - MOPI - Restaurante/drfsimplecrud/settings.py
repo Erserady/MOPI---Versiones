@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os
-#import dj_database_url
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -93,21 +93,24 @@ WSGI_APPLICATION = 'drfsimplecrud.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-#DATABASES = {
-#    'default': dj_database_url.config(
-#        # Feel free to alter this value to suit your needs.
-#        default=os.environ.get('DATABASE_URL'),
-#        conn_max_age=600,
-#        ssl_require=True
-#    )
-#}
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),  
+# Configuración de base de datos con PostgreSQL para producción y SQLite para desarrollo
+if os.environ.get('DATABASE_URL'):
+    # Producción: usar PostgreSQL de Render
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Desarrollo local: usar SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': str(BASE_DIR / 'db.sqlite3'),  
+        }
+    }
 
 
 # Password validation
@@ -176,11 +179,33 @@ REST_FRAMEWORK = {
     ),
 }
 
-# CORS (solo para desarrollo)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",   # Vite dev server (frontend)
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",   # si usas npm start u otro puerto
+# CORS - Configuración para desarrollo y producción
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
+
+# En desarrollo, permitir credenciales
+CORS_ALLOW_CREDENTIALS = True
+
+# Métodos HTTP permitidos
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# Headers permitidos
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 # Configuración de Jazzmin (tema del admin)

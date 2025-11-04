@@ -1,0 +1,248 @@
+.admin-menu-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  height: 100vh;
+
+  .admin-menu-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #1f2937;
+  }
+
+  .menu-card {
+    background: rgb(241, 241, 241);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+  }
+
+  .menu-header {
+    margin-bottom: 2rem;
+  }
+
+  .menu-date {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+  }
+
+  .menu-subtext {
+    color: #6b7280;
+  }
+
+  .table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .search-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+  }
+
+  .search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-size: 0.875rem;
+  }
+
+  .controls-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .config-menu-btn,
+  .save-btn,
+  .cancel-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+
+  .config-menu-btn {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  .config-menu-btn:hover {
+    background-color: #2563eb;
+  }
+
+  .edit-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .save-btn {
+    background-color: #10b981;
+    color: white;
+  }
+
+  .save-btn:hover {
+    background-color: #059669;
+  }
+
+  .cancel-btn {
+    background-color: #ef4444;
+    color: white;
+  }
+
+  .cancel-btn:hover {
+    background-color: #dc2626;
+  }
+
+  .sort-select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background: white;
+    font-size: 0.875rem;
+    min-width: 180px;
+  }
+
+  .menu-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .menu-table th {
+    background-color: #d4d4d4;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .menu-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+  }
+
+  .dish-row:hover {
+    background-color: #f9fafb;
+  }
+
+  .dish-name {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .editable-input {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    width: 80px;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  .editable-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+
+  .checkbox-toggle,
+  .checkbox-static {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #d1d5db;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .checkbox-toggle {
+    background: white;
+  }
+
+  .checkbox-toggle:hover {
+    border-color: #3b82f6;
+  }
+
+  .checkbox-toggle.checked,
+  .checkbox-static.checked {
+    background-color: #10b981;
+    border-color: #10b981;
+    color: white;
+  }
+
+  .checkbox-static.unchecked {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .checkbox-toggle.unchecked {
+    background-color: white;
+    border-color: #d1d5db;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+    font-style: italic;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .admin-menu-container {
+      padding: 10px;
+    }
+
+    .table-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .controls-right {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .search-container {
+      max-width: none;
+    }
+
+    .menu-table {
+      font-size: 0.75rem;
+    }
+
+    .menu-table th,
+    .menu-table td {
+      padding: 0.5rem;
+    }
+  }
+}

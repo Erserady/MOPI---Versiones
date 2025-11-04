@@ -1,0 +1,86 @@
+.pay-card-section {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 15px;
+  margin-bottom: 3vw;
+
+  .pay-card {
+    min-width: 310px;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    border: 1px solid green;
+
+    .pay-card-header {
+      display: flex;
+      align-items: center;
+      padding: 5px;
+      gap: 10px;
+
+      h2 {
+        font-size: 20px;
+      }
+      svg {
+        color: green;
+      }
+    }
+
+    .pay-card-text {
+      .waiter {
+        color: rgb(16, 84, 180);
+        font-weight: 600;
+      }
+      .total {
+        color: rgb(14, 100, 9);
+        font-weight: 600;
+      }
+      .account {
+        color: rgb(143, 120, 19);
+        font-weight: 600;
+      }
+    }
+    .pay-card-actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+
+      button {
+        display: flex;
+        align-items: center;
+        width: 130px;
+        padding: 5px;
+        border-radius: 5px;
+        text-align: center;
+        gap: 3px;
+        font-weight: 600;
+      }
+      .paid {
+        background-color: rgb(181, 220, 181);
+        &:hover {
+          background-color: green;
+          color: white;
+          transition: 0.7s;
+        }
+      }
+      .ticket {
+        background-color: rgb(212, 212, 212);
+
+        &:hover {
+          background-color: rgb(54, 54, 54);
+          color: white;
+          transition: 0.7s;
+        }
+      }
+    }
+    .check-paid {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      color: green;
+    }
+  }
+}

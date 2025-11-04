@@ -1,0 +1,22 @@
+.form-input-label-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+
+  .form-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .form-input {
+    height: 30px;
+    padding: 5px;
+    border-radius: 8px;
+    border: none;
+  }
+  textarea {
+    resize: none;
+  }
+}

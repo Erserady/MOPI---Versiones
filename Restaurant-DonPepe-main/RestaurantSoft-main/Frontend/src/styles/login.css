@@ -1,0 +1,422 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f5f5f5;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.login-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  overflow: hidden;
+}
+
+/* Panel Izquierdo - Imagen de la cocina */
+.login-left-panel {
+  flex: 1.8;
+  background-image: url("../../imagenes/ChatGPT Image 3 nov 2025, 11_48_43 a.m..png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.left-panel-content {
+  width: 100%;
+  padding: 30px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%);
+}
+
+.restaurant-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* Panel Derecho - Formulario */
+.login-right-panel {
+  flex: 1;
+  background-image: url("../../imagenes/ChatGPT Image 3 nov 2025, 11_44_43 a.m..png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.login-right-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(50, 50, 50, 0.75);
+  z-index: 1;
+}
+
+.login-card {
+  position: relative;
+  z-index: 2;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.login-icon {
+  background-color: #ff8a3c;
+  clip-path: circle(50% at 50% 50%);
+  aspect-ratio: 1 / 1;
+  width: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.login-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+  color: white;
+  margin: 0;
+}
+
+.login-subtitle {
+  color: #d0d0d0;
+  font-size: 14px;
+  text-align: center;
+  margin: 0;
+}
+
+.login-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex-direction: column;
+  width: 100%;
+}
+
+.login-input-group label {
+  font-weight: 600;
+  color: white;
+  font-size: 14px;
+}
+
+.input-icon {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  width: 100%;
+}
+
+.login-input-icon {
+  color: #999;
+  flex-shrink: 0;
+}
+
+.login-input-group input {
+  flex: 1;
+  height: 45px;
+  padding: 0 15px;
+  padding-right: 45px;
+  border-radius: 25px;
+  background-color: white;
+  border: none;
+  font-size: 14px;
+  outline: none;
+}
+
+/* Ocultar el botón nativo de mostrar/ocultar contraseña del navegador */
+.login-input-group input[type="password"]::-ms-reveal,
+.login-input-group input[type="password"]::-ms-clear {
+  display: none;
+}
+
+.login-input-group input[type="password"]::-webkit-credentials-auto-fill-button,
+.login-input-group input[type="password"]::-webkit-contacts-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+.login-input-group input[type="text"]::-ms-reveal,
+.login-input-group input[type="text"]::-ms-clear {
+  display: none;
+}
+
+.login-input-group input::placeholder {
+  color: #999;
+}
+
+.icon-button {
+  position: absolute;
+  right: 25px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  line-height: 0;
+}
+
+.icon-button:hover {
+  color: #666;
+}
+
+.login-button {
+  margin-top: 10px;
+  height: 50px;
+  width: 100%;
+  background-color: #ff8a3c;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #ff7420;
+}
+
+.login-help-link {
+  color: white;
+  font-size: 13px;
+  text-decoration: none;
+  margin-top: 5px;
+}
+
+.login-help-link:hover {
+  text-decoration: underline;
+}
+
+.login-error {
+  margin-top: 8px;
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.15);
+  border-radius: 8px;
+  padding: 10px 15px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+/* Responsive para Tablets */
+@media (max-width: 1024px) {
+  .restaurant-title {
+    font-size: 20px;
+  }
+  
+  .login-card {
+    max-width: 350px;
+  }
+}
+
+/* Responsive para Móviles */
+@media (max-width: 768px) {
+  .login-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .login-wrapper {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .login-left-panel {
+    flex: none;
+    height: 200px;
+    min-height: 200px;
+  }
+
+  .left-panel-content {
+    padding: 20px;
+  }
+
+  .restaurant-title {
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .login-right-panel {
+    flex: none;
+    min-height: calc(100vh - 200px);
+    padding: 30px 20px;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 20px 15px;
+    gap: 18px;
+  }
+
+  .login-icon {
+    width: 75px;
+    height: 75px;
+    margin-bottom: 5px;
+  }
+
+  .login-title {
+    font-size: 24px;
+  }
+
+  .login-subtitle {
+    font-size: 13px;
+  }
+
+  .login-input-group input {
+    height: 48px;
+    font-size: 16px; /* Evita zoom en iOS */
+  }
+
+  .login-button {
+    height: 48px;
+    font-size: 16px;
+  }
+}
+
+/* Responsive para Móviles Pequeños */
+@media (max-width: 480px) {
+  .login-left-panel {
+    height: 150px;
+    min-height: 150px;
+  }
+
+  .left-panel-content {
+    padding: 15px;
+  }
+
+  .restaurant-title {
+    font-size: 16px;
+  }
+
+  .login-right-panel {
+    min-height: calc(100vh - 150px);
+    padding: 20px 15px;
+  }
+
+  .login-card {
+    padding: 15px 10px;
+    gap: 15px;
+  }
+
+  .login-icon {
+    width: 65px;
+    height: 65px;
+  }
+
+  .login-title {
+    font-size: 22px;
+  }
+
+  .login-subtitle {
+    font-size: 12px;
+  }
+
+  .login-input-group label {
+    font-size: 13px;
+  }
+
+  .login-input-group input {
+    height: 46px;
+    padding: 0 12px;
+    padding-right: 40px;
+  }
+
+  .icon-button {
+    right: 15px;
+  }
+
+  .login-button {
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .login-help-link {
+    font-size: 12px;
+  }
+}
+
+/* Landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+  .login-container {
+    overflow-y: auto;
+  }
+
+  .login-left-panel {
+    height: 120px;
+    min-height: 120px;
+  }
+
+  .login-right-panel {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .login-card {
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .login-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0;
+  }
+
+  .login-text {
+    margin-bottom: 5px;
+    gap: 5px;
+  }
+
+  .login-title {
+    font-size: 20px;
+  }
+
+  .login-input-group input {
+    height: 42px;
+  }
+
+  .login-button {
+    height: 42px;
+    margin-top: 5px;
+  }
+}

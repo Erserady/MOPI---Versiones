@@ -1,0 +1,57 @@
+.custom-dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 2vw;
+  min-width: 55vw;
+  background: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+  position: fixed;
+  overflow: auto;
+  min-height: 400px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  scrollbar-width: thin;
+
+  .custom-dialog-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 16px;
+  }
+
+  .custom-dialog-close {
+    align-self: flex-end;
+    padding: 6px 12px;
+    border: none;
+    background: #9f1111;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    top: -1vw;
+    right: -1vw;
+    position: absolute;
+    width: 30px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .custom-dialog-close:hover {
+    background: #cf7a7a;
+  }
+
+  @media (max-width: 720px) {
+    min-width: 75vw;
+    padding: 10px;
+    .custom-dialog-content {
+      padding: 10px;
+      gap: 10px;
+    }
+  }
+}
+dialog:-internal-dialog-in-top-layer::backdrop {
+  backdrop-filter: blur(5px);
+  transition: background 0.3s ease-in-out;
+}

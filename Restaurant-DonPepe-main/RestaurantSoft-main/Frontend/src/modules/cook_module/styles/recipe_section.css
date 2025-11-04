@@ -1,0 +1,67 @@
+.recipe-card-section {
+  display: flex;
+  flex-direction: row;
+  gap: 2.5vw;
+  justify-content: center;
+  margin: 2vw 0;
+  flex-wrap: wrap;
+  justify-content: center; /* por defecto a la izquierda */
+
+  .recipe-card-container {
+    width: 270px;
+    height: auto;
+    padding: 15px;
+    border-radius: 8px;
+    gap: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.315);
+
+    .recipe-card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .recipe-card-header {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-left: 15px;
+
+      h2 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: gray;
+      }
+      svg {
+        color: gray;
+        width: 30px;
+        height: 30px;
+      }
+    }
+  }
+  .recipe-card-info {
+    font-size: 0.8rem;
+    color: gray;
+  }
+
+  button {
+    height: 30px;
+    padding: 5px;
+    width: 90px;
+    align-self: center;
+    border-radius: 8px;
+    font-weight: 550;
+    font-size: 0.9rem;
+    background-color: transparent;
+    border: 1px solid rgba(74, 74, 74, 0.608);
+
+    &:hover {
+      background-color: rgb(171, 199, 165);
+      transition: 0.25s;
+    }
+  }
+}

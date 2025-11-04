@@ -1,0 +1,97 @@
+.admin-inventory {
+  padding: 20px;
+  h2 {
+    font-size: 2rem;
+  }
+  .adm-inv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    button {
+      width: 170px;
+      height: 40px;
+    }
+    @media (max-width: 600px) {
+      h2 {
+        font-size: 18px;
+      }
+      button {
+        width: 150px;
+        height: 30px;
+      }
+    }
+  }
+
+  .filter-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    margin-top: 10px;
+    @media (max-width: 720px) {
+      gap: 10px;
+      flex-direction: column;
+      .menu-filters {
+        margin: 0;
+        justify-content: center;
+      }
+    }
+  }
+
+  .menu-filters {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .filter-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: none;
+    background: #f0f0f0;
+    cursor: pointer;
+  }
+
+  .filter-btn.active {
+    background: #333;
+    color: #fff;
+  }
+
+  .modal-btn {
+    align-self: center;
+    width: 200px;
+  }
+
+  dialog {
+    h2 {
+      font-size: 18px;
+    }
+  }
+}
+
+.admin-inventory-form {
+  display: flex;
+  margin-top: 5px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+
+  .form-input-label-container {
+    width: 49%;
+  }
+
+  .form-input-label-container:nth-child(1) {
+    width: 100%;
+  }
+
+  .full-width {
+    width: 100% !important;
+  }
+
+  @media (max-width: 720px) {
+    .form-input-label-container {
+      width: 100%;
+    }
+  }
+}

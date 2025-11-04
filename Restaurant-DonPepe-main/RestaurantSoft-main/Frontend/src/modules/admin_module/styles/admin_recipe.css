@@ -1,0 +1,155 @@
+.admin-recipe-container {
+  padding: 20px;
+  .admin-recipe-title {
+    font-size: 2rem;
+  }
+  .filter-bar {
+    margin-top: 20px;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-input,
+  .category-select {
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+  }
+
+  .search-input {
+    width: 250px;
+  }
+
+  .no-results {
+    text-align: center;
+    color: #777;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+
+  .adm-recipe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    button {
+      width: 170px;
+      height: 40px;
+    }
+    @media (max-width: 600px) {
+      h2 {
+        font-size: 18px;
+      }
+      button {
+        width: 150px;
+        height: 30px;
+      }
+    }
+  }
+}
+
+.admin-recipe-form {
+  @media (max-width: 720px) {
+    .form-input-label-container {
+      width: 100% !important;
+    }
+    .recipe-details-inputs {
+      flex-direction: column;
+    }
+    .form-input {
+      width: 100%;
+    }
+
+    .ingredient-detail-title {
+      p {
+        font-size: 12px;
+      }
+    }
+  }
+  input[type="number"] {
+    text-align: center;
+  }
+  .full-width {
+    width: 98%;
+  }
+
+  .recipe-details-inputs {
+    display: flex;
+    justify-content: space-between;
+    .form-input-label-container {
+      width: 30%;
+    }
+  }
+  .ingredient-detail-title {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    p {
+      text-align: center;
+      width: 33%;
+      margin-right: 10%;
+    }
+  }
+
+  .ingredient-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+
+    .delete-btn {
+      height: 25px;
+      width: 25px;
+      align-self: center;
+      border-radius: 8px;
+      color: white;
+      background-color: rgb(147, 1, 1);
+    }
+  }
+  hr {
+    border: 0.5px solid lightgray;
+    margin-bottom: 10px;
+
+    @media (min-width: 720px) {
+      display: none;
+    }
+  }
+
+  .delete-btn {
+    height: 25px;
+    width: 25px;
+    align-self: center;
+    border-radius: 8px;
+    color: white;
+    background-color: rgb(147, 1, 1);
+  }
+  .instruction-group {
+    display: flex;
+    gap: 10px;
+    flex-direction: row;
+    justify-content: space-between;
+    .form-input-label-container {
+      width: 100%;
+    }
+  }
+  .blue-btn {
+    margin-top: 5px;
+    justify-self: flex-end;
+  }
+  .disabled {
+    background-color: grey !important;
+    cursor: not-allowed;
+  }
+
+  .fetch-btn {
+    margin-top: 15px;
+    justify-self: center;
+    width: 150px;
+    height: 30px;
+  }
+}

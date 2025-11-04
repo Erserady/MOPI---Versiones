@@ -1,0 +1,87 @@
+.pay-card {
+  dialog {
+    min-width: 400px !important;
+
+    @media (max-width: 720px) {
+      min-width: 310px !important;
+    }
+  }
+
+  .dialog-header {
+    h2 {
+      font-size: 18px;
+    }
+    p {
+      font-size: 15px;
+      color: gray;
+    }
+  }
+
+  .input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-left: 10px;
+    margin-top: 3px;
+
+    input[type="radio"] {
+      accent-color: #1f8f21; /* azul */
+    }
+
+    div {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      label {
+        font-size: 15px;
+        color: rgb(74, 75, 76);
+      }
+    }
+  }
+  .text-input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    input {
+      height: 30px;
+      padding: 5px;
+      border-radius: 8px;
+      background-color: rgb(231, 247, 231);
+      border: 1px rgb(164, 164, 164) solid;
+      text-align: center;
+    }
+  }
+
+  .total-section {
+    display: flex;
+    justify-content: space-around;
+    border: 1px gray solid;
+    border-radius: 5px;
+    div {
+      text-align: center;
+      p {
+        color: rgb(76, 75, 75);
+      }
+    }
+  }
+
+  .button-action {
+    align-self: center;
+
+    button {
+      width: 150px;
+      height: 40px;
+      border-radius: 10px;
+      background-color: rgb(181, 220, 181);
+      font-weight: 600;
+      border: 1px rgb(68, 67, 67) solid;
+      color: black;
+      &:hover {
+        background-color: green;
+        color: white;
+        transition: 0.7s;
+      }
+    }
+  }
+}

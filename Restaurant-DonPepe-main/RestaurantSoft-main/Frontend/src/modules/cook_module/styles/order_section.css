@@ -1,0 +1,154 @@
+.order-card-section {
+  display: flex;
+  flex-direction: row;
+  gap: 2vw;
+  justify-content: space-around;
+  margin: 2vw 0;
+  flex-wrap: wrap;
+
+  .order-card-container {
+    margin-top: 2vw;
+    width: 300px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .order-card-container.pendiente {
+    border: 1px solid #bf4040d0;
+  }
+  .order-card-container.preparacion {
+    border: 1px solid #9b7133;
+  }
+  .order-card-container.listo {
+    border: 1px solid #9ccd9d;
+  }
+
+  .order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .order-card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+
+  .order-card-badge.pendiente {
+    background-color: #f44f4fd0;
+    color: #4e0101;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.8rem;
+  }
+
+  .order-card-badge.preparacion {
+    background-color: #ffe0b2;
+    color: #a85c00;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.8rem;
+  }
+
+  .order-card-badge.listo {
+    background-color: #c8e6c9;
+    color: #256029;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.8rem;
+  }
+
+  .order-card-items {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 12px;
+  }
+
+  .order-card-items li {
+    margin-bottom: 4px;
+  }
+  .order-card-body {
+    flex: 1;
+    margin-bottom: 12px;
+  }
+  .order-card-actions {
+    display: flex;
+    gap: 4px;
+    position: relative;
+    bottom: 0;
+  }
+
+  .order-card-actions button {
+    flex: 1;
+    padding: 4px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    height: 40px;
+  }
+
+  .order-card-actions button:nth-child(1) {
+    background-color: #ffffff;
+    color: rgb(0, 0, 0);
+    border: 1px solid #1976d2;
+  }
+
+  .order-card-actions button:nth-child(1):hover {
+    background-color: #1976d2;
+    color: white;
+    transition: 0.4s;
+  }
+
+  .order-card-actions button:nth-child(2) {
+    background-color: #ffffff;
+    color: rgb(0, 0, 0);
+    border: 1px solid #d28819;
+    font-size: 0.8rem;
+  }
+
+  .order-card-actions button:nth-child(2):hover {
+    background-color: #d28819;
+    color: white;
+    transition: 0.4s;
+  }
+
+  .disabled {
+    pointer-events: none;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .order-card-actions button:nth-child(3) {
+    background-color: #ffffff;
+    color: rgb(0, 0, 0);
+    border: 1px solid #388e3c;
+  }
+
+  .order-card-actions button:nth-child(3):hover {
+    background-color: #388e3c;
+    color: white;
+    transition: 0.4s;
+  }
+
+  .order-dialog-items {
+    margin-left: 2vw;
+  }
+  dialog {
+    min-width: 400px !important;
+
+    @media (max-width: 720px) {
+      min-width: 270px !important;
+    }
+  }
+}

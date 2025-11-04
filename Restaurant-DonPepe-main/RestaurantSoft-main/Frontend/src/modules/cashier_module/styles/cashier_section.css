@@ -1,0 +1,172 @@
+.cashier-section {
+  .cashier-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas */
+    grid-template-rows: auto auto; /* 2 filas automáticas */
+    gap: 30px;
+    height: auto;
+    padding: 5px;
+    justify-items: center;
+
+    .cashier-actions {
+      grid-column: span 1; /* ocupa 1 columna */
+      grid-row: span 1; /* ocupa 1 fila */
+      grid-column-start: 1;
+      grid-row-start: 1;
+      width: clamp(310px, 44.25vw, 900px);
+      height: 206px;
+      background-color: #e6f0ff;
+      .cashier-card-content {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+
+        button {
+          border-radius: 10px;
+          font-size: 18px;
+          font-weight: 600;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+        }
+        .close {
+          background-color: rgb(210, 33, 33);
+          color: white;
+          &:hover {
+            background-color: rgb(177, 28, 28);
+          }
+        }
+        .report {
+          background-color: rgb(115, 115, 115);
+          color: white;
+          &:hover {
+            background-color: rgb(73, 72, 72);
+          }
+        }
+      }
+    }
+
+    .cashier-state {
+      grid-column: span 1;
+      grid-row: span 1;
+      grid-column-start: 2;
+      grid-row-start: 1;
+      width: clamp(310px, 44.25vw, 900px);
+      height: 206px;
+      background-color: #f0f4f8;
+      .cashier-card-content {
+        display: flex;
+        flex-direction: column; 
+        gap: 5px;
+        margin-top: 0px;
+      }
+
+      p {
+        border: 1px solid rgb(173, 173, 173);
+        display: flex;
+        justify-content: space-between;
+        padding: 5px;
+        border-radius: 10px;
+      }
+      .cashier-success {
+        color: green;
+      }
+    }
+
+    .cashier-history {
+      grid-column: span 2; /* ocupa ambas columnas */
+      grid-row: span 2; /* ocupa 2 filas */
+      grid-row-start: 2;
+      width: clamp(310px, 94.05vw, 1340px);
+
+      .cashier-card-content {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .cashier-transaction {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: white;
+        padding: 10px;
+        border: 1px solid rgb(185, 185, 185);
+        border-radius: 10px;
+      }
+
+      .title-transaction {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+        width: 80%;
+        div {
+          display: flex;
+          justify-content: center;
+          align-items: start;
+          flex-direction: column;
+          width: 70%;
+          @media (max-width: 800px) {
+            align-items: center;
+          }
+        }
+      }
+
+      .cashier-amount {
+        color: green;
+        font-weight: 700;
+      }
+    }
+
+    @media (max-width: 720px) {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      padding: 5px;
+
+      .cashier-history {
+        width: clamp(310px, 80.05vw, 720px);
+      }
+    }
+  }
+  .cashier-card {
+    width: 100%;
+    height: auto;
+    background-color: rgb(237, 248, 237);
+    border-radius: 10px;
+    padding: 15px;
+  }
+}
+
+/* Agregar estas reglas al CSS existente */
+
+.cashier-btn.open {
+  background-color: rgb(34, 139, 34) !important;
+  color: white;
+  &:hover {
+    background-color: rgb(28, 116, 28) !important;
+  }
+}
+
+.cashier-danger {
+  color: #dc3545 !important;
+}
+
+.cashier-amount.cashier-open {
+  color: #28a745;
+}
+
+.cashier-amount.cashier-close {
+  color: #dc3545;
+}
+
+.cashier-state p:first-child {
+  background-color: #e8f5e8;
+  border-color: #28a745;
+}

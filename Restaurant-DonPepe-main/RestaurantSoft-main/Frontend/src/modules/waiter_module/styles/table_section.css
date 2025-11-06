@@ -56,3 +56,43 @@
     }
   }
 }
+
+.category-btn {
+  background: #f1f1f1;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  margin: 0.3rem;
+  transition: background 0.2s;
+}
+
+.category-btn.active {
+  background: #007bff;
+  color: white;
+}
+
+.category-btn:hover {
+  background: #e1e1e1;
+}
+
+.table-container {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.confirm-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.2rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-top: 1rem;
+}
+
+.confirm-btn:hover {
+  background: #218838;
+}

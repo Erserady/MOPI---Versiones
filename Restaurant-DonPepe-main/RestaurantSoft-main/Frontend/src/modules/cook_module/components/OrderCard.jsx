@@ -1,36 +1,30 @@
 import { useState } from "react";
 import OrderDialog from "./OrderDialog";
 
-const OrderCard = ({ order, updateOrderState }) => {
-  const visibleAccounts = order.accounts.slice(0, 2); // mostrar solo 2 cuentas
-  const extraCount = order.accounts.length - visibleAccounts.length; // cuentas sobrantes
+const OrderCard = ({ order, updateDishStatus }) => {
+  const visibleItems = order.items.slice(0, 2);
+  const extraCount = order.items.length - visibleItems.length;
   const [isDialogOpen, setDialogOpen] = useState(false);
 
+  const statusClass = order.orderStatus
+    .toLowerCase()
+    .replace("en ", "")
+    .replace("ó", "o");
+
   return (
-    <article
-      className={`shadow order-card-container  ${order.status
-        .toLowerCase()
-        .replace("en ", "")
-        .replace("ó", "o")}`}
-    >
+    <article className={`shadow order-card-container ${statusClass}`}>
       <section className="order-card-header">
         <h2 className="order-card-title">Mesa {order.tableNumber}</h2>
-        <span
-          className={`order-card-badge ${order.status
-            .toLowerCase()
-            .replace("en ", "")
-            .replace("ó", "o")}`}
-        >
-          {order.status}
+        <span className={`order-card-badge ${statusClass}`}>
+          {order.orderStatus}
         </span>
       </section>
 
       <section className="order-card-body">
         <ul className="order-card-items">
-          {visibleAccounts.map((account) => (
-            <li key={account.accountId}>
-              <b>{account.label || "Cuenta"}</b> | <b>Pedidos:</b>{" "}
-              {account.items.length}
+          {visibleItems.map((item) => (
+            <li key={item.dishId}>
+              <b>{item.dishName}</b> x{item.dishQuantity}
             </li>
           ))}
           {extraCount > 0 && <li>+{extraCount} más</li>}
@@ -41,26 +35,13 @@ const OrderCard = ({ order, updateOrderState }) => {
         <button className="shadow" onClick={() => setDialogOpen(true)}>
           Ver
         </button>
-        <button
-          className={
-            order.status === "En preparación" ? "disabled shadow" : "shadow"
-          }
-          onClick={() => updateOrderState(order.id, "En preparación")}
-        >
-          Preparar
-        </button>
-        <button
-          className={order.status === "Listo" ? "disabled shadow" : "shadow"}
-          onClick={() => updateOrderState(order.id, "Listo")}
-        >
-          Listo
-        </button>
       </section>
 
       <OrderDialog
         order={order}
         isOpen={isDialogOpen}
         onClose={() => setDialogOpen(false)}
+        updateDishStatus={updateDishStatus}
       />
     </article>
   );

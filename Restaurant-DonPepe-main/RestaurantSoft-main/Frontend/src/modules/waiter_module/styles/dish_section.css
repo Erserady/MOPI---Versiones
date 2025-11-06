@@ -1,80 +1,62 @@
-.dish-section {
-  .filter-section {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    @media (max-width: 720px) {
-      gap: 10px;
-      flex-direction: column;
+.categories-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 
-      .menu-search {
-        width: 90%;
-      }
-      .menu-filters {
-        margin: 0;
-        justify-content: center;
-      }
-    }
+  justify-content: center;
+
+  @media (max-width: 720px) {
+    gap: 0.3rem;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+    background-color: #eeeeeea4;
+    padding: 20px;
+    border-radius: 10px;
+  }
+}
+.category-tip {
+  width: 100%;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: #aeaeae;
+  display: none;
+  @media (max-width: 720px) {
+    display: block;
+  }
+}
+
+.category-btn {
+  padding: 0.7rem 1.2rem;
+  border-radius: 25px;
+  border: 2px solid #e0e0e0;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #e9ecef;
+    border-color: #007bff;
   }
 
-  .menu-search {
-    width: 50%;
-    padding: 0.6rem;
-    margin: 0.8rem 0;
-    border-radius: 8px;
-    border: 1px solid #ddd;
+  &.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
   }
+}
 
-  .menu-filters {
-    display: flex;
-    gap: 0.5rem;
-    width: 50%;
-    align-items: center;
-    margin-left: 2vw;
-  }
+.category-dishes {
+  margin-top: 1rem;
+}
 
-  .filter-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    border: none;
-    background: #f0f0f0;
-    cursor: pointer;
-  }
-
-  .filter-btn.active {
-    background: #333;
-    color: #fff;
-  }
-
-  .menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2vw;
-  }
-
-  .dish-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1rem;
-
-    .dish-name {
-      font-size: 1rem;
-      font-weight: bold;
-    }
-
-    .dish-price {
-      font-size: 1rem;
-      margin: 0.3rem 0;
-    }
-
-    .dish-availability.available {
-      color: green;
-    }
-
-    .dish-availability.unavailable {
-      color: red;
-    }
-  }
+.no-dishes {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  grid-column: 1 / -1;
 }

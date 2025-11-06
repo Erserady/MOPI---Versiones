@@ -4,85 +4,68 @@ import "../styles/order_section.css";
 
 const initialOrders = [
   {
-    id: "1259",
-    tableNumber: "7",
-    status: "Pendiente", // "En preparación" | "Servido" | "Pagado"
-    accounts: [
+    orderId: "A1001",
+    tableNumber: 5,
+    orderStatus: "Pendiente",
+    total: 37.5,
+    isPaid: false,
+    items: [
       {
-        accountId: "1",
-        label: "Cuenta 1", // nombre o etiqueta de la cuenta
-        items: [
-          {
-            type: "food", // tipo de artículo (food, drink, etc.)
-            name: "Pollo a la Plancha",
-            quantity: 2,
-            unitPrice: 12.5,
-            subtotal: 25,
-          },
-          {
-            type: "drink",
-            name: "Refresco",
-            quantity: 2,
-            unitPrice: 2.5,
-            subtotal: 5,
-          },
-        ],
-        subtotal: 30,
+        dishId: "d01",
+        dishStatus: "Pendiente",
+        dishQuantity: 2,
+        unitPrice: 10.5,
+        subtotal: 21.0,
+        dishName: "Pollo a la Plancha",
+        dishCategory: "Principal",
+        cost: 8.0,
+        description: "Pollo a la plancha con guarnición",
+        createTime: "2025-10-23 18:12:45",
       },
       {
-        accountId: "2",
-        label: "Cuenta 2",
-        items: [
-          {
-            type: "food",
-            name: "Ensalada César",
-            quantity: 1,
-            unitPrice: 8.5,
-            subtotal: 8.5,
-          },
-        ],
-        subtotal: 8.5,
+        dishId: "d02",
+        dishStatus: "En preparación",
+        dishQuantity: 1,
+        unitPrice: 5.5,
+        subtotal: 5.5,
+        dishName: "Refresco natural",
+        dishCategory: "Bebida",
+        cost: 2.0,
+        description: "Refresco de piña natural",
+        createTime: "2025-10-23 18:14:03",
       },
       {
-        accountId: "3",
-        label: null,
-        items: [
-          {
-            type: "food",
-            name: "Ensalada César",
-            quantity: 1,
-            unitPrice: 8.5,
-            subtotal: 8.5,
-          },
-        ],
-        subtotal: 8.5,
-      },
-      {
-        accountId: "3",
-        label: null,
-        items: [
-          {
-            type: "food",
-            name: "Ensalada César",
-            quantity: 1,
-            unitPrice: 8.5,
-            subtotal: 8.5,
-          },
-        ],
-        subtotal: 8.5,
+        dishId: "d03",
+        dishStatus: "Listo",
+        dishQuantity: 1,
+        unitPrice: 11.0,
+        subtotal: 11.0,
+        dishName: "Ensalada César",
+        dishCategory: "Entrada",
+        cost: 7.0,
+        description: "Ensalada con aderezo César",
+        createTime: "2025-10-23 18:20:10",
       },
     ],
-    total: 38.5,
   },
 ];
 
 const OrderSection = () => {
   const [orders, setOrders] = useState(initialOrders);
 
-  const updateOrderState = (id, newState) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === id ? { ...order, status: newState } : order
+  const updateDishStatus = (orderId, dishId, newStatus) => {
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order.orderId === orderId
+          ? {
+              ...order,
+              items: order.items.map((dish) =>
+                dish.dishId === dishId
+                  ? { ...dish, dishStatus: newStatus }
+                  : dish
+              ),
+            }
+          : order
       )
     );
   };
@@ -93,9 +76,9 @@ const OrderSection = () => {
       <section className="order-card-section">
         {orders.map((order) => (
           <OrderCard
-            key={order.id}
+            key={order.orderId}
             order={order}
-            updateOrderState={updateOrderState}
+            updateDishStatus={updateDishStatus}
           />
         ))}
       </section>

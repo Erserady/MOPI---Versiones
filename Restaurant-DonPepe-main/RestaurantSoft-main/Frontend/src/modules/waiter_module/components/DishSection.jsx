@@ -1,70 +1,124 @@
 import { useState } from "react";
-import DishCard from "./DishCard";
+import DishCard from "./DishTable";
 import "../styles/dish_section.css";
+import DishTable from "./DishTable";
 
+// Categorías basadas en el menú proporcionado
+const categories = [
+  "🥃 Licores Importados",
+  "🍺 Cervezas",
+  "🥩 Carne de Res",
+  "🍗 Carne Blanca",
+  "🐖 Carne de Cerdo",
+  "🐟 Mariscos",
+  "🍤 Cocktail",
+  "🍲 Sopas",
+  "🍸 Cocktail y Vino",
+  "🚬 Cigarros",
+  "🥃 Ron Nacional",
+  "🧃 Productos CDN",
+  "🍹 RTD",
+  "🥂 Hard Seltzer",
+  "🍽️ Variados",
+  "-Enlatados/Desechables",
+];
+
+// Datos de ejemplo basados en tu menú
 const initialMenu = [
   {
     id: 1,
     name: "Pollo a la Plancha",
-    category: "Platillos",
+    category: "🍗 Carne Blanca",
     price: 15.5,
     available: true,
     description: "Jugoso pollo a la plancha con guarnición.",
   },
-  { id: 2, name: "Limonada", category: "Bebidas", price: 2.5, available: true },
-  { id: 3, name: "Brownie", category: "Extras", price: 4.0, available: false },
+  {
+    id: 13,
+    name: "Pollo a la Plancha",
+    category: "🍗 Carne Blanca",
+    price: 15.5,
+    available: true,
+    description: "Jugoso pollo a la plancha con guarnición.",
+  },
+  {
+    id: 12,
+    name: "Pollo a la Plancha",
+    category: "🍗 Carne Blanca",
+    price: 15.5,
+    available: true,
+    description: "Jugoso pollo a la plancha con guarnición.",
+  },
+  {
+    id: 2,
+    name: "Limonada",
+    category: "-Enlatados/Desechables",
+    price: 2.5,
+    available: true,
+  },
+  {
+    id: 3,
+    name: "Brownie",
+    category: "🍽️ Variados",
+    price: 4.0,
+    available: false,
+  },
+  {
+    id: 4,
+    name: "Filete de Res",
+    category: "🥩 Carne de Res",
+    price: 18.0,
+    available: true,
+  },
+  {
+    id: 5,
+    name: "Cerveza Victoria",
+    category: "🍺 Cervezas",
+    price: 3.5,
+    available: true,
+  },
 ];
 
-const categories = ["Todos", "Platillos", "Bebidas", "Extras"];
-
-const MenuSection = () => {
+const DishSection = () => {
   const [menu] = useState(initialMenu);
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("Todos");
+  const [activeCategory, setActiveCategory] = useState(categories[0]);
 
-  const filteredMenu = menu.filter((dish) => {
-    const matchesCategory =
-      activeCategory === "Todos" || dish.category === activeCategory;
-    const matchesSearch = dish.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredMenu = menu.filter((dish) => dish.category === activeCategory);
 
   return (
     <section className="dish-section">
       <h1>Menú Disponible</h1>
 
-      <div className="filter-section">
-        <input
-          type="text"
-          placeholder="Buscar en el menú..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="menu-search shadow"
-        />
-
-        <div className="menu-filters">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              className={`filter-btn ${activeCategory === cat ? "active" : ""}`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <section className="menu-grid">
-        {filteredMenu.map((dish) => (
-          <DishCard key={dish.id} dish={dish} />
+      {/* Menú de categorías */}
+      <div className="categories-menu">
+        {categories.map((category) => (
+          <button
+            key={category}
+            className={`category-btn ${
+              activeCategory === category ? "active" : ""
+            }`}
+            onClick={() => setActiveCategory(category)}
+          >
+            {category}
+          </button>
         ))}
-        {filteredMenu.length === 0 && <p>No se encontraron platillos.</p>}
+      </div>
+      <p className="category-tip">
+        {"← Desliza para seleccionar la categoria →"}
+      </p>
+
+      {/* Sección de platos de la categoría seleccionada */}
+      <section className="category-dishes">
+        <h2 className="category-title">{activeCategory}</h2>
+        <div className="table-container">
+          {filteredMenu && <DishTable utility="menu" data={filteredMenu} />}
+          {filteredMenu.length === 0 && (
+            <p className="no-dishes">No hay platos en esta categoría.</p>
+          )}
+        </div>
       </section>
     </section>
   );
 };
 
-export default MenuSection;
+export default DishSection;

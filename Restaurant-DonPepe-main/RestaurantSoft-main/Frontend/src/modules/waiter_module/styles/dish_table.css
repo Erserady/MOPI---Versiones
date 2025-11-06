@@ -1,0 +1,103 @@
+.dish-table {
+  width: 100%;
+
+  background: white;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #000000;
+}
+.dish-table th,
+.dish-table td {
+  padding: 0.8rem 1rem;
+  text-align: center;
+}
+
+.dish-table th {
+  background-color: #f7f7f7;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.dish-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.dish-name {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.dish-price {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #2c5530;
+}
+
+.dish-availability {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.dish-availability.available {
+  color: #28a745;
+}
+
+.dish-availability.unavailable {
+  color: #dc3545;
+}
+
+.qty-btn,
+.add-btn,
+.remove-btn,
+.comment-btn {
+  background: #007bff;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.qty-btn {
+  margin: 0 0.3rem;
+  font-weight: bold;
+}
+
+.qty-btn:hover,
+.add-btn:hover,
+.remove-btn:hover,
+.comment-btn:hover {
+  background: #0056b3;
+}
+
+.remove-btn {
+  background: #dc3545;
+}
+
+.comment-btn {
+  background: #28a745;
+}
+
+.dish-availability.available {
+  color: #28a745;
+}
+
+.dish-availability.unavailable {
+  color: #dc3545;
+}
+
+.dish-quantity {
+  padding: 5px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dish-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}

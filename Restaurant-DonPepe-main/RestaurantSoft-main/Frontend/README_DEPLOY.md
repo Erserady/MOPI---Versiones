@@ -1,14 +1,14 @@
 # Frontend - MOPI Restaurante Don Pepe
 
-## üöÄ Despliegue en Render (Static Site)
+## ≠É‹« Despliegue en Render (Static Site)
 
-### Comandos de construcci√≥n
+### Comandos de construcci+¶n
 
 ```bash
 npm install && npm run build
 ```
 
-### Directorio de publicaci√≥n
+### Directorio de publicaci+¶n
 
 ```
 dist
@@ -20,15 +20,15 @@ dist
 VITE_API_URL=https://tu-backend.onrender.com
 ```
 
-### Configuraci√≥n de Rewrites
+### Configuraci+¶n de Rewrites
 
-Para que React Router funcione correctamente en producci√≥n:
+Para que React Router funcione correctamente en producci+¶n:
 
 ```
 /*  /index.html  200
 ```
 
-## üîß Desarrollo Local
+## ≠Éˆ∫ Desarrollo Local
 
 ### 1. Instalar dependencias
 
@@ -50,49 +50,54 @@ VITE_API_URL=http://localhost:8000
 npm run dev
 ```
 
-El frontend estar√° disponible en: `http://localhost:5173`
+El frontend estar+Ì disponible en: `http://localhost:5173`
 
 ### 4. Otros comandos
 
 ```bash
-npm run build      # Construir para producci√≥n
+npm run build      # Construir para producci+¶n
 npm run preview    # Preview de la build
 npm run lint       # Ejecutar linter
 ```
 
-## üìÅ Estructura del Proyecto
+## ≠ÉÙ¸ Estructura del Proyecto
 
 ```
 Frontend/
-‚îú‚îÄ‚îÄ src/
-‚îÇ   ‚îú‚îÄ‚îÄ config/
-‚îÇ   ‚îÇ   ‚îî‚îÄ‚îÄ api.js              # Configuraci√≥n de API
-‚îÇ   ‚îú‚îÄ‚îÄ components/
-‚îÇ   ‚îÇ   ‚îî‚îÄ‚îÄ UserSelectionModal.jsx
-‚îÇ   ‚îú‚îÄ‚îÄ views/
-‚îÇ   ‚îÇ   ‚îú‚îÄ‚îÄ login_view/
-‚îÇ   ‚îÇ   ‚îÇ   ‚îî‚îÄ‚îÄ Login.jsx       # Vista de login
-‚îÇ   ‚îÇ   ‚îî‚îÄ‚îÄ admin_dashboard/
-‚îÇ   ‚îÇ       ‚îî‚îÄ‚îÄ AdminDashboardPreview.jsx
-‚îÇ   ‚îú‚îÄ‚îÄ styles/                 # Archivos CSS
-‚îÇ   ‚îú‚îÄ‚îÄ router/
-‚îÇ   ‚îÇ   ‚îî‚îÄ‚îÄ AppRouter.jsx       # Configuraci√≥n de rutas
-‚îÇ   ‚îú‚îÄ‚îÄ App.jsx                 # Componente principal
-‚îÇ   ‚îî‚îÄ‚îÄ main.jsx                # Entry point
-‚îú‚îÄ‚îÄ public/                     # Archivos p√∫blicos
-‚îú‚îÄ‚îÄ index.html                  # HTML base
-‚îú‚îÄ‚îÄ vite.config.js              # Configuraci√≥n de Vite
-‚îú‚îÄ‚îÄ package.json                # Dependencias
-‚îî‚îÄ‚îÄ .env.example                # Ejemplo de variables de entorno
+‘ˆ£‘ˆ«‘ˆ« src/
+‘ˆÈ   ‘ˆ£‘ˆ«‘ˆ« config/
+‘ˆÈ   ‘ˆÈ   ‘ˆˆ‘ˆ«‘ˆ« api.js              # Configuraci+¶n de API
+‘ˆÈ   ‘ˆ£‘ˆ«‘ˆ« components/
+‘ˆÈ   ‘ˆÈ   ‘ˆˆ‘ˆ«‘ˆ« UserSelectionModal.jsx
+‘ˆÈ   ‘ˆ£‘ˆ«‘ˆ« views/
+‘ˆÈ   ‘ˆÈ   ‘ˆ£‘ˆ«‘ˆ« login_view/
+‘ˆÈ   ‘ˆÈ   ‘ˆÈ   ‘ˆˆ‘ˆ«‘ˆ« Login.jsx       # Vista de login
+‘ˆÈ   ‘ˆÈ   ‘ˆˆ‘ˆ«‘ˆ« admin_dashboard/
+‘ˆÈ   ‘ˆÈ       ‘ˆˆ‘ˆ«‘ˆ« AdminDashboardPreview.jsx
+‘ˆÈ   ‘ˆ£‘ˆ«‘ˆ« styles/                 # Archivos CSS
+‘ˆÈ   ‘ˆ£‘ˆ«‘ˆ« router/
+‘ˆÈ   ‘ˆÈ   ‘ˆˆ‘ˆ«‘ˆ« AppRouter.jsx       # Configuraci+¶n de rutas
+‘ˆÈ   ‘ˆ£‘ˆ«‘ˆ« App.jsx                 # Componente principal
+‘ˆÈ   ‘ˆˆ‘ˆ«‘ˆ« main.jsx                # Entry point
+‘ˆ£‘ˆ«‘ˆ« public/                     # Archivos p+¶blicos
+‘ˆ£‘ˆ«‘ˆ« index.html                  # HTML base
+‘ˆ£‘ˆ«‘ˆ« vite.config.js              # Configuraci+¶n de Vite
+‘ˆ£‘ˆ«‘ˆ« package.json                # Dependencias
+‘ˆˆ‘ˆ«‘ˆ« .env.example                # Ejemplo de variables de entorno
 ```
 
-## üîå Configuraci√≥n de API
+## ≠ÉˆÓ Configuraci+¶n de API
 
-El archivo `src/config/api.js` centraliza la configuraci√≥n de la API:
+El archivo `src/config/api.js` centraliza la configuraci+¶n de la API:
 
 ```javascript
-// Detecta autom√°ticamente el entorno
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Detecta automaticamente el entorno
+const rawBaseUrl =
+  import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim().length > 0
+    ? import.meta.env.VITE_API_URL
+    : 'http://localhost:8000';
+
+export const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
 // Endpoints disponibles
 export const API_ENDPOINTS = {
@@ -107,105 +112,105 @@ export const API_ENDPOINTS = {
 ```javascript
 import { API_ENDPOINTS, apiFetch } from '../config/api';
 
-// Hacer petici√≥n
+// Hacer petici+¶n
 const response = await apiFetch(API_ENDPOINTS.login, {
   method: 'POST',
   body: JSON.stringify({ username, password }),
 });
 ```
 
-## üé® Tecnolog√≠as
+## ≠Éƒø Tecnolog+°as
 
-- **React 19.1.1** - Librer√≠a UI
+- **React 19.1.1** - Librer+°a UI
 - **Vite 7.1.12** - Build tool y dev server
-- **React Router 7.8.2** - Navegaci√≥n
-- **Redux Toolkit 2.9.0** - Gesti√≥n de estado
+- **React Router 7.8.2** - Navegaci+¶n
+- **Redux Toolkit 2.9.0** - Gesti+¶n de estado
 - **Lucide React 0.542.0** - Iconos
-- **SWC** - Compilador r√°pido de JavaScript
+- **SWC** - Compilador r+Ìpido de JavaScript
 
-## üåê Variables de Entorno
+## ≠ÉÓ… Variables de Entorno
 
 ### Desarrollo (`.env`)
 ```env
 VITE_API_URL=http://localhost:8000
 ```
 
-### Producci√≥n (Render)
+### Producci+¶n (Render)
 ```env
-VITE_API_URL=https://mopi-backend.onrender.com
+VITE_API_URL=https://backend-mopi.onrender.com
 ```
 
-> ‚ö†Ô∏è **Importante:** Las variables en Vite deben empezar con `VITE_`
+> ‘‹·¥©≈ **Importante:** Las variables en Vite deben empezar con `VITE_`
 
-## üìã Checklist Pre-Despliegue
+## ≠ÉÙÔ Checklist Pre-Despliegue
 
 - [ ] `.env` configurado con URL del backend
 - [ ] `npm run build` ejecuta sin errores
-- [ ] No hay console.errors en producci√≥n
+- [ ] No hay console.errors en producci+¶n
 - [ ] Todas las rutas de la API usan `API_ENDPOINTS`
 - [ ] Frontend se conecta correctamente al backend
 - [ ] CORS configurado en el backend
 
-## üêõ Troubleshooting
+## ≠É…¯ Troubleshooting
 
 ### Error: Cannot read properties of undefined (reading 'env')
 
 **Causa:** Variables de entorno no configuradas
 
-**Soluci√≥n:**
+**Soluci+¶n:**
 1. Verifica que `.env` exista
-2. Aseg√∫rate de que las variables empiecen con `VITE_`
+2. Aseg+¶rate de que las variables empiecen con `VITE_`
 3. Reinicia el servidor de desarrollo
 
 ### Error: Network request failed / CORS
 
 **Causa:** CORS no configurado en el backend
 
-**Soluci√≥n:**
+**Soluci+¶n:**
 1. Verifica `CORS_ALLOWED_ORIGINS` en el backend
 2. Incluye la URL exacta del frontend (sin `/` al final)
 3. Redesplega el backend
 
-### Build falla con error de m√≥dulo
+### Build falla con error de m+¶dulo
 
-**Soluci√≥n:**
+**Soluci+¶n:**
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 npm run build
 ```
 
-## üéØ Flujo de Autenticaci√≥n
+## ≠Éƒª Flujo de Autenticaci+¶n
 
 1. Usuario ingresa credenciales en `/login`
-2. Frontend env√≠a POST a `API_ENDPOINTS.login`
+2. Frontend env+°a POST a `API_ENDPOINTS.login`
 3. Backend valida y retorna token
 4. Token se guarda en `localStorage`
 5. Usuario redirigido a `/admin-preview`
-6. Selecci√≥n de usuario por rol
-7. Verificaci√≥n de PIN v√≠a `API_ENDPOINTS.verifyPin`
+6. Selecci+¶n de usuario por rol
+7. Verificaci+¶n de PIN v+°a `API_ENDPOINTS.verifyPin`
 8. Acceso al dashboard correspondiente
 
-## üì± Rutas Disponibles
+## ≠ÉÙ¶ Rutas Disponibles
 
 - `/` - Login
-- `/admin-preview` - Selecci√≥n de m√≥dulo (admin)
+- `/admin-preview` - Selecci+¶n de m+¶dulo (admin)
 - `/cook-dashboard` - Dashboard cocina
 - `/waiter-dashboard` - Dashboard meseros
 - `/cashier-dashboard` - Dashboard caja
 - `/admin-dashboard` - Dashboard administrador
 
-## üîí Seguridad
+## ≠Éˆ∆ Seguridad
 
-- ‚úÖ Token almacenado en localStorage
-- ‚úÖ Validaci√≥n de PIN para acceso a m√≥dulos
-- ‚úÖ URLs de API centralizadas
-- ‚úÖ No hay credenciales en el c√≥digo
-- ‚ö†Ô∏è Considera usar httpOnly cookies para mayor seguridad
+- ‘£‡ Token almacenado en localStorage
+- ‘£‡ Validaci+¶n de PIN para acceso a m+¶dulos
+- ‘£‡ URLs de API centralizadas
+- ‘£‡ No hay credenciales en el c+¶digo
+- ‘‹·¥©≈ Considera usar httpOnly cookies para mayor seguridad
 
-## üìù Notas
+## ≠ÉÙÿ Notas
 
 - Vite proporciona HMR (Hot Module Replacement) en desarrollo
-- SWC mejora significativamente la velocidad de compilaci√≥n
-- El frontend es completamente est√°tico despu√©s del build
+- SWC mejora significativamente la velocidad de compilaci+¶n
+- El frontend es completamente est+Ìtico despu+Æs del build
 - Todas las peticiones API se hacen desde el navegador del cliente

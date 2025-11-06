@@ -1,34 +1,44 @@
 /**
- * Configuración de la API
- * Detecta automáticamente si estamos en desarrollo o producción
+ * Configuracion de la API
+ * Detecta automaticamente si estamos en desarrollo o produccion
  */
 
 // Obtener la URL base de la API desde variables de entorno
 // En desarrollo: http://localhost:8000
-// En producción: la URL configurada en Render (VITE_API_URL)
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// En produccion: la URL configurada en Render (VITE_API_URL)
+const rawBaseUrl =
+  import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim().length > 0
+    ? import.meta.env.VITE_API_URL
+    : "http://localhost:8000";
 
-// Configuración de endpoints
+// Normalizamos para evitar dobles '/' al construir los endpoints
+export const API_BASE_URL = rawBaseUrl.replace(/\/+$, "");
+
+// Configuracion de endpoints
 export const API_ENDPOINTS = {
-  // Autenticación
+  // Autenticacion
   login: `${API_BASE_URL}/api/users/login/`,
   verifyPin: `${API_BASE_URL}/api/users/verify-pin/`,
-  
+
   // Usuarios
   usersByRole: (role) => `${API_BASE_URL}/api/users/by-role/?role=${role}`,
-  
-  // Agregar más endpoints según sea necesario
+
+  // Agregar mas endpoints segun sea necesario
 };
 
-// Configuración de headers por defecto
+// Configuracion de headers por defecto
 export const getDefaultHeaders = () => ({
-  'Content-Type': 'application/json',
+  Accept: "application/json",
+  "Content-Type": "application/json",
 });
 
 // Helper para hacer peticiones fetch
 export const apiFetch = async (url, options = {}) => {
   const defaultOptions = {
     headers: getDefaultHeaders(),
+    mode: "cors",
+    credentials: "include",
+    cache: "no-store",
   };
 
   const finalOptions = {
@@ -44,8 +54,10 @@ export const apiFetch = async (url, options = {}) => {
     const response = await fetch(url, finalOptions);
     return response;
   } catch (error) {
-    console.error('Error en la petición API:', error);
-    throw error;
+    console.error("Error en la peticion API:", error);
+    throw new Error(
+      "No se pudo conectar con el backend. Verifica que la URL sea correcta y que el servicio este activo."
+    );
   }
 };
 

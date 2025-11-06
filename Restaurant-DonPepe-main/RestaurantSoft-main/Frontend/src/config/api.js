@@ -12,7 +12,7 @@ const rawBaseUrl =
     : "http://localhost:8000";
 
 // Normalizamos para evitar dobles '/' al construir los endpoints
-export const API_BASE_URL = rawBaseUrl.replace(/\/+$, "");
+export const API_BASE_URL = rawBaseUrl.replace(/\/+$/, "");
 
 // Configuracion de endpoints
 export const API_ENDPOINTS = {

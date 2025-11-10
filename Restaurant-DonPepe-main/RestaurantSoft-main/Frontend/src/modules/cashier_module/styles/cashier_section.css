@@ -2,8 +2,8 @@
   .cashier-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* 2 columnas */
-    grid-template-rows: auto auto; /* 2 filas automáticas */
-    gap: 30px;
+    grid-template-rows: repeat(2, 1fr); /* 3 filas */
+    gap: 15px;
     height: auto;
     padding: 5px;
     justify-items: center;
@@ -59,9 +59,9 @@
       background-color: #f0f4f8;
       .cashier-card-content {
         display: flex;
-        flex-direction: column; 
+        flex-direction: column;
         gap: 5px;
-        margin-top: 0px;
+        margin-top: 5px;
       }
 
       p {
@@ -142,31 +142,4 @@
     border-radius: 10px;
     padding: 15px;
   }
-}
-
-/* Agregar estas reglas al CSS existente */
-
-.cashier-btn.open {
-  background-color: rgb(34, 139, 34) !important;
-  color: white;
-  &:hover {
-    background-color: rgb(28, 116, 28) !important;
-  }
-}
-
-.cashier-danger {
-  color: #dc3545 !important;
-}
-
-.cashier-amount.cashier-open {
-  color: #28a745;
-}
-
-.cashier-amount.cashier-close {
-  color: #dc3545;
-}
-
-.cashier-state p:first-child {
-  background-color: #e8f5e8;
-  border-color: #28a745;
 }

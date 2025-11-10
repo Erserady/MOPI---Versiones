@@ -1,82 +1,53 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "../styles/cashier_section.css";
 import { CreditCard, Receipt, DollarSign, Banknote } from "lucide-react";
+import { useState } from "react";
 import CashierModal from "./Cashier.Modal";
 
 const CashierSection = () => {
-  const [isCashierOpen, setIsCashierOpen] = useState(false);
-  const [openingAmount, setOpeningAmount] = useState(5.00);
-  const [currentAmount, setCurrentAmount] = useState(5.00);
-  const [dailySales, setDailySales] = useState(0.00);
-  const [cashierName] = useState("RexDex");
-  const [openingTime, setOpeningTime] = useState("");
-  const [closingTime, setClosingTime] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("open");
-  const [transactions, setTransactions] = useState([
-    { type: "open", amount: 5.00, time: "11:18:44 a.m.", description: "Apertura de Caja" }
-  ]);
+  const [state, setState] = useState({
+    openedBy: "RexDex",
+    openedAt: "11:18:44 a.m.",
+    openingAmount: 5,
+    currentAmount: 5,
+    salesToday: 0,
+    history: [
+      { type: "Apertura de Caja", amount: 5, time: "11:18:44 a.m." },
+    ],
+  });
 
-  // Función para obtener la hora actual formateada
-  const getCurrentTime = () => {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    
-    const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
-    const formattedHours = hours % 12 || 12;
-    
-    return `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+  const openModal = (type) => {
+    setModalType(type);
+    setIsModalOpen(true);
   };
 
-  const handleCashierAction = () => {
-    if (isCashierOpen) {
-      setModalType("close");
-    } else {
-      setModalType("open");
-    }
-    setShowModal(true);
-  };
+  const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleModalSave = (data) => {
-    const currentTime = getCurrentTime();
-
+  const handleSaveCashier = (data) => {
     if (data.type === "open") {
-      setIsCashierOpen(true);
-      setOpeningAmount(data.totalAmount);
-      setCurrentAmount(data.totalAmount);
-      setDailySales(0.00);
-      setOpeningTime(currentTime); // Guardar la hora de apertura actual
-      
-      const newTransaction = {
-        type: "open",
-        amount: data.totalAmount,
-        time: currentTime, // Usar la hora actual
-        description: "Apertura de Caja"
-      };
-      setTransactions(prev => [newTransaction, ...prev]);
-      
+      setState((prev) => ({
+        ...prev,
+        openingAmount: data.totalAmount,
+        currentAmount: data.totalAmount,
+        openedBy: data.cashier,
+        openedAt: data.timestamp,
+        history: [
+          { type: "Apertura de Caja", amount: data.totalAmount, time: data.timestamp },
+          ...prev.history,
+        ],
+      }));
     } else {
-      setIsCashierOpen(false);
-      const sales = data.totalAmount - openingAmount;
-      setDailySales(sales > 0 ? sales : 0);
-      setClosingTime(currentTime); // Guardar la hora de cierre actual
-      
-      const newTransaction = {
-        type: "close",
-        amount: data.totalAmount,
-        time: currentTime, // Usar la hora actual
-        description: "Cierre de Caja"
-      };
-      setTransactions(prev => [newTransaction, ...prev]);
+      setState((prev) => ({
+        ...prev,
+        history: [
+          { type: "Cierre de Caja", amount: data.totalAmount, time: data.timestamp },
+          ...prev.history,
+        ],
+      }));
     }
-    
-    setShowModal(false);
-  };
-
-  const handleModalClose = () => {
-    setShowModal(false);
+    setIsModalOpen(false);
   };
 
   return (
@@ -86,36 +57,26 @@ const CashierSection = () => {
       <div className="cashier-grid">
         <CashierCard title="Estado de Caja" customClass="cashier-state">
           <p>
-            Estado: <strong>{isCashierOpen ? "Abierta" : "Cerrada"}</strong>
+            Monto de Apertura: <strong>C$ {state.openingAmount.toFixed(2)}</strong>
           </p>
           <p>
-            Monto de Apertura: <strong>C$ {openingAmount.toFixed(2)}</strong>
-          </p>
-          <p>
-            Monto Actual: <strong>C$ {currentAmount.toFixed(2)}</strong>
+            Monto Actual: <strong>C$ {state.currentAmount.toFixed(2)}</strong>
           </p>
           <p>
             Ventas del Día:
-            <strong className={dailySales >= 0 ? "cashier-success" : "cashier-danger"}>
-              C$ {dailySales.toFixed(2)}
-            </strong>
+            <strong className="cashier-success">C$ {state.salesToday.toFixed(2)}</strong>
           </p>
           <small>
-            {isCashierOpen ? (
-              <>Abierta por: <b>{cashierName}</b> a las {openingTime || "N/A"}</> 
-            ) : (
-              <>Cerrada por: <b>{cashierName}</b> a las {closingTime || "N/A"}</>
-            )}
+            Abierta por: <b>{state.openedBy}</b> a las {state.openedAt}
           </small>
         </CashierCard>
 
         <CashierCard title="Acciones de Caja" customClass="cashier-actions">
-          <button 
-            className={`cashier-btn shadow ${isCashierOpen ? "close" : "open"}`}
-            onClick={handleCashierAction}
-          >
-            <DollarSign /> 
-            {isCashierOpen ? "Cerrar Caja" : "Abrir Caja"}
+          <button className="cashier-btn shadow open" onClick={() => openModal("open")}>
+            <DollarSign /> Abrir Caja
+          </button>
+          <button className="cashier-btn shadow close" onClick={() => openModal("close")}>
+            <DollarSign /> Cerrar Caja
           </button>
           <button className="cashier-btn report shadow">
             <Banknote /> Reporte de Caja
@@ -126,33 +87,28 @@ const CashierSection = () => {
           title="Historial de Transacciones"
           customClass="cashier-history"
         >
-          {transactions.map((transaction, index) => (
-            <div key={index} className="cashier-transaction">
+          {state.history.map((h, idx) => (
+            <div key={idx} className="cashier-transaction">
               <div className="title-transaction">
                 <Receipt />
                 <div>
                   <p>
-                    <strong>{transaction.description}</strong>
+                    <strong>{h.type}</strong>
                   </p>
-                  <small>{transaction.time}</small>
+                  <small>{h.time}</small>
                 </div>
               </div>
-              <span className={`cashier-amount ${
-                transaction.type === "open" ? "cashier-open" : "cashier-close"
-              }`}>
-                C${transaction.amount.toFixed(2)}
-              </span>
+              <span className="cashier-amount">C$ {h.amount.toFixed(2)}</span>
             </div>
           ))}
         </CashierCard>
       </div>
 
       <CashierModal
-        isOpen={showModal}
-        onClose={handleModalClose}
-        onSave={handleModalSave}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveCashier}
         type={modalType}
-        currentCashier={cashierName}
       />
     </section>
   );

@@ -10,7 +10,7 @@ const AdminDashboardPreview = () => {
   const navigate = useNavigate();
   const role = "admin";
 
-  // Lista de botones con sus rutas e Ã­conos
+  // Lista de botones con sus rutas e +¡conos
   const previewOptions = [
     {
       title: "Cocina",

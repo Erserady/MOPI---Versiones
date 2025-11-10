@@ -226,16 +226,66 @@ class GestionFacturasViewSet(viewsets.ModelViewSet):
 
 # Vista para el menú completo
 @api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])  # Cambiado para permitir acceso a todos los usuarios autenticados
+@permission_classes([permissions.IsAuthenticated])
 def menu_completo(request):
-    categorias = CategoriaMenu.objects.filter(activa=True).prefetch_related('platos')
-    data = []
-    
-    for categoria in categorias:
-        platos_disponibles = categoria.platos.filter(disponible=True)
-        data.append({
-            'categoria': CategoriaMenuSerializer(categoria).data,
-            'platos': PlatoSerializer(platos_disponibles, many=True).data
-        })
-    
-    return Response(data)
+    """
+    Endpoint optimizado para obtener el menú completo.
+    Retorna categorías activas con sus platos disponibles.
+    """
+    try:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Usuario {request.user.username} ({request.user.role}) solicitando menú completo")
+        
+        # Verificar si hay categorías
+        total_categorias = CategoriaMenu.objects.filter(activa=True).count()
+        total_platos = Plato.objects.filter(disponible=True).count()
+        
+        logger.info(f"DB tiene {total_categorias} categorías y {total_platos} platos")
+        
+        if total_categorias == 0:
+            logger.warning("⚠️ No hay categorías en la base de datos")
+            return Response({
+                'error': 'No hay categorías disponibles. Ejecuta: python manage.py populate_all_data',
+                'categorias_count': 0,
+                'platos_count': 0
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Consulta optimizada con prefetch
+        from django.db.models import Prefetch
+        
+        platos_query = Plato.objects.filter(disponible=True).select_related('categoria')
+        
+        categorias = CategoriaMenu.objects.filter(
+            activa=True
+        ).prefetch_related(
+            Prefetch('platos', queryset=platos_query)
+        ).order_by('orden')
+        
+        data = []
+        
+        for categoria in categorias:
+            platos_disponibles = categoria.platos.all()  # Ya pre-cargados
+            
+            categoria_data = {
+                'categoria': CategoriaMenuSerializer(categoria).data,
+                'platos': PlatoSerializer(platos_disponibles, many=True).data
+            }
+            data.append(categoria_data)
+            
+            logger.info(f"✅ {categoria.nombre}: {len(platos_disponibles)} platos")
+        
+        logger.info(f"✅ Menú completo: {len(data)} categorías enviadas")
+        return Response(data)
+        
+    except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        logger.error(f"❌ Error en menu_completo: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        return Response({
+            'error': f'Error al obtener menú: {str(e)}',
+            'detail': 'Revisa los logs del servidor para más información'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

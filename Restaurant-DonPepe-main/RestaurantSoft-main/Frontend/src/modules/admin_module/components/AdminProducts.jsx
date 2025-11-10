@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useImmer } from "use-immer";
 import { Plus, Edit, Save, X, Search } from "lucide-react";
 import "../styles/admin_products.css";
@@ -57,8 +57,6 @@ const AdminProducts = () => {
   const [sortBy, setSortBy] = useState("nombre");
   const [selectedCategory, setSelectedCategory] = useState(categorias[0]);
   const [categoryImages, setCategoryImages] = useState({});
-  const fileInputRef = useRef(null);
-  const [pendingCategory, setPendingCategory] = useState(null);
 
   const [products, updateProducts] = useImmer(defaultProducts);
   const [editingProducts, updateEditingProducts] = useImmer(null);
@@ -157,33 +155,6 @@ const AdminProducts = () => {
     });
   };
 
-  const openFilePickerFor = (cat) => {
-    setPendingCategory(cat);
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file || !pendingCategory) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result;
-      setCategoryImages((prev) => ({ ...prev, [pendingCategory]: dataUrl }));
-      setPendingCategory(null);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
-
-  const handleClearImage = (e, cat) => {
-    e.stopPropagation();
-    setCategoryImages((prev) => {
-      const next = { ...prev };
-      delete next[cat];
-      return next;
-    });
-  };
-
   return (
     <section className="admin-products-container">
       <h1 className="title">Menú</h1>
@@ -196,26 +167,16 @@ const AdminProducts = () => {
               className={`category-card shadow ${selectedCategory === cat ? "active" : ""}`}
               onClick={() => setSelectedCategory(cat)}
             >
-              <div className="thumb" onClick={(e) => { e.stopPropagation(); openFilePickerFor(cat); }}>
+              <div className="thumb static">
                 {categoryImages[cat] ? (
                   <img src={categoryImages[cat]} alt={cat} />
                 ) : (
                   <img src={defaultCategoryImagePath[cat]} alt={cat} onError={(ev) => (ev.currentTarget.style.display = "none")} />
                 )}
               </div>
-              {categoryImages[cat] && (
-                <button className="thumb-clear" onClick={(e) => handleClearImage(e, cat)}>Quitar</button>
-              )}
               <span className="label">{cat}</span>
             </button>
           ))}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={handleFileChange}
-          />
         </aside>
 
         <div className="category-detail">

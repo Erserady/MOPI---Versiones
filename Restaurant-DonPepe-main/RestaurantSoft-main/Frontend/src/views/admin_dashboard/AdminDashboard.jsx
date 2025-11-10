@@ -7,6 +7,7 @@ import { Settings } from "lucide-react";
 import AdminInventory from "../../modules/admin_module/components/AdminInventory";
 import AdminProducts from "../../modules/admin_module/components/AdminProducts";
 import AdminStaff from "../../modules/admin_module/components/AdminStaff";
+import AdminOverview from "../../modules/admin_module/components/AdminOverview";
 import { useMetadata } from "../../hooks/useMetadata";
 
 const AdminDashboard = () => {
@@ -18,6 +19,8 @@ const AdminDashboard = () => {
 
   const handleView = (subview) => {
     switch (subview) {
+      case "resume":
+        return <AdminOverview></AdminOverview>;
       case "inventory":
         return <AdminInventory></AdminInventory>;
       case "products":
@@ -25,7 +28,7 @@ const AdminDashboard = () => {
       case "staff":
         return <AdminStaff></AdminStaff>;
       default:
-        return <AdminProducts></AdminProducts>;
+        return <AdminOverview></AdminOverview>;
     }
   };
 

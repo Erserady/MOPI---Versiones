@@ -1,89 +1,74 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DishCard from "./DishTable";
 import "../styles/dish_section.css";
 import DishTable from "./DishTable";
+import { useDataSync } from "../../../hooks/useDataSync";
+import { getMenuDisponible } from "../../../services/waiterService";
+import { RefreshCw } from "lucide-react";
 
-// Categorías basadas en el menú proporcionado
-const categories = [
-  "🥃 Licores Importados",
-  "🍺 Cervezas",
-  "🥩 Carne de Res",
-  "🍗 Carne Blanca",
-  "🐖 Carne de Cerdo",
-  "🐟 Mariscos",
-  "🍤 Cocktail",
-  "🍲 Sopas",
-  "🍸 Cocktail y Vino",
-  "🚬 Cigarros",
-  "🥃 Ron Nacional",
-  "🧃 Productos CDN",
-  "🍹 RTD",
-  "🥂 Hard Seltzer",
-  "🍽️ Variados",
-  "-Enlatados/Desechables",
-];
-
-// Datos de ejemplo basados en tu menú
-const initialMenu = [
-  {
-    id: 1,
-    name: "Pollo a la Plancha",
-    category: "🍗 Carne Blanca",
-    price: 15.5,
-    available: true,
-    description: "Jugoso pollo a la plancha con guarnición.",
-  },
-  {
-    id: 13,
-    name: "Pollo a la Plancha",
-    category: "🍗 Carne Blanca",
-    price: 15.5,
-    available: true,
-    description: "Jugoso pollo a la plancha con guarnición.",
-  },
-  {
-    id: 12,
-    name: "Pollo a la Plancha",
-    category: "🍗 Carne Blanca",
-    price: 15.5,
-    available: true,
-    description: "Jugoso pollo a la plancha con guarnición.",
-  },
-  {
-    id: 2,
-    name: "Limonada",
-    category: "-Enlatados/Desechables",
-    price: 2.5,
-    available: true,
-  },
-  {
-    id: 3,
-    name: "Brownie",
-    category: "🍽️ Variados",
-    price: 4.0,
-    available: false,
-  },
-  {
-    id: 4,
-    name: "Filete de Res",
-    category: "🥩 Carne de Res",
-    price: 18.0,
-    available: true,
-  },
-  {
-    id: 5,
-    name: "Cerveza Victoria",
-    category: "🍺 Cervezas",
-    price: 3.5,
-    available: true,
-  },
-];
+// Emojis para categorías
+const categoryEmojis = {
+  'CARNE ROJA': '🥩',
+  'CARNE BLANCA': '🍗',
+  'CARNE DE CERDO': '🐖',
+  'MARISCOS': '🐟',
+  'VARIADOS': '🍽️',
+  'CERVEZAS': '🍺',
+  'ENLATADOS': '🧃',
+};
 
 const DishSection = () => {
-  const [menu] = useState(initialMenu);
-  const [activeCategory, setActiveCategory] = useState(categories[0]);
+  // Sincronizar menú completo desde el backend (se actualiza cada 5 segundos)
+  const { data: menuData, loading, error } = useDataSync(getMenuDisponible, 5000);
+  
+  const [activeCategory, setActiveCategory] = useState(null);
 
-  const filteredMenu = menu.filter((dish) => dish.category === activeCategory);
+  // Inicializar categoría activa cuando se cargan los datos
+  useEffect(() => {
+    if (menuData && menuData.length > 0 && !activeCategory) {
+      setActiveCategory(menuData[0].categoria.nombre);
+    }
+  }, [menuData, activeCategory]);
+
+  // Extraer categorías y platos del menú
+  const categories = menuData?.map(item => item.categoria.nombre) || [];
+  
+  // Aplanar todos los platos de todas las categorías
+  const allPlatos = menuData?.flatMap(item => 
+    item.platos.map(plato => ({
+      ...plato,
+      category: item.categoria.nombre,
+      name: plato.nombre,
+      price: parseFloat(plato.precio),
+      available: plato.disponible,
+      description: plato.descripcion,
+    }))
+  ) || [];
+
+  const filteredMenu = allPlatos.filter((dish) => dish.category === activeCategory);
+
+  if (loading && !menuData) {
+    return (
+      <section className="dish-section">
+        <h1>Menú Disponible</h1>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <RefreshCw className="spin" size={32} />
+          <p>Cargando menú...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="dish-section">
+        <h1>Menú Disponible</h1>
+        <div style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>
+          <p>Error al cargar el menú: {error}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="dish-section">
@@ -99,7 +84,7 @@ const DishSection = () => {
             }`}
             onClick={() => setActiveCategory(category)}
           >
-            {category}
+            {categoryEmojis[category] || '🍽️'} {category}
           </button>
         ))}
       </div>

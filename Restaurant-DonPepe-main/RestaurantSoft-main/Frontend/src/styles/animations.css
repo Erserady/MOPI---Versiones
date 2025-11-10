@@ -1,0 +1,76 @@
+/* Animaciones globales para la aplicación */
+
+/* Spinner de carga rotatorio */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Fade in para cuando se cargan elementos */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Slide in desde arriba */
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-top {
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+/* Pulse para resaltar cambios */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulse {
+  animation: pulse 0.5s ease-in-out;
+}
+
+/* Indicador de actualización */
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.blink {
+  animation: blink 2s ease-in-out infinite;
+}

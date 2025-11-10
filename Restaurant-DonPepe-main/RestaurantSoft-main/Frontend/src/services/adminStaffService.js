@@ -1,53 +1,57 @@
-// Placeholder service for backend integration of Admin Staff
-// BASE_URL is read from admin metadata if available
-function getBaseUrl() {
-  try {
-    const meta = window.__META_CACHE?.admin;
-    return meta?.api?.baseUrl || "/api";
-  } catch {
-    return "/api";
-  }
-}
+import { API_BASE_URL, apiFetch } from '../config/api';
+
+// Servicio completo para administración de personal
 
 export async function listStaff() {
-  const res = await fetch(`${getBaseUrl()}/admin/personal`);
-  if (!res.ok) throw new Error("Error obteniendo personal");
-  return res.json(); // expected: Array of staff
+  const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/`);
+  if (!res.ok) throw new Error('Error obteniendo personal');
+  return res.json();
 }
 
 export async function createStaff(payload) {
-  const res = await fetch(`${getBaseUrl()}/admin/personal`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/`, {
+    method: 'POST',
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Error creando personal");
+  if (!res.ok) throw new Error('Error creando personal');
   return res.json();
 }
 
 export async function updateStaff(id, payload) {
-  const res = await fetch(`${getBaseUrl()}/admin/personal/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
+  const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/${id}/`, {
+    method: 'PUT',
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Error actualizando personal");
+  if (!res.ok) throw new Error('Error actualizando personal');
   return res.json();
 }
 
 export async function deleteStaff(id) {
-  const res = await fetch(`${getBaseUrl()}/admin/personal/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Error eliminando personal");
+  const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/${id}/`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Error eliminando personal');
+  return res.status === 204;
+}
+
+export async function getMeseros() {
+  const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/meseros/`);
+  if (!res.ok) throw new Error('Error obteniendo meseros');
   return res.json();
 }
 
-export async function uploadStaffPhoto(id, file) {
-  const form = new FormData();
-  form.append("photo", file);
-  const res = await fetch(`${getBaseUrl()}/admin/personal/${id}/foto`, {
-    method: "POST",
-    body: form,
+// Facturas
+export async function getFacturas() {
+  const res = await apiFetch(`${API_BASE_URL}/api/administrador/facturas/`);
+  if (!res.ok) throw new Error('Error obteniendo facturas');
+  return res.json();
+}
+
+export async function anularFactura(id, motivo) {
+  const res = await apiFetch(`${API_BASE_URL}/api/administrador/facturas/${id}/anular/`, {
+    method: 'POST',
+    body: JSON.stringify({ motivo }),
   });
-  if (!res.ok) throw new Error("Error subiendo foto");
-  return res.json(); // expected: { url: string }
+  if (!res.ok) throw new Error('Error anulando factura');
+  return res.json();
 }

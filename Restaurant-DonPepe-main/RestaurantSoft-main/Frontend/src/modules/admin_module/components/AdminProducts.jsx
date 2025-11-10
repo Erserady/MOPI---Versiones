@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useImmer } from "use-immer";
-import { Plus, Edit, Save, X, Search } from "lucide-react";
+import { Plus, Edit, Save, X, Search, RefreshCw } from "lucide-react";
 import "../styles/admin_products.css";
 import { useMetadata } from "../../../hooks/useMetadata";
+import { useDataSync } from "../../../hooks/useDataSync";
+import { getCategorias, getPlatos, createPlato, updatePlato, deletePlato } from "../../../services/adminMenuService";
 import ImgRes from "../../../../imagenes/Res.jpeg";
 import ImgCarneBlanca from "../../../../imagenes/CarneBlanca.jpg";
 import ImgCerdo from "../../../../imagenes/Cerdo.jpg";
@@ -11,23 +13,7 @@ import ImgVariado from "../../../../imagenes/Variado.jpg";
 import ImgCervezas from "../../../../imagenes/Cervezas.png";
 import ImgEnlatados from "../../../../imagenes/Enlatados.jpg";
 
-const defaultProducts = [
-  { id: 1, nombre: "Lomo a la parrilla", categoria: "CARNE ROJA", precio: 15.99, disponible: true },
-  { id: 2, nombre: "Bistec encebollado", categoria: "CARNE ROJA", precio: 13.5, disponible: true },
-  { id: 3, nombre: "Pechuga a la plancha", categoria: "CARNE BLANCA", precio: 11.0, disponible: true },
-  { id: 4, nombre: "Pollo frito", categoria: "CARNE BLANCA", precio: 10.5, disponible: true },
-  { id: 5, nombre: "Chuleta de cerdo", categoria: "CARNE DE CERDO", precio: 12.0, disponible: true },
-  { id: 6, nombre: "Costilla BBQ", categoria: "CARNE DE CERDO", precio: 13.99, disponible: true },
-  { id: 7, nombre: "Camarones al ajillo", categoria: "MARISCOS", precio: 16.5, disponible: true },
-  { id: 8, nombre: "Filete de pescado", categoria: "MARISCOS", precio: 14.0, disponible: true },
-  { id: 9, nombre: "Nachos mixtos", categoria: "VARIADOS", precio: 7.5, disponible: true },
-  { id: 10, nombre: "Quesadillas", categoria: "VARIADOS", precio: 6.0, disponible: true },
-  { id: 11, nombre: "Cerveza nacional", categoria: "CERVEZAS", precio: 2.0, disponible: true },
-  { id: 12, nombre: "Cerveza importada", categoria: "CERVEZAS", precio: 3.0, disponible: true },
-  { id: 13, nombre: "Atún enlatado", categoria: "ENLATADOS", precio: 2.5, disponible: true },
-  { id: 14, nombre: "Sardinas", categoria: "ENLATADOS", precio: 2.2, disponible: false },
-];
-
+// Imágenes por defecto para categorías
 const categoriasFallback = [
   "CARNE ROJA",
   "CARNE BLANCA",
@@ -50,23 +36,46 @@ const defaultCategoryImagePath = {
 
 const AdminProducts = () => {
   const { data: adminMeta } = useMetadata("admin");
-  const categorias = adminMeta?.menu?.categories || categoriasFallback;
   const currencySymbol = adminMeta?.currency?.symbol || "C$";
+  
+  // Estado local
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("nombre");
-  const [selectedCategory, setSelectedCategory] = useState(categorias[0]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [categoryImages, setCategoryImages] = useState({});
-
-  const [products, updateProducts] = useImmer(defaultProducts);
   const [editingProducts, updateEditingProducts] = useImmer(null);
+  const [saving, setSaving] = useState(false);
 
+  // Sincronizar categorías con el backend
+  const { 
+    data: categorias, 
+    loading: loadingCategorias,
+    refetch: refetchCategorias 
+  } = useDataSync(getCategorias, 10000);
+
+  // Sincronizar platos con el backend
+  const { 
+    data: platosBackend, 
+    loading: loadingPlatos,
+    refetch: refetchPlatos 
+  } = useDataSync(getPlatos, 5000);
+
+  // Inicializar categoría seleccionada
+  useEffect(() => {
+    if (categorias && categorias.length > 0 && !selectedCategory) {
+      setSelectedCategory(categorias[0].nombre);
+      setSelectedCategoryId(categorias[0].id);
+    }
+  }, [categorias, selectedCategory]);
+
+  // Cargar imágenes de categorías desde localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem("admin_menu_category_images");
       if (raw) {
         const parsed = JSON.parse(raw);
-        // Remove legacy non-persistent blob: URLs
         Object.keys(parsed || {}).forEach((k) => {
           if (typeof parsed[k] === "string" && parsed[k].startsWith("blob:")) {
             delete parsed[k];
@@ -79,57 +88,71 @@ const AdminProducts = () => {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("admin_products");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        updateProducts(() => parsed);
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
       localStorage.setItem("admin_menu_category_images", JSON.stringify(categoryImages));
     } catch {}
   }, [categoryImages]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("admin_products", JSON.stringify(products));
-    } catch {}
-  }, [products]);
+  // Obtener categoría seleccionada actual
+  const categoriaActual = categorias?.find(c => c.nombre === selectedCategory);
 
-  useEffect(() => {
-    if (!categorias.includes(selectedCategory)) {
-      setSelectedCategory(categorias[0]);
-    }
-  }, [categorias]);
+  // Filtrar platos por categoría
+  const platosFiltrados = platosBackend?.filter(p => 
+    p.categoria === categoriaActual?.id || p.categoria?.id === categoriaActual?.id
+  ) || [];
 
-  const currentList = isEditing ? editingProducts : products;
+  const currentList = isEditing ? editingProducts : platosFiltrados;
 
   const listByCategory = (currentList || [])
-    .filter((p) => p.categoria === selectedCategory)
     .filter((p) => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => {
       if (sortBy === "nombre") return a.nombre.localeCompare(b.nombre);
-      if (sortBy === "precio") return a.precio - b.precio;
+      if (sortBy === "precio") return parseFloat(a.precio) - parseFloat(b.precio);
       return 0;
     });
 
   const handleStartEdit = () => {
-    updateEditingProducts(products);
+    updateEditingProducts(platosFiltrados);
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    if (editingProducts) {
-      updateProducts((draft) => {
-        draft.length = 0;
-        editingProducts.forEach((p) => draft.push(p));
-      });
+  const handleSave = async () => {
+    if (!editingProducts) return;
+    
+    setSaving(true);
+    try {
+      // Guardar cambios en el backend
+      for (const plato of editingProducts) {
+        if (plato._isNew) {
+          // Crear nuevo plato
+          await createPlato({
+            nombre: plato.nombre,
+            categoria: categoriaActual.id,
+            precio: parseFloat(plato.precio),
+            descripcion: plato.descripcion || '',
+            ingredientes: plato.ingredientes || '',
+            tiempo_preparacion: plato.tiempo_preparacion || 15,
+            disponible: plato.disponible !== false,
+          });
+        } else {
+          // Actualizar plato existente
+          await updatePlato(plato.id, {
+            nombre: plato.nombre,
+            precio: parseFloat(plato.precio),
+            disponible: plato.disponible !== false,
+          });
+        }
+      }
+
+      // Recargar datos
+      await refetchPlatos();
+      setIsEditing(false);
+      updateEditingProducts(null);
+    } catch (error) {
+      console.error('Error guardando cambios:', error);
+      alert('Error al guardar cambios. Por favor, intenta nuevamente.');
+    } finally {
+      setSaving(false);
     }
-    setIsEditing(false);
-    updateEditingProducts(null);
   };
 
   const handleCancel = () => {
@@ -140,8 +163,16 @@ const AdminProducts = () => {
   const handleAdd = () => {
     if (!isEditing) return;
     updateEditingProducts((draft) => {
-      const nextId = (draft[draft.length - 1]?.id || 0) + 1;
-      draft.push({ id: nextId, nombre: "Nuevo producto", categoria: selectedCategory, precio: 0, disponible: true });
+      draft.push({ 
+        _isNew: true,
+        id: `temp-${Date.now()}`,
+        nombre: "Nuevo producto", 
+        precio: 0, 
+        disponible: true,
+        descripcion: '',
+        ingredientes: '',
+        tiempo_preparacion: 15,
+      });
     });
   };
 
@@ -155,6 +186,26 @@ const AdminProducts = () => {
     });
   };
 
+  const handleCategoryChange = (categoria) => {
+    setSelectedCategory(categoria.nombre);
+    setSelectedCategoryId(categoria.id);
+    if (isEditing) {
+      handleCancel();
+    }
+  };
+
+  if (loadingCategorias || !categorias) {
+    return (
+      <section className="admin-products-container">
+        <h1 className="title">Menú</h1>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <RefreshCw className="spin" size={32} />
+          <p>Cargando categorías...</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="admin-products-container">
       <h1 className="title">Menú</h1>
@@ -163,18 +214,18 @@ const AdminProducts = () => {
         <aside className="categories-panel">
           {categorias.map((cat) => (
             <button
-              key={cat}
-              className={`category-card shadow ${selectedCategory === cat ? "active" : ""}`}
-              onClick={() => setSelectedCategory(cat)}
+              key={cat.id}
+              className={`category-card shadow ${selectedCategory === cat.nombre ? "active" : ""}`}
+              onClick={() => handleCategoryChange(cat)}
             >
               <div className="thumb static">
-                {categoryImages[cat] ? (
-                  <img src={categoryImages[cat]} alt={cat} />
+                {categoryImages[cat.nombre] ? (
+                  <img src={categoryImages[cat.nombre]} alt={cat.nombre} />
                 ) : (
-                  <img src={defaultCategoryImagePath[cat]} alt={cat} onError={(ev) => (ev.currentTarget.style.display = "none")} />
+                  <img src={defaultCategoryImagePath[cat.nombre]} alt={cat.nombre} onError={(ev) => (ev.currentTarget.style.display = "none")} />
                 )}
               </div>
-              <span className="label">{cat}</span>
+              <span className="label">{cat.nombre}</span>
             </button>
           ))}
         </aside>
@@ -205,13 +256,14 @@ const AdminProducts = () => {
                 </button>
               ) : (
                 <div className="edit-actions">
-                  <button className="success" onClick={handleSave}>
-                    <Save size={18} /> Guardar
+                  <button className="success" onClick={handleSave} disabled={saving}>
+                    {saving ? <RefreshCw className="spin" size={18} /> : <Save size={18} />} 
+                    {saving ? 'Guardando...' : 'Guardar'}
                   </button>
-                  <button className="danger" onClick={handleCancel}>
+                  <button className="danger" onClick={handleCancel} disabled={saving}>
                     <X size={18} /> Cancelar
                   </button>
-                  <button className="secondary" onClick={handleAdd}>
+                  <button className="secondary" onClick={handleAdd} disabled={saving}>
                     <Plus size={18} /> Agregar a {selectedCategory}
                   </button>
                 </div>

@@ -23,7 +23,28 @@ export const API_ENDPOINTS = {
   // Usuarios
   usersByRole: (role) => `${API_BASE_URL}/api/users/by-role/?role=${role}`,
 
-  // Agregar mas endpoints segun sea necesario
+  // Administrador
+  dashboard: `${API_BASE_URL}/api/administrador/dashboard/`,
+  categorias: `${API_BASE_URL}/api/administrador/categorias-menu/`,
+  platos: `${API_BASE_URL}/api/administrador/platos/`,
+  inventario: `${API_BASE_URL}/api/administrador/inventario/`,
+  personal: `${API_BASE_URL}/api/administrador/personal/`,
+  menuCompleto: `${API_BASE_URL}/api/administrador/menu-completo/`,
+  
+  // Mesero
+  mesas: `${API_BASE_URL}/api/mesero/tables/`,
+  ordenesWaiter: `${API_BASE_URL}/api/mesero/mesero-orders/`,
+  ordenesAbiertas: `${API_BASE_URL}/api/mesero/mesero-orders/open/`,
+  
+  // Cocina
+  ordenesCocina: `${API_BASE_URL}/api/cocina/orders/`,
+  ordenesActivas: `${API_BASE_URL}/api/cocina/orders/kitchen/`,
+  
+  // Caja
+  cajas: `${API_BASE_URL}/api/caja/cajas/`,
+  facturas: `${API_BASE_URL}/api/caja/facturas/`,
+  pagos: `${API_BASE_URL}/api/caja/pagos/`,
+  mesasPendientes: `${API_BASE_URL}/api/caja/mesas-pendientes/`,
 };
 
 // Configuracion de headers por defecto

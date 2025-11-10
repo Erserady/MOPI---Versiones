@@ -45,16 +45,30 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.WARNING('⚠️ Configuración ya existía'))
         
-        # 2. Crear categorías de menú
+        # 2. Borrar menú existente
+        self.stdout.write("\n🗑️ Borrando menú existente...")
+        platos_borrados = Plato.objects.all().count()
+        categorias_borradas = CategoriaMenu.objects.all().count()
+        Plato.objects.all().delete()
+        CategoriaMenu.objects.all().delete()
+        self.stdout.write(f'  ✅ {platos_borrados} platos borrados')
+        self.stdout.write(f'  ✅ {categorias_borradas} categorías borradas')
+        
+        # 3. Crear categorías de menú
         self.stdout.write("\n🍽️ Creando categorías de menú...")
         categorias_data = [
-            {'nombre': 'CARNE ROJA', 'descripcion': 'Platos de carne de res', 'orden': 1},
+            {'nombre': 'CARNE DE RES', 'descripcion': 'Platos de carne de res', 'orden': 1},
             {'nombre': 'CARNE BLANCA', 'descripcion': 'Platos de pollo y aves', 'orden': 2},
             {'nombre': 'CARNE DE CERDO', 'descripcion': 'Platos de cerdo', 'orden': 3},
-            {'nombre': 'MARISCOS', 'descripcion': 'Platos del mar', 'orden': 4},
-            {'nombre': 'VARIADOS', 'descripcion': 'Entradas y antojitos', 'orden': 5},
-            {'nombre': 'CERVEZAS', 'descripcion': 'Bebidas alcohólicas', 'orden': 6},
-            {'nombre': 'ENLATADOS', 'descripcion': 'Productos enlatados', 'orden': 7},
+            {'nombre': 'VARIADOS', 'descripcion': 'Entradas y antojitos', 'orden': 4},
+            {'nombre': 'MARISCOS', 'descripcion': 'Platos del mar', 'orden': 5},
+            {'nombre': 'CARNE DE MONTE Y ENSALADAS', 'descripcion': 'Carne de monte y ensaladas (según ocasión)', 'orden': 6},
+            {'nombre': 'COCTELES', 'descripcion': 'Cocteles y ceviches', 'orden': 7},
+            {'nombre': 'SOPAS', 'descripcion': 'Sopas y consomés', 'orden': 8},
+            {'nombre': 'ENLATADOS Y DESECHABLES', 'descripcion': 'Bebidas enlatadas y desechables', 'orden': 9},
+            {'nombre': 'LICORES IMPORTADOS', 'descripcion': 'Licores importados', 'orden': 10},
+            {'nombre': 'CERVEZA NACIONAL', 'descripcion': 'Cervezas nacionales', 'orden': 11},
+            {'nombre': 'CERVEZA INTERNACIONAL', 'descripcion': 'Cervezas internacionales', 'orden': 12},
         ]
         
         categorias = {}
@@ -71,46 +85,211 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f'  ✅ {cat.nombre}')
         
-        # 3. Crear platos
+        # 4. Crear platos
         self.stdout.write("\n🍴 Creando platos...")
         platos_data = [
-            # Carnes Rojas
-            {'nombre': 'Lomo a la parrilla', 'categoria': 'CARNE ROJA', 'precio': 15.99, 'ingredientes': 'Lomo de res, especias, sal, pimienta', 'tiempo_preparacion': 20},
-            {'nombre': 'Bistec encebollado', 'categoria': 'CARNE ROJA', 'precio': 13.50, 'ingredientes': 'Bistec de res, cebolla, sal, pimienta', 'tiempo_preparacion': 18},
-            {'nombre': 'T-Bone steak', 'categoria': 'CARNE ROJA', 'precio': 18.99, 'ingredientes': 'T-Bone, mantequilla, ajo, romero', 'tiempo_preparacion': 25},
-            {'nombre': 'Carne asada', 'categoria': 'CARNE ROJA', 'precio': 14.50, 'ingredientes': 'Falda de res, chimichurri, limón', 'tiempo_preparacion': 22},
+            # CARNE DE RES
+            {'nombre': 'Lomo de costilla asada', 'categoria': 'CARNE DE RES', 'precio': 410, 'ingredientes': 'Lomo de costilla, especias', 'tiempo_preparacion': 30},
+            {'nombre': 'Lomo de costilla a la plancha', 'categoria': 'CARNE DE RES', 'precio': 440, 'ingredientes': 'Lomo de costilla', 'tiempo_preparacion': 25},
+            {'nombre': 'Carne a la plancha', 'categoria': 'CARNE DE RES', 'precio': 400, 'ingredientes': 'Carne de res', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de tacón alto', 'categoria': 'CARNE DE RES', 'precio': 400, 'ingredientes': 'Filete de res', 'tiempo_preparacion': 25},
+            {'nombre': 'Filete miñón', 'categoria': 'CARNE DE RES', 'precio': 440, 'ingredientes': 'Filete miñón', 'tiempo_preparacion': 25},
+            {'nombre': 'Filete criollo', 'categoria': 'CARNE DE RES', 'precio': 370, 'ingredientes': 'Filete de res, salsa criolla', 'tiempo_preparacion': 25},
+            {'nombre': 'Filete jalapeño', 'categoria': 'CARNE DE RES', 'precio': 390, 'ingredientes': 'Filete de res, jalapeños', 'tiempo_preparacion': 25},
+            {'nombre': 'Filete vaquero', 'categoria': 'CARNE DE RES', 'precio': 390, 'ingredientes': 'Filete de res estilo vaquero', 'tiempo_preparacion': 25},
+            {'nombre': 'Churrasco', 'categoria': 'CARNE DE RES', 'precio': 390, 'ingredientes': 'Churrasco de res', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete Mi Rancho', 'categoria': 'CARNE DE RES', 'precio': 390, 'ingredientes': 'Filete especial de la casa', 'tiempo_preparacion': 25},
+            {'nombre': 'Puyaso a la parrilla', 'categoria': 'CARNE DE RES', 'precio': 400, 'ingredientes': 'Puyaso a la parrilla', 'tiempo_preparacion': 30},
+            {'nombre': 'New York asado', 'categoria': 'CARNE DE RES', 'precio': 420, 'ingredientes': 'Corte New York', 'tiempo_preparacion': 25},
+            {'nombre': 'Filete de res a la pimienta', 'categoria': 'CARNE DE RES', 'precio': 380, 'ingredientes': 'Filete de res, pimienta', 'tiempo_preparacion': 25},
+            {'nombre': 'Bistec mixto', 'categoria': 'CARNE DE RES', 'precio': 370, 'ingredientes': 'Bistec mixto', 'tiempo_preparacion': 20},
+            {'nombre': 'Bistec encebollado', 'categoria': 'CARNE DE RES', 'precio': 370, 'ingredientes': 'Bistec con cebolla', 'tiempo_preparacion': 20},
+            {'nombre': 'Bistec entomatado', 'categoria': 'CARNE DE RES', 'precio': 370, 'ingredientes': 'Bistec con tomate', 'tiempo_preparacion': 20},
+            {'nombre': 'Corazón asado', 'categoria': 'CARNE DE RES', 'precio': 300, 'ingredientes': 'Corazón de res asado', 'tiempo_preparacion': 25},
+            {'nombre': 'Gonce asado', 'categoria': 'CARNE DE RES', 'precio': 320, 'ingredientes': 'Gonce asado', 'tiempo_preparacion': 30},
+            {'nombre': 'Lengua en salsa', 'categoria': 'CARNE DE RES', 'precio': 360, 'ingredientes': 'Lengua de res en salsa', 'tiempo_preparacion': 40},
+            {'nombre': 'Lengua empanizada', 'categoria': 'CARNE DE RES', 'precio': 360, 'ingredientes': 'Lengua empanizada', 'tiempo_preparacion': 35},
+            {'nombre': 'Brocheta de res', 'categoria': 'CARNE DE RES', 'precio': 370, 'ingredientes': 'Brocheta de res', 'tiempo_preparacion': 20},
+            {'nombre': 'Brocheta mixta', 'categoria': 'CARNE DE RES', 'precio': 370, 'ingredientes': 'Brocheta mixta', 'tiempo_preparacion': 20},
+            {'nombre': 'Huevo de toro a la plancha', 'categoria': 'CARNE DE RES', 'precio': 340, 'ingredientes': 'Huevo de toro', 'tiempo_preparacion': 20},
+            {'nombre': 'Huevo de toro en salsa', 'categoria': 'CARNE DE RES', 'precio': 340, 'ingredientes': 'Huevo de toro en salsa', 'tiempo_preparacion': 25},
+            {'nombre': 'Huevo de toro asado', 'categoria': 'CARNE DE RES', 'precio': 330, 'ingredientes': 'Huevo de toro asado', 'tiempo_preparacion': 25},
             
-            # Carnes Blancas
-            {'nombre': 'Pechuga a la plancha', 'categoria': 'CARNE BLANCA', 'precio': 11.00, 'ingredientes': 'Pechuga de pollo, limón, especias', 'tiempo_preparacion': 15},
-            {'nombre': 'Pollo frito', 'categoria': 'CARNE BLANCA', 'precio': 10.50, 'ingredientes': 'Pollo, harina, especias secretas', 'tiempo_preparacion': 20},
-            {'nombre': 'Alitas BBQ', 'categoria': 'CARNE BLANCA', 'precio': 12.00, 'ingredientes': 'Alitas de pollo, salsa BBQ, miel', 'tiempo_preparacion': 18},
-            {'nombre': 'Pollo al horno', 'categoria': 'CARNE BLANCA', 'precio': 11.50, 'ingredientes': 'Pollo entero, hierbas, papas', 'tiempo_preparacion': 35},
+            # CARNE BLANCA
+            {'nombre': 'Filete de pollo jalapeño', 'categoria': 'CARNE BLANCA', 'precio': 380, 'ingredientes': 'Filete de pollo, jalapeños', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pollo a la plancha', 'categoria': 'CARNE BLANCA', 'precio': 380, 'ingredientes': 'Filete de pollo', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pollo en salsa de hongos', 'categoria': 'CARNE BLANCA', 'precio': 380, 'ingredientes': 'Filete de pollo, hongos', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pollo a la antigua', 'categoria': 'CARNE BLANCA', 'precio': 360, 'ingredientes': 'Filete de pollo', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pollo parmesano', 'categoria': 'CARNE BLANCA', 'precio': 360, 'ingredientes': 'Filete de pollo, queso parmesano', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pollo al ajillo', 'categoria': 'CARNE BLANCA', 'precio': 360, 'ingredientes': 'Filete de pollo, ajo', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pollo a la naranja', 'categoria': 'CARNE BLANCA', 'precio': 340, 'ingredientes': 'Filete de pollo, naranja', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pollo empanizado', 'categoria': 'CARNE BLANCA', 'precio': 330, 'ingredientes': 'Filete de pollo empanizado', 'tiempo_preparacion': 20},
+            {'nombre': 'Cordon bleu de pollo', 'categoria': 'CARNE BLANCA', 'precio': 360, 'ingredientes': 'Pollo, jamón, queso', 'tiempo_preparacion': 25},
+            {'nombre': 'Ensalada de pollo', 'categoria': 'CARNE BLANCA', 'precio': 340, 'ingredientes': 'Pollo, lechuga, vegetales', 'tiempo_preparacion': 15},
+            {'nombre': 'Brocheta de pollo', 'categoria': 'CARNE BLANCA', 'precio': 320, 'ingredientes': 'Brocheta de pollo', 'tiempo_preparacion': 20},
+            {'nombre': 'Pollo al vino', 'categoria': 'CARNE BLANCA', 'precio': 340, 'ingredientes': 'Pollo, vino', 'tiempo_preparacion': 25},
+            {'nombre': 'Pollo a la plancha', 'categoria': 'CARNE BLANCA', 'precio': 340, 'ingredientes': 'Pollo a la plancha', 'tiempo_preparacion': 20},
+            {'nombre': 'Pollo empanizado', 'categoria': 'CARNE BLANCA', 'precio': 320, 'ingredientes': 'Pollo empanizado', 'tiempo_preparacion': 20},
+            {'nombre': 'Medio pollo asado', 'categoria': 'CARNE BLANCA', 'precio': 320, 'ingredientes': 'Medio pollo asado', 'tiempo_preparacion': 30},
+            {'nombre': 'Cuarto de pollo asado', 'categoria': 'CARNE BLANCA', 'precio': 260, 'ingredientes': 'Cuarto de pollo asado', 'tiempo_preparacion': 25},
+            {'nombre': 'Fajita de pollo empanizado', 'categoria': 'CARNE BLANCA', 'precio': 300, 'ingredientes': 'Fajita de pollo empanizado', 'tiempo_preparacion': 20},
+            {'nombre': 'Fajita de pollo a la mexicana', 'categoria': 'CARNE BLANCA', 'precio': 300, 'ingredientes': 'Fajita de pollo, vegetales', 'tiempo_preparacion': 20},
+            {'nombre': 'Bombones de pollo', 'categoria': 'CARNE BLANCA', 'precio': 280, 'ingredientes': 'Bombones de pollo', 'tiempo_preparacion': 15},
+            {'nombre': 'Pechuga rellena', 'categoria': 'CARNE BLANCA', 'precio': 330, 'ingredientes': 'Pechuga de pollo rellena', 'tiempo_preparacion': 25},
+            {'nombre': 'Canasta de pollo', 'categoria': 'CARNE BLANCA', 'precio': 300, 'ingredientes': 'Canasta de pollo', 'tiempo_preparacion': 20},
+            {'nombre': 'Alitas picantes', 'categoria': 'CARNE BLANCA', 'precio': 290, 'ingredientes': 'Alitas picantes', 'tiempo_preparacion': 20},
+            {'nombre': 'Alitas a la barbacoa', 'categoria': 'CARNE BLANCA', 'precio': 300, 'ingredientes': 'Alitas con salsa barbacoa', 'tiempo_preparacion': 20},
+            {'nombre': 'Pasta Alfredo de pollo', 'categoria': 'CARNE BLANCA', 'precio': 360, 'ingredientes': 'Pasta, pollo, salsa Alfredo', 'tiempo_preparacion': 20},
             
-            # Carne de Cerdo
-            {'nombre': 'Chuleta de cerdo', 'categoria': 'CARNE DE CERDO', 'precio': 12.00, 'ingredientes': 'Chuleta de cerdo, sal, pimienta', 'tiempo_preparacion': 18},
-            {'nombre': 'Costilla BBQ', 'categoria': 'CARNE DE CERDO', 'precio': 13.99, 'ingredientes': 'Costilla de cerdo, salsa BBQ', 'tiempo_preparacion': 30},
-            {'nombre': 'Lomo de cerdo', 'categoria': 'CARNE DE CERDO', 'precio': 14.50, 'ingredientes': 'Lomo de cerdo, salsa de frutas', 'tiempo_preparacion': 25},
+            # CARNE DE CERDO
+            {'nombre': 'Cerdo a la plancha', 'categoria': 'CARNE DE CERDO', 'precio': 360, 'ingredientes': 'Cerdo a la plancha', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de cerdo al ajillo', 'categoria': 'CARNE DE CERDO', 'precio': 360, 'ingredientes': 'Filete de cerdo, ajo', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de cerdo empanizado', 'categoria': 'CARNE DE CERDO', 'precio': 360, 'ingredientes': 'Filete de cerdo empanizado', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de cerdo agridulce', 'categoria': 'CARNE DE CERDO', 'precio': 360, 'ingredientes': 'Filete de cerdo, salsa agridulce', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de cerdo jalapeño', 'categoria': 'CARNE DE CERDO', 'precio': 360, 'ingredientes': 'Filete de cerdo, jalapeños', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de cerdo criollo', 'categoria': 'CARNE DE CERDO', 'precio': 330, 'ingredientes': 'Filete de cerdo, salsa criolla', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de cerdo asado', 'categoria': 'CARNE DE CERDO', 'precio': 330, 'ingredientes': 'Filete de cerdo asado', 'tiempo_preparacion': 25},
+            {'nombre': 'Brocheta de cerdo', 'categoria': 'CARNE DE CERDO', 'precio': 330, 'ingredientes': 'Brocheta de cerdo', 'tiempo_preparacion': 20},
+            {'nombre': 'Medallones de cerdo', 'categoria': 'CARNE DE CERDO', 'precio': 380, 'ingredientes': 'Medallones de cerdo', 'tiempo_preparacion': 25},
+            {'nombre': 'Costilla de cerdo asada', 'categoria': 'CARNE DE CERDO', 'precio': 340, 'ingredientes': 'Costilla de cerdo asada', 'tiempo_preparacion': 30},
+            {'nombre': 'Costilla de cerdo frita', 'categoria': 'CARNE DE CERDO', 'precio': 340, 'ingredientes': 'Costilla de cerdo frita', 'tiempo_preparacion': 25},
+            {'nombre': 'Costilla de cerdo a la barbacoa', 'categoria': 'CARNE DE CERDO', 'precio': 350, 'ingredientes': 'Costilla de cerdo, salsa barbacoa', 'tiempo_preparacion': 30},
             
-            # Mariscos
-            {'nombre': 'Camarones al ajillo', 'categoria': 'MARISCOS', 'precio': 16.50, 'ingredientes': 'Camarones, ajo, mantequilla, perejil', 'tiempo_preparacion': 12},
-            {'nombre': 'Filete de pescado', 'categoria': 'MARISCOS', 'precio': 14.00, 'ingredientes': 'Filete de pescado blanco, limón', 'tiempo_preparacion': 15},
-            {'nombre': 'Ceviche mixto', 'categoria': 'MARISCOS', 'precio': 15.50, 'ingredientes': 'Pescado, camarón, limón, cebolla', 'tiempo_preparacion': 10},
-            {'nombre': 'Pulpo a la gallega', 'categoria': 'MARISCOS', 'precio': 17.99, 'ingredientes': 'Pulpo, paprika, aceite de oliva', 'tiempo_preparacion': 20},
+            # MARISCOS
+            {'nombre': 'Pescado frito', 'categoria': 'MARISCOS', 'precio': 0, 'ingredientes': 'Pescado frito', 'tiempo_preparacion': 20},
+            {'nombre': 'Pescado a la diabla', 'categoria': 'MARISCOS', 'precio': 0, 'ingredientes': 'Pescado, salsa diabla', 'tiempo_preparacion': 25},
+            {'nombre': 'Pescado a lo macho con espinas', 'categoria': 'MARISCOS', 'precio': 0, 'ingredientes': 'Pescado a lo macho', 'tiempo_preparacion': 30},
+            {'nombre': 'Pescado a lo macho deshuesado', 'categoria': 'MARISCOS', 'precio': 0, 'ingredientes': 'Pescado deshuesado', 'tiempo_preparacion': 35},
+            {'nombre': 'Pargo rojo', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Pargo rojo por libra', 'tiempo_preparacion': 25},
+            {'nombre': 'Pescado al vapor', 'categoria': 'MARISCOS', 'precio': 0, 'ingredientes': 'Pescado al vapor', 'tiempo_preparacion': 20},
+            {'nombre': 'Pescado a la Tipitapa', 'categoria': 'MARISCOS', 'precio': 0, 'ingredientes': 'Pescado estilo Tipitapa', 'tiempo_preparacion': 25},
+            {'nombre': 'Pescado relleno', 'categoria': 'MARISCOS', 'precio': 0, 'ingredientes': 'Pescado relleno', 'tiempo_preparacion': 30},
+            {'nombre': 'Pescado asado', 'categoria': 'MARISCOS', 'precio': 0, 'ingredientes': 'Pescado asado', 'tiempo_preparacion': 25},
+            {'nombre': 'Filete de pescado al vapor', 'categoria': 'MARISCOS', 'precio': 340, 'ingredientes': 'Filete de pescado al vapor', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pescado a la plancha', 'categoria': 'MARISCOS', 'precio': 350, 'ingredientes': 'Filete de pescado a la plancha', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pescado al ajillo', 'categoria': 'MARISCOS', 'precio': 350, 'ingredientes': 'Filete de pescado, ajo', 'tiempo_preparacion': 20},
+            {'nombre': 'Filete de pescado empanizado', 'categoria': 'MARISCOS', 'precio': 340, 'ingredientes': 'Filete de pescado empanizado', 'tiempo_preparacion': 20},
+            {'nombre': 'Fajitas de pescado', 'categoria': 'MARISCOS', 'precio': 340, 'ingredientes': 'Fajitas de pescado', 'tiempo_preparacion': 20},
+            {'nombre': 'Camarones empanizados', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones empanizados', 'tiempo_preparacion': 20},
+            {'nombre': 'Camarones rellenos', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones rellenos', 'tiempo_preparacion': 25},
+            {'nombre': 'Camarones al ajillo', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones, ajo', 'tiempo_preparacion': 15},
+            {'nombre': 'Camarones al vino', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones, vino', 'tiempo_preparacion': 20},
+            {'nombre': 'Camarones a la plancha', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones a la plancha', 'tiempo_preparacion': 15},
+            {'nombre': 'Camarones termidor', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones termidor', 'tiempo_preparacion': 25},
+            {'nombre': 'Camarones a la diabla', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones, salsa diabla', 'tiempo_preparacion': 20},
+            {'nombre': 'Camarones Singapur', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones estilo Singapur', 'tiempo_preparacion': 20},
+            {'nombre': 'Camarones a la mantequilla', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones, mantequilla', 'tiempo_preparacion': 15},
+            {'nombre': 'Camarones en salsa jalapeña', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones, salsa jalapeña', 'tiempo_preparacion': 20},
+            {'nombre': 'Camarones rancheros', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Camarones rancheros', 'tiempo_preparacion': 20},
+            {'nombre': 'Ensalada de camarones', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Ensalada de camarones', 'tiempo_preparacion': 15},
+            {'nombre': 'Arroz con camarón', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Arroz con camarón', 'tiempo_preparacion': 25},
+            {'nombre': 'Langosta rellena', 'categoria': 'MARISCOS', 'precio': 620, 'ingredientes': 'Langosta rellena', 'tiempo_preparacion': 35},
+            {'nombre': 'Pasta Alfredo de camarón', 'categoria': 'MARISCOS', 'precio': 400, 'ingredientes': 'Pasta, camarón, salsa Alfredo', 'tiempo_preparacion': 20},
             
-            # Variados
-            {'nombre': 'Nachos mixtos', 'categoria': 'VARIADOS', 'precio': 7.50, 'ingredientes': 'Nachos, queso, jalapeños, guacamole', 'tiempo_preparacion': 8},
-            {'nombre': 'Quesadillas', 'categoria': 'VARIADOS', 'precio': 6.00, 'ingredientes': 'Tortilla, queso, pollo', 'tiempo_preparacion': 10},
-            {'nombre': 'Papas fritas', 'categoria': 'VARIADOS', 'precio': 4.50, 'ingredientes': 'Papas, sal', 'tiempo_preparacion': 10},
-            {'nombre': 'Aros de cebolla', 'categoria': 'VARIADOS', 'precio': 5.00, 'ingredientes': 'Cebolla, harina, especias', 'tiempo_preparacion': 12},
+            # VARIADOS
+            {'nombre': 'Variado especial Mi Rancho', 'categoria': 'VARIADOS', 'precio': 1200, 'ingredientes': 'Variado especial de la casa', 'tiempo_preparacion': 45},
+            {'nombre': 'Variado especial Don Pepe', 'categoria': 'VARIADOS', 'precio': 850, 'ingredientes': 'Variado especial', 'tiempo_preparacion': 40},
+            {'nombre': 'Variado grande', 'categoria': 'VARIADOS', 'precio': 600, 'ingredientes': 'Variado grande', 'tiempo_preparacion': 35},
+            {'nombre': 'Variado pequeño', 'categoria': 'VARIADOS', 'precio': 520, 'ingredientes': 'Variado pequeño', 'tiempo_preparacion': 30},
+            {'nombre': 'Tostones con queso', 'categoria': 'VARIADOS', 'precio': 200, 'ingredientes': 'Tostones, queso', 'tiempo_preparacion': 15},
+            {'nombre': 'Tostones con bolitas de carne', 'categoria': 'VARIADOS', 'precio': 320, 'ingredientes': 'Tostones, bolitas de carne', 'tiempo_preparacion': 20},
+            {'nombre': 'Tostones con salchichón', 'categoria': 'VARIADOS', 'precio': 200, 'ingredientes': 'Tostones, salchichón', 'tiempo_preparacion': 15},
+            {'nombre': 'Tostones mixtos', 'categoria': 'VARIADOS', 'precio': 240, 'ingredientes': 'Tostones mixtos', 'tiempo_preparacion': 15},
+            {'nombre': 'Aros de cebolla', 'categoria': 'VARIADOS', 'precio': 95, 'ingredientes': 'Aros de cebolla', 'tiempo_preparacion': 10},
+            {'nombre': 'Papas fritas', 'categoria': 'VARIADOS', 'precio': 80, 'ingredientes': 'Papas fritas', 'tiempo_preparacion': 10},
             
-            # Cervezas
-            {'nombre': 'Cerveza nacional', 'categoria': 'CERVEZAS', 'precio': 2.00, 'ingredientes': 'Cerveza lager', 'tiempo_preparacion': 1},
-            {'nombre': 'Cerveza importada', 'categoria': 'CERVEZAS', 'precio': 3.00, 'ingredientes': 'Cerveza premium', 'tiempo_preparacion': 1},
-            {'nombre': 'Cerveza artesanal', 'categoria': 'CERVEZAS', 'precio': 4.50, 'ingredientes': 'Cerveza artesanal IPA', 'tiempo_preparacion': 1},
+            # CARNE DE MONTE Y ENSALADAS
+            {'nombre': 'Garrobo asado', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 300, 'ingredientes': 'Garrobo asado', 'tiempo_preparacion': 30},
+            {'nombre': 'Garrobo a la plancha', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 330, 'ingredientes': 'Garrobo a la plancha', 'tiempo_preparacion': 25},
+            {'nombre': 'Garrobo desmenuzado', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 310, 'ingredientes': 'Garrobo desmenuzado', 'tiempo_preparacion': 30},
+            {'nombre': 'Medio conejo asado', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 320, 'ingredientes': 'Medio conejo asado', 'tiempo_preparacion': 35},
+            {'nombre': 'Medio conejo desmenuzado', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 320, 'ingredientes': 'Medio conejo desmenuzado', 'tiempo_preparacion': 35},
+            {'nombre': 'Conejo entero asado', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 570, 'ingredientes': 'Conejo entero asado', 'tiempo_preparacion': 50},
+            {'nombre': 'Conejo entero desmenuzado', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 570, 'ingredientes': 'Conejo entero desmenuzado', 'tiempo_preparacion': 50},
+            {'nombre': 'Cuzuco asado', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 330, 'ingredientes': 'Cuzuco asado', 'tiempo_preparacion': 35},
+            {'nombre': 'Cuzuco desmenuzado', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 330, 'ingredientes': 'Cuzuco desmenuzado', 'tiempo_preparacion': 35},
+            {'nombre': 'Ensalada de aguacate', 'categoria': 'CARNE DE MONTE Y ENSALADAS', 'precio': 320, 'ingredientes': 'Aguacate, vegetales frescos', 'tiempo_preparacion': 10},
             
-            # Enlatados
-            {'nombre': 'Atún enlatado', 'categoria': 'ENLATADOS', 'precio': 2.50, 'ingredientes': 'Atún en agua', 'tiempo_preparacion': 1},
-            {'nombre': 'Sardinas', 'categoria': 'ENLATADOS', 'precio': 2.20, 'ingredientes': 'Sardinas en aceite', 'tiempo_preparacion': 1},
+            # COCTELES
+            {'nombre': 'Coctel de camarón Don Pepe', 'categoria': 'COCTELES', 'precio': 230, 'ingredientes': 'Camarón, salsa especial', 'tiempo_preparacion': 15},
+            {'nombre': 'Coctel de camarón', 'categoria': 'COCTELES', 'precio': 200, 'ingredientes': 'Camarón, salsa coctel', 'tiempo_preparacion': 15},
+            {'nombre': 'Coctel de conchas negras', 'categoria': 'COCTELES', 'precio': 190, 'ingredientes': 'Conchas negras', 'tiempo_preparacion': 15},
+            {'nombre': 'Ceviche mixto Don Pepe', 'categoria': 'COCTELES', 'precio': 320, 'ingredientes': 'Mariscos mixtos, limón', 'tiempo_preparacion': 20},
+            {'nombre': 'Ceviche de camarón', 'categoria': 'COCTELES', 'precio': 200, 'ingredientes': 'Camarón, limón, cebolla', 'tiempo_preparacion': 15},
+            {'nombre': 'Ceviche de pescado', 'categoria': 'COCTELES', 'precio': 200, 'ingredientes': 'Pescado, limón, cebolla', 'tiempo_preparacion': 15},
+            {'nombre': 'Ceviche de huevo de toro', 'categoria': 'COCTELES', 'precio': 200, 'ingredientes': 'Huevo de toro, limón', 'tiempo_preparacion': 15},
+            {'nombre': 'Huevo de paslama a la ostra (3 unidades)', 'categoria': 'COCTELES', 'precio': 160, 'ingredientes': 'Huevo de paslama', 'tiempo_preparacion': 10},
+            {'nombre': 'Huevo de paslama con yuca (6 unidades)', 'categoria': 'COCTELES', 'precio': 320, 'ingredientes': 'Huevo de paslama, yuca', 'tiempo_preparacion': 20},
+            
+            # SOPAS
+            {'nombre': 'Sopa de marisco sin langosta', 'categoria': 'SOPAS', 'precio': 310, 'ingredientes': 'Mariscos variados', 'tiempo_preparacion': 30},
+            {'nombre': 'Sopa de marisco con langosta', 'categoria': 'SOPAS', 'precio': 420, 'ingredientes': 'Mariscos, langosta', 'tiempo_preparacion': 35},
+            {'nombre': 'Sopa de huevo de toro con médula', 'categoria': 'SOPAS', 'precio': 310, 'ingredientes': 'Huevo de toro, médula', 'tiempo_preparacion': 35},
+            {'nombre': 'Sopa de garrobo', 'categoria': 'SOPAS', 'precio': 310, 'ingredientes': 'Garrobo', 'tiempo_preparacion': 40},
+            {'nombre': 'Sopa de garrobo con punche', 'categoria': 'SOPAS', 'precio': 350, 'ingredientes': 'Garrobo, punche', 'tiempo_preparacion': 45},
+            {'nombre': 'Sopa de pollo', 'categoria': 'SOPAS', 'precio': 290, 'ingredientes': 'Pollo, vegetales', 'tiempo_preparacion': 30},
+            {'nombre': 'Consomé de camarón', 'categoria': 'SOPAS', 'precio': 190, 'ingredientes': 'Camarón, consomé', 'tiempo_preparacion': 20},
+            {'nombre': 'Consomé de pollo', 'categoria': 'SOPAS', 'precio': 190, 'ingredientes': 'Pollo, consomé', 'tiempo_preparacion': 20},
+            
+            # ENLATADOS Y DESECHABLES
+            {'nombre': 'Gaseosa 12 oz', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 45, 'ingredientes': 'Gaseosa', 'tiempo_preparacion': 1},
+            {'nombre': 'Gaseosa desechable 500ml', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 55, 'ingredientes': 'Gaseosa', 'tiempo_preparacion': 1},
+            {'nombre': 'Jugo de naranja', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 48, 'ingredientes': 'Jugo de naranja', 'tiempo_preparacion': 1},
+            {'nombre': 'Jugo de lata', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 42, 'ingredientes': 'Jugo enlatado', 'tiempo_preparacion': 1},
+            {'nombre': 'Hidratantes/energizantes', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 60, 'ingredientes': 'Bebida energizante', 'tiempo_preparacion': 1},
+            {'nombre': 'Hi-C', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 38, 'ingredientes': 'Hi-C', 'tiempo_preparacion': 1},
+            {'nombre': 'Hi-C-T', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 45, 'ingredientes': 'Hi-C-T', 'tiempo_preparacion': 1},
+            {'nombre': 'Té frío', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 42, 'ingredientes': 'Té frío', 'tiempo_preparacion': 1},
+            {'nombre': 'Té Lipton', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 48, 'ingredientes': 'Té Lipton', 'tiempo_preparacion': 1},
+            {'nombre': 'Agua embotellada 500ml', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 45, 'ingredientes': 'Agua purificada', 'tiempo_preparacion': 1},
+            {'nombre': 'Limonada', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 55, 'ingredientes': 'Limonada natural', 'tiempo_preparacion': 5},
+            {'nombre': 'Refresco natural', 'categoria': 'ENLATADOS Y DESECHABLES', 'precio': 50, 'ingredientes': 'Refresco natural', 'tiempo_preparacion': 5},
+            
+            # LICORES IMPORTADOS
+            {'nombre': 'Johnny Walker/Botella', 'categoria': 'LICORES IMPORTADOS', 'precio': 1450, 'ingredientes': 'Johnny Walker', 'tiempo_preparacion': 1},
+            {'nombre': 'Johnny Walker/Media', 'categoria': 'LICORES IMPORTADOS', 'precio': 750, 'ingredientes': 'Johnny Walker', 'tiempo_preparacion': 1},
+            {'nombre': 'Finlandia/Botella', 'categoria': 'LICORES IMPORTADOS', 'precio': 820, 'ingredientes': 'Vodka Finlandia', 'tiempo_preparacion': 1},
+            {'nombre': 'Finlandia Cuarto', 'categoria': 'LICORES IMPORTADOS', 'precio': 250, 'ingredientes': 'Vodka Finlandia', 'tiempo_preparacion': 1},
+            {'nombre': 'Finlandia Media', 'categoria': 'LICORES IMPORTADOS', 'precio': 430, 'ingredientes': 'Vodka Finlandia', 'tiempo_preparacion': 1},
+            {'nombre': 'Stolichnaya/Botella', 'categoria': 'LICORES IMPORTADOS', 'precio': 1400, 'ingredientes': 'Vodka Stolichnaya', 'tiempo_preparacion': 1},
+            {'nombre': 'Stolichnaya/Cuarto', 'categoria': 'LICORES IMPORTADOS', 'precio': 375, 'ingredientes': 'Vodka Stolichnaya', 'tiempo_preparacion': 1},
+            {'nombre': 'Stolichnaya/Media', 'categoria': 'LICORES IMPORTADOS', 'precio': 725, 'ingredientes': 'Vodka Stolichnaya', 'tiempo_preparacion': 1},
+            {'nombre': 'Jose Cuervo/Botella', 'categoria': 'LICORES IMPORTADOS', 'precio': 1480, 'ingredientes': 'Tequila Jose Cuervo', 'tiempo_preparacion': 1},
+            {'nombre': 'Jose Cuervo/Media', 'categoria': 'LICORES IMPORTADOS', 'precio': 780, 'ingredientes': 'Tequila Jose Cuervo', 'tiempo_preparacion': 1},
+            {'nombre': 'Petrov/Botella', 'categoria': 'LICORES IMPORTADOS', 'precio': 400, 'ingredientes': 'Vodka Petrov', 'tiempo_preparacion': 1},
+            {'nombre': 'Petrov/Media', 'categoria': 'LICORES IMPORTADOS', 'precio': 250, 'ingredientes': 'Vodka Petrov', 'tiempo_preparacion': 1},
+            {'nombre': 'Wisky John Barr (N) 1/2', 'categoria': 'LICORES IMPORTADOS', 'precio': 400, 'ingredientes': 'Whisky John Barr', 'tiempo_preparacion': 1},
+            {'nombre': 'Wisky John Barr (N) Botella', 'categoria': 'LICORES IMPORTADOS', 'precio': 750, 'ingredientes': 'Whisky John Barr', 'tiempo_preparacion': 1},
+            {'nombre': 'Wisky John Barr (D) 1/2', 'categoria': 'LICORES IMPORTADOS', 'precio': 350, 'ingredientes': 'Whisky John Barr', 'tiempo_preparacion': 1},
+            {'nombre': 'Wisky John Barr (D) Botella', 'categoria': 'LICORES IMPORTADOS', 'precio': 650, 'ingredientes': 'Whisky John Barr', 'tiempo_preparacion': 1},
+            {'nombre': 'Tequila Jimador 1/2', 'categoria': 'LICORES IMPORTADOS', 'precio': 500, 'ingredientes': 'Tequila Jimador', 'tiempo_preparacion': 1},
+            {'nombre': 'Tequila Jimador Botella', 'categoria': 'LICORES IMPORTADOS', 'precio': 1000, 'ingredientes': 'Tequila Jimador', 'tiempo_preparacion': 1},
+            {'nombre': 'Tragos individuales', 'categoria': 'LICORES IMPORTADOS', 'precio': 80, 'ingredientes': 'Licor individual', 'tiempo_preparacion': 1},
+            
+            # CERVEZA NACIONAL
+            {'nombre': 'Victoria Frost 12 oz', 'categoria': 'CERVEZA NACIONAL', 'precio': 52, 'ingredientes': 'Cerveza Victoria Frost', 'tiempo_preparacion': 1},
+            {'nombre': 'Victoria Frost Litro', 'categoria': 'CERVEZA NACIONAL', 'precio': 85, 'ingredientes': 'Cerveza Victoria Frost', 'tiempo_preparacion': 1},
+            {'nombre': 'Victoria Clásica 12 oz', 'categoria': 'CERVEZA NACIONAL', 'precio': 60, 'ingredientes': 'Cerveza Victoria Clásica', 'tiempo_preparacion': 1},
+            {'nombre': 'Victoria Clásica Litro', 'categoria': 'CERVEZA NACIONAL', 'precio': 100, 'ingredientes': 'Cerveza Victoria Clásica', 'tiempo_preparacion': 1},
+            {'nombre': 'Toña 12 oz', 'categoria': 'CERVEZA NACIONAL', 'precio': 60, 'ingredientes': 'Cerveza Toña', 'tiempo_preparacion': 1},
+            {'nombre': 'Toña Litro', 'categoria': 'CERVEZA NACIONAL', 'precio': 100, 'ingredientes': 'Cerveza Toña', 'tiempo_preparacion': 1},
+            {'nombre': 'Toña Lata', 'categoria': 'CERVEZA NACIONAL', 'precio': 65, 'ingredientes': 'Cerveza Toña', 'tiempo_preparacion': 1},
+            {'nombre': 'Toña Ultra 12 oz', 'categoria': 'CERVEZA NACIONAL', 'precio': 60, 'ingredientes': 'Cerveza Toña Ultra', 'tiempo_preparacion': 1},
+            {'nombre': 'Toña Light 12 oz', 'categoria': 'CERVEZA NACIONAL', 'precio': 60, 'ingredientes': 'Cerveza Toña Light', 'tiempo_preparacion': 1},
+            {'nombre': 'Hard Seltzer Spark', 'categoria': 'CERVEZA NACIONAL', 'precio': 64, 'ingredientes': 'Hard Seltzer', 'tiempo_preparacion': 1},
+            {'nombre': 'Adan y Eva', 'categoria': 'CERVEZA NACIONAL', 'precio': 60, 'ingredientes': 'Cerveza Adan y Eva', 'tiempo_preparacion': 1},
+            {'nombre': 'Chelada', 'categoria': 'CERVEZA NACIONAL', 'precio': 45, 'ingredientes': 'Chelada preparada', 'tiempo_preparacion': 3},
+            {'nombre': 'Michelada', 'categoria': 'CERVEZA NACIONAL', 'precio': 60, 'ingredientes': 'Michelada preparada', 'tiempo_preparacion': 3},
+            
+            # CERVEZA INTERNACIONAL
+            {'nombre': 'Miller lite', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 65, 'ingredientes': 'Cerveza Miller lite', 'tiempo_preparacion': 1},
+            {'nombre': 'Sol', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 84, 'ingredientes': 'Cerveza Sol', 'tiempo_preparacion': 1},
+            {'nombre': 'Heineken', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 89, 'ingredientes': 'Cerveza Heineken', 'tiempo_preparacion': 1},
+            {'nombre': 'Corona', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 90, 'ingredientes': 'Cerveza Corona', 'tiempo_preparacion': 1},
+            {'nombre': 'Smirnoft', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 90, 'ingredientes': 'Smirnoft', 'tiempo_preparacion': 1},
+            {'nombre': 'Bliss', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 83, 'ingredientes': 'Bliss', 'tiempo_preparacion': 1},
+            {'nombre': 'Bamboo', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 69, 'ingredientes': 'Bamboo', 'tiempo_preparacion': 1},
+            {'nombre': 'Fusion', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 74, 'ingredientes': 'Fusion', 'tiempo_preparacion': 1},
         ]
         
         platos_creados = []

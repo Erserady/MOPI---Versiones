@@ -135,17 +135,48 @@ class ConfiguracionSistemaViewSet(viewsets.ModelViewSet):
 
 class GestionPersonalViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]  # Cambiado para permitir a usuarios autenticados
     
     def get_serializer_class(self):
-        # Podrías crear un UserSerializer específico
         from users.serializers import UserSerializer
         return UserSerializer
     
+    def get_queryset(self):
+        # Solo permitir operaciones CRUD completas a admin
+        # Otros usuarios autenticados solo pueden ver
+        if self.request.user.role == 'admin':
+            return User.objects.all()
+        else:
+            # Usuarios no-admin solo pueden ver la lista
+            return User.objects.filter(is_active=True)
+    
+    def create(self, request, *args, **kwargs):
+        if request.user.role != 'admin':
+            return Response(
+                {'error': 'Solo administradores pueden crear usuarios'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().create(request, *args, **kwargs)
+    
+    def update(self, request, *args, **kwargs):
+        if request.user.role != 'admin':
+            return Response(
+                {'error': 'Solo administradores pueden modificar usuarios'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        if request.user.role != 'admin':
+            return Response(
+                {'error': 'Solo administradores pueden eliminar usuarios'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().destroy(request, *args, **kwargs)
+    
     @action(detail=False, methods=['get'])
     def meseros(self, request):
-        # Filtrar por rol de mesero (necesitarías agregar campo rol al modelo User)
-        meseros = User.objects.all()  # Aquí filtrarías por rol cuando lo implementes
+        meseros = User.objects.filter(role='waiter')
         serializer = self.get_serializer(meseros, many=True)
         return Response(serializer.data)
 

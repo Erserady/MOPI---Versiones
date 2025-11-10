@@ -48,10 +48,20 @@ export const API_ENDPOINTS = {
 };
 
 // Configuracion de headers por defecto
-export const getDefaultHeaders = () => ({
-  Accept: "application/json",
-  "Content-Type": "application/json",
-});
+export const getDefaultHeaders = () => {
+  const headers = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+  
+  // Agregar token de autenticación si existe
+  const token = localStorage.getItem("token");
+  if (token) {
+    headers.Authorization = `Token ${token}`;
+  }
+  
+  return headers;
+};
 
 // Helper para hacer peticiones fetch
 export const apiFetch = async (url, options = {}) => {

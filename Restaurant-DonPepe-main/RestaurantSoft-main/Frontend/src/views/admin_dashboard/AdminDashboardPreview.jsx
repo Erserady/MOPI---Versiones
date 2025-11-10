@@ -1,87 +1,113 @@
 import MainComponent from "../../common/MainComponent";
 import { useNavigate } from "react-router-dom";
 import { ChefHat, UtensilsCrossed, Wallet, Settings } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import UserSelectionModal from "../../components/UserSelectionModal";
 import "../../styles/admin_dashboard_preview.css";
 import { API_ENDPOINTS } from "../../config/api";
+
+const ROLE_CONFIG = [
+  { key: "cocina", role: "cook", title: "Cocina", route: "/cook-dashboard", icon: <ChefHat size={70} /> },
+  { key: "meseros", role: "waiter", title: "Meseros", route: "/waiter-dashboard", icon: <UtensilsCrossed size={70} /> },
+  { key: "caja", role: "cashier", title: "Caja", route: "/cashier-dashboard", icon: <Wallet size={70} /> },
+  { key: "administrador", role: "admin", title: "Administrador", route: "/admin-dashboard", icon: <Settings size={70} /> },
+];
+
+const FALLBACK_ROLE_DATA = ROLE_CONFIG.reduce((acc, cfg, idx) => {
+  const palette = ["#f87171", "#fb923c", "#60a5fa", "#34d399", "#c084fc", "#fbbf24"];
+  acc[cfg.key] = {
+    title: cfg.title,
+    role: cfg.role,
+    route: cfg.route,
+    users: [
+      { id: `${cfg.role}-1`, name: `${cfg.title} 1`, color: palette[idx % palette.length] },
+      { id: `${cfg.role}-2`, name: `${cfg.title} 2`, color: palette[(idx + 2) % palette.length] },
+    ],
+  };
+  return acc;
+}, {});
 
 const AdminDashboardPreview = () => {
   const welcomeTitle = "Bienvenido";
   const currentView = "admin-dashboard";
   const navigate = useNavigate();
-  const role = "admin";
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRoleData, setSelectedRoleData] = useState(null);
-  const [usersData, setUsersData] = useState({});
+  const [usersData, setUsersData] = useState(FALLBACK_ROLE_DATA);
+  const [statusMessage, setStatusMessage] = useState("Cargando personal...");
+  const [isLoadingRoles, setIsLoadingRoles] = useState(true);
 
-  // Cargar usuarios desde el backend
+  // Cargar usuarios desde el backend con fallback
   useEffect(() => {
+    let isMounted = true;
     const fetchUsers = async () => {
-      const roles = [
-        { key: 'cocina', role: 'cook', title: 'Cocina', route: '/cook-dashboard' },
-        { key: 'meseros', role: 'waiter', title: 'Meseros', route: '/waiter-dashboard' },
-        { key: 'caja', role: 'cashier', title: 'Caja', route: '/cashier-dashboard' },
-        { key: 'administrador', role: 'admin', title: 'Administrador', route: '/admin-dashboard' },
-      ];
-
       const data = {};
-      
-      for (const roleInfo of roles) {
+      let hadErrors = false;
+
+      for (const roleInfo of ROLE_CONFIG) {
         try {
           const response = await fetch(API_ENDPOINTS.usersByRole(roleInfo.role));
           if (response.ok) {
             const users = await response.json();
-            data[roleInfo.key] = {
-              title: roleInfo.title,
-              role: roleInfo.role,
-              route: roleInfo.route,
-              users: users
-            };
+            if (Array.isArray(users) && users.length > 0) {
+              data[roleInfo.key] = {
+                title: roleInfo.title,
+                role: roleInfo.role,
+                route: roleInfo.route,
+                users,
+              };
+              continue;
+            }
           }
+          hadErrors = true;
         } catch (error) {
           console.error(`Error cargando usuarios para ${roleInfo.title}:`, error);
+          hadErrors = true;
         }
+        data[roleInfo.key] = FALLBACK_ROLE_DATA[roleInfo.key];
       }
-      
-      setUsersData(data);
+
+      if (isMounted) {
+        setUsersData(data);
+        setIsLoadingRoles(false);
+        setStatusMessage(
+          hadErrors
+            ? "No se pudieron cargar los usuarios desde el backend. Usando datos de referencia."
+            : ""
+        );
+      }
     };
 
     fetchUsers();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Lista de botones con sus rutas e íconos
-  const previewOptions = [
-    {
-      title: "Cocina",
-      icon: <ChefHat size={70} />,
-      dataKey: "cocina",
-    },
-    {
-      title: "Meseros",
-      icon: <UtensilsCrossed size={70} />,
-      dataKey: "meseros",
-    },
-    {
-      title: "Caja",
-      icon: <Wallet size={70} />,
-      dataKey: "caja",
-    },
-    {
-      title: "Administrador",
-      icon: <Settings size={70} />,
-      dataKey: "administrador",
-    },
-  ];
+  const previewOptions = useMemo(
+    () =>
+      ROLE_CONFIG.map((cfg) => ({
+        title: cfg.title,
+        icon: cfg.icon,
+        dataKey: cfg.key,
+      })),
+    []
+  );
 
   const handleRoleClick = (dataKey) => {
-    setSelectedRoleData(usersData[dataKey]);
+    const data = usersData[dataKey];
+    if (!data) {
+      setStatusMessage("No encontramos usuarios configurados para esta área.");
+      return;
+    }
+    setSelectedRoleData(data);
     setIsModalOpen(true);
   };
 
   const handleUserSelect = (user, userRole) => {
-    const roleData = Object.values(usersData).find(data => data.role === userRole);
+    const roleData = Object.values(usersData).find((data) => data.role === userRole);
+    if (!roleData) return;
     navigate(roleData.route, {
       state: { 
         role: userRole,
@@ -103,9 +129,14 @@ const AdminDashboardPreview = () => {
           </button>
           
           <div className="preview-container">
-            <div className="preview-header">
+            <div className="preview-header" aria-live="polite">
               <h2>Sistema de Gestión - Restaurante Don Pepe</h2>
               <p>Selecciona el área a la que deseas acceder</p>
+              {statusMessage && (
+                <p className={`status-text ${isLoadingRoles ? "loading" : ""}`}>
+                  {statusMessage}
+                </p>
+              )}
             </div>
             <div className="preview-grid">
               {previewOptions.map((option) => (

@@ -8,7 +8,7 @@ const UserSelectionModal = ({ isOpen, onClose, roleData, onUserSelect }) => {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
 
-  if (!isOpen) return null;
+  if (!isOpen || !roleData) return null;
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
@@ -77,18 +77,24 @@ const UserSelectionModal = ({ isOpen, onClose, roleData, onUserSelect }) => {
             <p className="modal-subtitle">{roleData.title}</p>
             
             <div className="users-grid">
-              {roleData.users.map((user) => (
-                <div
-                  key={user.id}
-                  className="user-profile-card"
-                  onClick={() => handleUserClick(user)}
-                >
-                  <div className="user-avatar" style={{ backgroundColor: user.color }}>
-                    <span className="user-avatar-text">{user.name.charAt(0).toUpperCase()}</span>
+              {Array.isArray(roleData.users) && roleData.users.length > 0 ? (
+                roleData.users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="user-profile-card"
+                    onClick={() => handleUserClick(user)}
+                  >
+                    <div className="user-avatar" style={{ backgroundColor: user.color }}>
+                      <span className="user-avatar-text">{user.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <p className="user-name">{user.name}</p>
                   </div>
-                  <p className="user-name">{user.name}</p>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="no-users-text">
+                  No hay usuarios configurados para esta área. Solicita al administrador que los agregue.
+                </p>
+              )}
             </div>
           </>
         ) : (

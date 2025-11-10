@@ -72,6 +72,17 @@
   color: #666;
 }
 
+.preview-header .status-text {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.preview-header .status-text.loading {
+  color: #1b7b3f;
+}
+
 .preview-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

@@ -8,6 +8,9 @@ export async function listStaff() {
   return res.json();
 }
 
+// Alias para compatibilidad
+export const getStaff = listStaff;
+
 export async function createStaff(payload) {
   const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/`, {
     method: 'POST',

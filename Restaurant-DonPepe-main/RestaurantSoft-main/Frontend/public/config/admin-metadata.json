@@ -1,0 +1,71 @@
+{
+  "appName": "RestaurantSoft",
+  "module": "admin",
+  "version": "1.0.0",
+  "environment": "development",
+  "locale": "es-NI",
+  "currency": {
+    "code": "NIO",
+    "symbol": "C$",
+    "format": "C${amount}"
+  },
+  "api": {
+    "baseUrl": "/api",
+    "endpoints": {
+      "menu": {
+        "uploadCategoryImage": "/admin/menu/categorias/{categoria}/imagen",
+        "getCategoryImage": "/admin/menu/categorias/{categoria}/imagen"
+      },
+      "staff": {
+        "list": "/admin/personal",
+        "create": "/admin/personal",
+        "update": "/admin/personal/{id}",
+        "delete": "/admin/personal/{id}",
+        "uploadPhoto": "/admin/personal/{id}/foto"
+      },
+      "inventory": {
+        "list": "/admin/inventario",
+        "create": "/admin/inventario",
+        "update": "/admin/inventario/{id}",
+        "delete": "/admin/inventario/{id}"
+      }
+    }
+  },
+  "navigation": [
+    { "title": "Resumen", "section": "resume", "visible": true },
+    { "title": "Inventario", "section": "inventory", "visible": true },
+    { "title": "Menú", "section": "products", "visible": true },
+    { "title": "Personal", "section": "staff", "visible": true }
+  ],
+  "menu": {
+    "categories": [
+      "CARNE ROJA",
+      "CARNE BLANCA",
+      "CARNE DE CERDO",
+      "MARISCOS",
+      "VARIADOS",
+      "CERVEZAS",
+      "ENLATADOS"
+    ],
+    "defaultCategoryImages": {
+      "CARNE ROJA": "imagenes/Res.jpeg",
+      "CARNE BLANCA": "imagenes/CarneBlanca.jpg",
+      "CARNE DE CERDO": "imagenes/Cerdo.jpg",
+      "MARISCOS": "imagenes/Mariscos.jpg",
+      "VARIADOS": "imagenes/Variado.jpg",
+      "CERVEZAS": "imagenes/Cervezas.png",
+      "ENLATADOS": "imagenes/Enlatados.jpg"
+    }
+  },
+  "permissions": {
+    "canEditInventory": true,
+    "canManageMenu": true,
+    "canManageStaff": true
+  },
+  "ui": {
+    "adminMenuLayout": {
+      "leftGridColumns": 4,
+      "thumbSizePx": 100
+    }
+  }
+}

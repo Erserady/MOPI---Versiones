@@ -195,7 +195,7 @@ class GestionFacturasViewSet(viewsets.ModelViewSet):
 
 # Vista para el menú completo
 @api_view(['GET'])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([permissions.IsAuthenticated])  # Cambiado para permitir acceso a todos los usuarios autenticados
 def menu_completo(request):
     categorias = CategoriaMenu.objects.filter(activa=True).prefetch_related('platos')
     data = []

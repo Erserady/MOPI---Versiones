@@ -1,145 +1,211 @@
 import React, { useEffect, useRef, useState } from "react";
-import { User } from "lucide-react";
+import { User, RefreshCw, Trash2, Edit, Save, X } from "lucide-react";
+import { useDataSync } from "../../../hooks/useDataSync";
+import { getStaff, createStaff, updateStaff, deleteStaff } from "../../../services/adminStaffService";
 
-const roles = ["CAJA", "COCINA", "MESERO"];
+const roles = ["cashier", "cook", "waiter"];
+const rolesDisplay = { cashier: "CAJA", cook: "COCINA", waiter: "MESERO" };
 
 const AdminStaff = () => {
-  const [staff, setStaff] = useState([]);
-  const [form, setForm] = useState({ nombre: "", apellido: "", servicio: roles[0], pin: "", photoUrl: "" });
+  // Sincronizar personal desde el backend
+  const { data: staffData, loading, error, refetch } = useDataSync(getStaff, 10000);
+  const [form, setForm] = useState({ first_name: "", last_name: "", role: roles[0], pin: "", color: "#3b82f6" });
   const [editId, setEditId] = useState(null);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("admin_staff_records");
-      if (raw) setStaff(JSON.parse(raw));
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("admin_staff_records", JSON.stringify(staff));
-    } catch {}
-  }, [staff]);
+  // Filtrar solo empleados (no admin)
+  const staff = staffData?.filter(user => user.role !== 'admin') || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: name === "pin" ? value.replace(/\D/g, "") : value }));
+    setForm((f) => ({ ...f, [name]: name === "pin" ? value.replace(/\D/g, "").slice(0, 4) : value }));
   };
 
   const handleNew = () => {
     setEditId(null);
-    setForm({ nombre: "", apellido: "", servicio: roles[0], pin: "", photoUrl: "" });
+    setForm({ first_name: "", last_name: "", role: roles[0], pin: "", color: "#3b82f6" });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.nombre || !form.apellido || !form.pin) return;
-    if (editId) {
-      setStaff((s) => s.map((p) => (p.id === editId ? { ...p, ...form } : p)));
-      setEditId(null);
-    } else {
-      const nuevo = { id: Date.now(), ...form, fechaIngreso: new Date().toISOString() };
-      setStaff((s) => [nuevo, ...s]);
+    if (!form.first_name || !form.last_name || !form.pin) {
+      alert('Por favor complete todos los campos requeridos');
+      return;
     }
-    setForm({ nombre: "", apellido: "", servicio: roles[0], pin: "", photoUrl: "" });
+    
+    if (form.pin.length !== 4) {
+      alert('El PIN debe tener exactamente 4 dígitos');
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const dataToSend = {
+        first_name: form.first_name,
+        last_name: form.last_name,
+        role: form.role,
+        pin: form.pin,
+        color: form.color,
+        username: `${form.first_name.toLowerCase()}.${form.last_name.toLowerCase()}`,
+        email: `${form.first_name.toLowerCase()}.${form.last_name.toLowerCase()}@restaurant.com`,
+      };
+      
+      if (editId) {
+        await updateStaff(editId, dataToSend);
+      } else {
+        await createStaff(dataToSend);
+      }
+      
+      await refetch();
+      setEditId(null);
+      setForm({ first_name: "", last_name: "", role: roles[0], pin: "", color: "#3b82f6" });
+    } catch (error) {
+      console.error('Error guardando empleado:', error);
+      alert('Error al guardar empleado: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEdit = (p) => {
     setEditId(p.id);
-    setForm({ nombre: p.nombre || "", apellido: p.apellido || "", servicio: p.servicio || roles[0], pin: p.pin || "", photoUrl: p.photoUrl || "" });
+    setForm({ 
+      first_name: p.first_name || "", 
+      last_name: p.last_name || "", 
+      role: p.role || roles[0], 
+      pin: p.pin || "", 
+      color: p.color || "#3b82f6" 
+    });
   };
 
-  const handleDelete = (id) => setStaff((s) => s.filter((p) => p.id !== id));
-
-  const handlePhotoClick = () => fileInputRef.current?.click();
-  const handleFileChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result;
-      setForm((f) => ({ ...f, photoUrl: dataUrl }));
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
+  const handleDelete = async (id) => {
+    if (!confirm('¿Está seguro de eliminar este empleado?')) return;
+    try {
+      await deleteStaff(id);
+      await refetch();
+    } catch (error) {
+      console.error('Error eliminando empleado:', error);
+      alert('Error al eliminar empleado');
+    }
   };
+
 
   const formatDate = (iso) => {
     try { return new Date(iso).toLocaleDateString(); } catch { return "-"; }
   };
 
+  if (loading && !staffData) {
+    return (
+      <section className="admin-staff" style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
+        <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: 16 }}>Personal</h1>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <RefreshCw className="spin" size={32} />
+          <p>Cargando personal...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="admin-staff" style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
+        <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: 16 }}>Personal</h1>
+        <div style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>
+          <p>Error al cargar personal: {error}</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="admin-staff" style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
+    <section className="admin-staff" style={{ maxWidth: 1100, margin: "0 auto", padding: 20 }}>
       <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: 16 }}>Personal</h1>
 
-      <form onSubmit={handleSubmit} className="staff-form" style={{ display: "grid", gap: 12, gridTemplateColumns: "auto 1fr 1fr 1fr 1fr auto auto", alignItems: "end", marginBottom: 20 }}>
-        <div onClick={handlePhotoClick} title="Cargar foto" style={{ width: 56, height: 56, borderRadius: 12, border: "1px dashed #cbd5e1", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          {form.photoUrl ? <img src={form.photoUrl} alt="foto" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 10 }} /> : <User size={24} color="#94a3b8" />}
-          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+      <form onSubmit={handleSubmit} className="staff-form" style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr 1fr 100px 80px auto auto", alignItems: "end", marginBottom: 20 }}>
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={{ fontSize: 14, fontWeight: 600 }}>Nombre</label>
+          <input name="first_name" value={form.first_name} onChange={handleChange} placeholder="Nombre" required style={{ padding: 10, border: "1px solid #d1d5db", borderRadius: 8 }} disabled={saving} />
         </div>
         <div style={{ display: "grid", gap: 6 }}>
-          <label>Nombre</label>
-          <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombre" required style={{ padding: 10, border: "1px solid #d1d5db", borderRadius: 8 }} />
+          <label style={{ fontSize: 14, fontWeight: 600 }}>Apellido</label>
+          <input name="last_name" value={form.last_name} onChange={handleChange} placeholder="Apellido" required style={{ padding: 10, border: "1px solid #d1d5db", borderRadius: 8 }} disabled={saving} />
         </div>
         <div style={{ display: "grid", gap: 6 }}>
-          <label>Apellido</label>
-          <input name="apellido" value={form.apellido} onChange={handleChange} placeholder="Apellido" required style={{ padding: 10, border: "1px solid #d1d5db", borderRadius: 8 }} />
-        </div>
-        <div style={{ display: "grid", gap: 6 }}>
-          <label>Servicio</label>
-          <select name="servicio" value={form.servicio} onChange={handleChange} style={{ padding: 10, border: "1px solid #d1d5db", borderRadius: 8 }}>
+          <label style={{ fontSize: 14, fontWeight: 600 }}>Rol</label>
+          <select name="role" value={form.role} onChange={handleChange} style={{ padding: 10, border: "1px solid #d1d5db", borderRadius: 8 }} disabled={saving}>
             {roles.map((r) => (
-              <option key={r} value={r}>{r}</option>
+              <option key={r} value={r}>{rolesDisplay[r]}</option>
             ))}
           </select>
         </div>
         <div style={{ display: "grid", gap: 6 }}>
-          <label>PIN (solo dígitos)</label>
-          <input name="pin" value={form.pin} onChange={handleChange} placeholder="Ej. 1234" inputMode="numeric" required style={{ padding: 10, border: "1px solid #d1d5db", borderRadius: 8 }} />
+          <label style={{ fontSize: 14, fontWeight: 600 }}>PIN (4 dígitos)</label>
+          <input name="pin" value={form.pin} onChange={handleChange} placeholder="1234" inputMode="numeric" maxLength="4" required style={{ padding: 10, border: "1px solid #d1d5db", borderRadius: 8 }} disabled={saving} />
         </div>
-        <button type="submit" className="green-btn" style={{ padding: "10px 14px", background: "#10b981", color: "white", border: 0, borderRadius: 8, cursor: "pointer", fontWeight: 700 }}>
-          {editId ? "Guardar" : "+ Agregar"}
+        <div style={{ display: "grid", gap: 6 }}>
+          <label style={{ fontSize: 14, fontWeight: 600 }}>Color</label>
+          <input type="color" name="color" value={form.color} onChange={handleChange} style={{ padding: 5, border: "1px solid #d1d5db", borderRadius: 8, width: "100%", height: 42 }} disabled={saving} />
+        </div>
+        <button type="submit" disabled={saving} style={{ padding: "10px 14px", background: saving ? "#9ca3af" : "#10b981", color: "white", border: 0, borderRadius: 8, cursor: saving ? "not-allowed" : "pointer", fontWeight: 700 }}>
+          {saving ? <RefreshCw className="spin" size={16} /> : (editId ? "Guardar" : "+ Agregar")}
         </button>
-        <button type="button" onClick={handleNew} style={{ padding: "10px 14px", background: "#6b7280", color: "white", border: 0, borderRadius: 8, cursor: "pointer", fontWeight: 700 }}>
+        <button type="button" onClick={handleNew} disabled={saving} style={{ padding: "10px 14px", background: "#6b7280", color: "white", border: 0, borderRadius: 8, cursor: saving ? "not-allowed" : "pointer", fontWeight: 700 }}>
           Nuevo
         </button>
       </form>
 
-      <div className="staff-list shadow" style={{ background: "#f1f1f1", borderRadius: 12, padding: 12 }}>
+      <div className="staff-list shadow" style={{ background: "#ffffff", borderRadius: 12, padding: 12, border: "1px solid #e5e7eb" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: 12, background: "#d4d4d4" }}>FOTO</th>
-              <th style={{ textAlign: "left", padding: 12, background: "#d4d4d4" }}>NOMBRE</th>
-              <th style={{ textAlign: "left", padding: 12, background: "#d4d4d4" }}>APELLIDO</th>
-              <th style={{ textAlign: "left", padding: 12, background: "#d4d4d4" }}>SERVICIO</th>
-              <th style={{ textAlign: "left", padding: 12, background: "#d4d4d4" }}>FECHA DE INGRESO</th>
-              <th style={{ textAlign: "left", padding: 12, background: "#d4d4d4" }}>ACCIONES</th>
+              <th style={{ textAlign: "left", padding: 12, background: "#f3f4f6", fontWeight: 700, fontSize: 13 }}>NOMBRE COMPLETO</th>
+              <th style={{ textAlign: "left", padding: 12, background: "#f3f4f6", fontWeight: 700, fontSize: 13 }}>ROL</th>
+              <th style={{ textAlign: "left", padding: 12, background: "#f3f4f6", fontWeight: 700, fontSize: 13 }}>PIN</th>
+              <th style={{ textAlign: "left", padding: 12, background: "#f3f4f6", fontWeight: 700, fontSize: 13 }}>COLOR</th>
+              <th style={{ textAlign: "left", padding: 12, background: "#f3f4f6", fontWeight: 700, fontSize: 13 }}>FECHA DE INGRESO</th>
+              <th style={{ textAlign: "center", padding: 12, background: "#f3f4f6", fontWeight: 700, fontSize: 13 }}>ACCIONES</th>
             </tr>
           </thead>
           <tbody>
             {staff.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ padding: 16 }}>Aún no hay personal agregado.</td>
+                <td colSpan={6} style={{ padding: 32, textAlign: "center", color: "#6b7280" }}>Aún no hay personal agregado.</td>
               </tr>
             ) : (
               staff.map((p) => (
-                <tr key={p.id}>
+                <tr key={p.id} style={{ background: "#fff" }}>
                   <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb" }}>
-                    {p.photoUrl ? (
-                      <img src={p.photoUrl} alt="foto" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 8 }} />
-                    ) : (
-                      <User size={24} color="#6b7280" />
-                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 8, background: p.color || "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 14 }}>
+                        {p.first_name?.[0]}{p.last_name?.[0]}
+                      </div>
+                      <span style={{ fontWeight: 600 }}>{p.full_name || `${p.first_name} ${p.last_name}`}</span>
+                    </div>
                   </td>
-                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb" }}>{p.nombre}</td>
-                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb" }}>{p.apellido}</td>
-                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb" }}>{p.servicio}</td>
-                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb" }}>{formatDate(p.fechaIngreso)}</td>
-                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb", display: "flex", gap: 8 }}>
-                    <button onClick={() => handleEdit(p)} style={{ padding: "6px 10px", background: "#3b82f6", color: "white", border: 0, borderRadius: 6, cursor: "pointer" }}>Editar</button>
-                    <button onClick={() => handleDelete(p.id)} style={{ padding: "6px 10px", background: "#ef4444", color: "white", border: 0, borderRadius: 6, cursor: "pointer" }}>Eliminar</button>
+                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb" }}>
+                    <span style={{ padding: "4px 8px", background: "#dbeafe", color: "#1e40af", borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
+                      {rolesDisplay[p.role] || p.role}
+                    </span>
+                  </td>
+                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb", fontFamily: "monospace", fontWeight: 600 }}>
+                    {p.pin || "****"}
+                  </td>
+                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb" }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 4, background: p.color || "#3b82f6" }} />
+                  </td>
+                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb", fontSize: 14 }}>{formatDate(p.date_joined)}</td>
+                  <td style={{ padding: 12, borderBottom: "1px solid #e5e7eb" }}>
+                    <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                      <button onClick={() => handleEdit(p)} style={{ padding: "6px 10px", background: "#3b82f6", color: "white", border: 0, borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                        <Edit size={14} style={{ marginRight: 4, display: "inline" }} />
+                        Editar
+                      </button>
+                      <button onClick={() => handleDelete(p.id)} style={{ padding: "6px 10px", background: "#ef4444", color: "white", border: 0, borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                        <Trash2 size={14} style={{ marginRight: 4, display: "inline" }} />
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

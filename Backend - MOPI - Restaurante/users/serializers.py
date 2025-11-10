@@ -9,11 +9,20 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer para respuestas (no expone password ni PIN completo)."""
+    """Serializer para respuestas completas (incluye PIN para administración)."""
+    full_name = serializers.SerializerMethodField()
+    
     class Meta:
         model = User
-        fields = ("id", "username", "email", "first_name", "last_name", "role", "color")
-        read_only_fields = ("id",)
+        fields = ("id", "username", "email", "first_name", "last_name", "role", "color", "pin", "full_name", "is_active", "date_joined")
+        read_only_fields = ("id", "date_joined")
+    
+    def get_full_name(self, obj):
+        if obj.first_name and obj.last_name:
+            return f"{obj.first_name} {obj.last_name}"
+        elif obj.first_name:
+            return obj.first_name
+        return obj.username
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

@@ -5,27 +5,24 @@ import NavigationBar from "../../common/NavigationBar";
 import { useState } from "react";
 import { Settings } from "lucide-react";
 import AdminInventory from "../../modules/admin_module/components/AdminInventory";
-import AdminProducts from "../../modules/admin_module/components/AdminProducts";
-import AdminStaff from "../../modules/admin_module/components/AdminStaff";
-import { useMetadata } from "../../hooks/useMetadata";
+import AdminRecipe from "../../modules/admin_module/components/AdminRecipe";
+import AdminMenu from "../../modules/admin_module/components/AdminMenu";
 
 const AdminDashboard = () => {
   const welcomeTitle = "Panel de Administrador";
   const [currentSection, setcurrentSection] = useState("resume");
   const currentView = "admin-dashboard";
-  const { data: adminMeta } = useMetadata("admin");
-  const navItems = (adminMeta?.navigation || adminNavigationBar).filter((n) => n.visible !== false);
 
   const handleView = (subview) => {
     switch (subview) {
       case "inventory":
         return <AdminInventory></AdminInventory>;
-      case "products":
-        return <AdminProducts></AdminProducts>;
-      case "staff":
-        return <AdminStaff></AdminStaff>;
+      case "recipes":
+        return <AdminRecipe></AdminRecipe>;
+      case "menu":
+        return <AdminMenu></AdminMenu>;
       default:
-        return <AdminProducts></AdminProducts>;
+        return <AdminMenu></AdminMenu>;
     }
   };
 
@@ -40,7 +37,7 @@ const AdminDashboard = () => {
         <NavigationBar
           SectionState={currentSection}
           setSectionState={setcurrentSection}
-          currentView={navItems}
+          currentView={adminNavigationBar}
           classView={currentView}
         />
         <section className="main-section">{handleView(currentSection)}</section>

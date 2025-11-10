@@ -1,13 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "./authSlice";
+import menuReducer from "./menuSlice";
+import dashboardReducer from "./dashboardSlice";
+import inventoryReducer from "./inventorySlice";
 
 export const store = configureStore({
   reducer: {
-    data: {
-      tables: "[]",
-      orders: "[]",
-      recipes: "[]",
-      users: "[]",
-    },
+    auth: authReducer,
+    menu: menuReducer,
+    dashboard: dashboardReducer,
+    inventory: inventoryReducer,
   },
 });
 

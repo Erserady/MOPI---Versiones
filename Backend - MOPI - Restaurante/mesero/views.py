@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from django.shortcuts import render
 from .models import Table, WaiterOrder
 from .serializers import TableSerializer, WaiterOrderSerializer
+from administrador.models import CategoriaMenu
+from administrador.serializers import CategoriaMenuSerializer, PlatoSerializer
 
 class TableViewSet(viewsets.ModelViewSet):
     queryset = Table.objects.all().order_by('mesa_id')
@@ -33,3 +35,16 @@ def mesero_open_api(request):
 # Vista HTML simple para mesero: /mesero/pedido/
 def mesero_pedido_view(request):
     return render(request, 'mesero/pedido.html', {})
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def menu_publico(request):
+    categorias = CategoriaMenu.objects.filter(activa=True).prefetch_related('platos')
+    data = []
+    for categoria in categorias:
+        platos = categoria.platos.filter(disponible=True)
+        data.append({
+            'categoria': CategoriaMenuSerializer(categoria).data,
+            'platos': PlatoSerializer(platos, many=True).data,
+        })
+    return Response(data)

@@ -4,9 +4,12 @@ import "../../styles/login.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { API_ENDPOINTS, apiFetch } from "../../config/api";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../redux/authSlice";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -39,6 +42,7 @@ const Login = () => {
       // Guardar token y datos del usuario
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      dispatch(setCredentials({ token: data.token, user: data.user }));
       
       // Siempre ir a admin-preview después del login
       navigate("/admin-preview");
@@ -135,4 +139,3 @@ const Login = () => {
 };
 
 export default Login;
-

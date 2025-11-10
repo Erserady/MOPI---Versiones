@@ -1,39 +1,70 @@
-import { useEffect, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useImmer } from "use-immer";
 import DishTable from "./DishTable";
-import { fetchMenu, selectMenuByScope } from "../../../redux/menuSlice";
+
+const categories = [
+  "🥃 Licores Importados",
+  "🍺 Cervezas",
+  "🥩 Carne de Res",
+  "🍗 Carne Blanca",
+  "🐖 Carne de Cerdo",
+  "🐟 Mariscos",
+  "🍤 Cocktail",
+  "🍲 Sopas",
+  "🍸 Cocktail y Vino",
+  "🚬 Cigarros",
+  "🥃 Ron Nacional",
+  "🧃 Productos CDN",
+  "🍹 RTD",
+  "🥂 Hard Seltzer",
+  "🍽️ Variados",
+  "-Enlatados/Desechables",
+];
+
+const initialMenu = [
+  {
+    id: 1,
+    name: "Pollo a la Plancha",
+    category: "🍗 Carne Blanca",
+    price: 15.5,
+    available: true,
+    description: "Jugoso pollo a la plancha con guarnición.",
+  },
+  {
+    id: 2,
+    name: "Limonada",
+    category: "-Enlatados/Desechables",
+    price: 2.5,
+    available: true,
+  },
+  {
+    id: 3,
+    name: "Brownie",
+    category: "🍽️ Variados",
+    price: 4.0,
+    available: false,
+  },
+  {
+    id: 4,
+    name: "Filete de Res",
+    category: "🥩 Carne de Res",
+    price: 18.0,
+    available: true,
+  },
+  {
+    id: 5,
+    name: "Cerveza Victoria",
+    category: "🍺 Cervezas",
+    price: 3.5,
+    available: true,
+  },
+];
 
 const HandleOrder = () => {
-  const dispatch = useDispatch();
-  const menuCategories = useSelector((state) =>
-    selectMenuByScope(state, "public")
-  );
-  const menuStatus = useSelector((state) => state.menu.status);
-
-  const [activeCategoryId, setActiveCategoryId] = useImmer(null);
+  const [menu] = useImmer(initialMenu);
+  const [activeCategory, setActiveCategory] = useImmer(categories[0]);
   const [cartItems, setCartItems] = useImmer([]);
 
-  useEffect(() => {
-    if (!menuCategories.length && menuStatus !== "loading") {
-      dispatch(fetchMenu({ scope: "public" }));
-    }
-  }, [dispatch, menuCategories.length, menuStatus]);
-
-  useEffect(() => {
-    if (!activeCategoryId && menuCategories.length > 0) {
-      setActiveCategoryId(menuCategories[0].id);
-    }
-  }, [menuCategories, activeCategoryId, setActiveCategoryId]);
-
-  const activeCategory = useMemo(() => {
-    return (
-      menuCategories.find((category) => category.id === activeCategoryId) ||
-      menuCategories[0]
-    );
-  }, [menuCategories, activeCategoryId]);
-
-  const filteredMenu = activeCategory?.dishes || [];
+  const filteredMenu = menu.filter((dish) => dish.category === activeCategory);
 
   const handleAddToCart = (dish) => {
     setCartItems((draft) => {
@@ -45,7 +76,7 @@ const HandleOrder = () => {
         draft.push({
           dishId: dish.id,
           dishName: dish.name,
-          dishCategory: activeCategory?.name,
+          dishCategory: dish.category,
           dishStatus: "Pendiente",
           dishQuantity: 1,
           unitPrice: dish.price,
@@ -89,9 +120,17 @@ const HandleOrder = () => {
   const total = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
 
   const handleConfirmOrder = () => {
-    // TODO: enviar carrito al backend cuando est�� disponible el endpoint
-    console.log("Orden confirmada:", cartItems);
-    alert("Orden confirmada (trabajando en la integración con la API)");
+    const orderObject = {
+      orderId: `ORD-${Date.now()}`,
+      tableNumber: 2,
+      orderStatus: "Pendiente",
+      isPaid: false,
+      total: total,
+      items: cartItems,
+    };
+
+    console.log("✅ Orden confirmada:", orderObject);
+    alert("Orden confirmada (revisa la consola)");
   };
 
   return (
@@ -103,27 +142,25 @@ const HandleOrder = () => {
       <div className="custom-order-container">
         <h3>Selecciona la categoría</h3>
         <div className="categories-menu">
-          {menuCategories.map((category) => (
+          {categories.map((category) => (
             <button
-              key={category.id}
+              key={category}
               className={`category-btn ${
-                activeCategoryId === category.id ? "active" : ""
+                activeCategory === category ? "active" : ""
               }`}
-              onClick={() => setActiveCategoryId(category.id)}
+              onClick={() => setActiveCategory(category)}
             >
-              {category.name}
+              {category}
             </button>
           ))}
         </div>
         <p className="category-tip">
-          Desliza para seleccionar la categoría desde tu dispositivo móvil
+          {"← Desliza para seleccionar la categoría →"}
         </p>
       </div>
 
       <section className="category-dishes">
-        <h3 className="category-title">
-          Categoría: {activeCategory?.name || "N/D"}
-        </h3>
+        <h3 className="category-title">Categoria: {activeCategory}</h3>
         <div className="table-container">
           {filteredMenu.length > 0 ? (
             <DishTable
@@ -139,7 +176,7 @@ const HandleOrder = () => {
       </section>
 
       <section className="category-dishes">
-        <h3>Platillos agregados a la cuenta</h3>
+        <h3>🧾 Platillos agregados a la cuenta</h3>
         <div className="table-container">
           {cartItems.length > 0 ? (
             <DishTable
@@ -158,7 +195,7 @@ const HandleOrder = () => {
 
       {cartItems.length > 0 && (
         <button className="confirm-btn" onClick={handleConfirmOrder}>
-          Confirmar orden
+          Confirmar Orden
         </button>
       )}
     </>

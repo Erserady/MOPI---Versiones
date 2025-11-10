@@ -1,60 +1,37 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useParams, useOutletContext } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import { Trash2 } from "lucide-react";
-import { fetchMenu, selectMenuByScope } from "../../redux/menuSlice";
+
+const initialStateDishes = {
+  dishes: [
+    { dishName: "Sopa de huevo de toro", category: "Principal", price: 120 },
+    { dishName: "Carne asada", category: "Principal", price: 150 },
+    { dishName: "Papas fritas", category: "Extra", price: 60 },
+    { dishName: "Ensalada fresca", category: "Extra", price: 50 },
+    { dishName: "Jugo natural", category: "Bebida", price: 40 },
+    { dishName: "Cerveza nacional", category: "Bebida", price: 70 },
+  ],
+};
+
+const categories = ["Todos", "Principal", "Extra", "Bebida"];
 
 const CustomOrder = () => {
   const { orderNumber, tableNumber } = useParams();
   const { accounts, setAccounts } = useOutletContext();
-  const dispatch = useDispatch();
 
-  const menuCategories = useSelector((state) =>
-    selectMenuByScope(state, "public")
-  );
-  const menuStatus = useSelector((state) => state.menu.status);
-
+  const [menu] = useState(initialStateDishes.dishes);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("Todos");
 
-  useEffect(() => {
-    if (!menuCategories.length && menuStatus !== "loading") {
-      dispatch(fetchMenu({ scope: "public" }));
-    }
-  }, [dispatch, menuCategories.length, menuStatus]);
-
-  const categories = useMemo(() => {
-    const unique = Array.from(
-      new Set(menuCategories.map((category) => category.name))
-    );
-    return ["Todos", ...unique];
-  }, [menuCategories]);
-
-  useEffect(() => {
-    if (activeCategory === "Todos" || categories.includes(activeCategory)) {
-      return;
-    }
-    setActiveCategory(categories[0] || "Todos");
-  }, [categories, activeCategory]);
-
-  const flatMenu = useMemo(() => {
-    return menuCategories.flatMap((category) =>
-      category.dishes.map((dish) => ({
-        dishName: dish.name,
-        category: category.name,
-        price: dish.price,
-      }))
-    );
-  }, [menuCategories]);
-
+  // Obtener cuenta actual
   const accountIndex = accounts.findIndex((a) => a.accountId === orderNumber);
   const currentAccount = accountIndex !== -1 ? accounts[accountIndex] : null;
 
   if (!currentAccount) {
-    return <p>No se encontró la cuenta solicitada.</p>;
+    return <p>⚠️ Ingrese una cuenta válida.</p>;
   }
 
-  const filteredMenu = flatMenu.filter((dish) => {
+  const filteredMenu = menu.filter((dish) => {
     const matchesCategory =
       activeCategory === "Todos" || dish.category === activeCategory;
     const matchesSearch = dish.dishName
@@ -80,11 +57,7 @@ const CustomOrder = () => {
   const reduceDishQuantity = (dishName) => {
     const updatedItems = currentAccount.items.map((d) =>
       d.dishName === dishName && d.quantity > 1
-        ? {
-            ...d,
-            quantity: d.quantity - 1,
-            subtotal: d.price * (d.quantity - 1),
-          }
+        ? { ...d, quantity: d.quantity - 1, subtotal: d.price * (d.quantity - 1) }
         : d
     );
     updateAccount(updatedItems);
@@ -136,6 +109,7 @@ const CustomOrder = () => {
         </div>
       </section>
 
+      {/* Menú disponible */}
       <section className="menu-cards-container">
         <h3>
           {currentAccount.label} - Mesa {tableNumber} | Subtotal: C$
@@ -145,14 +119,14 @@ const CustomOrder = () => {
         <div className="dishes-grid">
           {filteredMenu.map((dish, index) => (
             <article
-              key={`${dish.dishName}-${index}`}
+              key={index}
               className="dish-card shadow"
-              title="Click para agregar"
+              title="Click para Agregar"
               onClick={() => addDishToOrder(dish)}
             >
               <h4 className="dish-name">{dish.dishName}</h4>
               <p className="dish-category">
-                {dish.category} | C${Number(dish.price).toFixed(2)}
+                {dish.category} | C${dish.price}
               </p>
             </article>
           ))}
@@ -160,6 +134,7 @@ const CustomOrder = () => {
 
         <hr />
 
+        {/* Lista de platillos en la orden */}
         <div className="order-summary-container">
           <h4 id="order-list">Platillos en la orden</h4>
           {currentAccount.items.length === 0 ? (
@@ -167,7 +142,7 @@ const CustomOrder = () => {
           ) : (
             <div className="order-list">
               {currentAccount.items.map((dish, index) => (
-                <article key={`${dish.dishName}-${index}`} className="order-item shadow">
+                <article key={index} className="order-item shadow">
                   <span>
                     {dish.dishName} x{dish.quantity} - C${dish.subtotal}
                   </span>
@@ -176,7 +151,7 @@ const CustomOrder = () => {
                       className="reduce-btn"
                       onClick={() => reduceDishQuantity(dish.dishName)}
                     >
-                      Reducir
+                      Reducir Cantidad
                     </button>
                     <button
                       className="delete-btn"
@@ -196,3 +171,4 @@ const CustomOrder = () => {
 };
 
 export default CustomOrder;
+

@@ -14,14 +14,6 @@ const rawBaseUrl =
 // Normalizamos para evitar dobles '/' al construir los endpoints
 export const API_BASE_URL = rawBaseUrl.replace(/\/+$/, "");
 
-export const getAuthToken = () => {
-  try {
-    return localStorage.getItem("token");
-  } catch {
-    return null;
-  }
-};
-
 // Configuracion de endpoints
 export const API_ENDPOINTS = {
   // Autenticacion
@@ -38,7 +30,6 @@ export const API_ENDPOINTS = {
 export const getDefaultHeaders = () => ({
   Accept: "application/json",
   "Content-Type": "application/json",
-  ...(getAuthToken() ? { Authorization: `Token ${getAuthToken()}` } : {}),
 });
 
 // Helper para hacer peticiones fetch
@@ -58,10 +49,6 @@ export const apiFetch = async (url, options = {}) => {
       ...(options.headers || {}),
     },
   };
-
-  if (finalOptions.body instanceof FormData) {
-    delete finalOptions.headers["Content-Type"];
-  }
 
   try {
     const response = await fetch(url, finalOptions);

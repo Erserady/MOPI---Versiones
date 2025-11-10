@@ -1,45 +1,21 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Package, Pencil } from "lucide-react";
+import React, { useState } from "react";
 import "../styles/admin_Inventory.css";
 import AdminCards from "./AdminCards";
+import { Settings, Package, Pencil } from "lucide-react";
 import AdminInventoryModal from "./AdminInventory.Modal";
-import {
-  fetchInventory,
-  saveInventoryItem,
-} from "../../../redux/inventorySlice";
+import { DataInventoryTest } from "../../../contracts_test/InventoryContractTest";
 import { getStockStatus } from "../../../utils/GetStockStatus";
 
+const categories = ["Todos", "Platillos", "Bebidas", "Extras"];
+
 const AdminInventory = () => {
-  const dispatch = useDispatch();
-  const { items, status, error } = useSelector((state) => state.inventory);
   const [activeCategory, setActiveCategory] = useState("Todos");
-  const [dialogError, setDialogError] = useState(null);
+  const [inventoryData] = useState(DataInventoryTest);
   const [dataToEdit, setDataToEdit] = useState(null);
-  const [isDialogOpen, setDialogOpen] = useState(false);
-
-  useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchInventory());
-    }
-  }, [dispatch, status]);
-
-  const categories = useMemo(() => {
-    const unique = new Set(items.map((item) => item.categoria || "Otros"));
-    return ["Todos", ...unique];
-  }, [items]);
-
-  const filteredItems = useMemo(() => {
-    if (activeCategory === "Todos") return items;
-    return items.filter(
-      (item) => (item.categoria || "Otros") === activeCategory
-    );
-  }, [items, activeCategory]);
 
   const handleClose = () => {
     setDialogOpen(false);
     setDataToEdit(null);
-    setDialogError(null);
   };
 
   const handleEditInventory = (data) => {
@@ -47,38 +23,18 @@ const AdminInventory = () => {
     setDataToEdit(data);
   };
 
-  const handleAddInventory = () => {
-    setDialogError(null);
-    setDataToEdit(null);
+  const handlAddInventory = () => {
     setDialogOpen(true);
   };
 
-  const handleSubmitModal = async (payload) => {
-    try {
-      setDialogError(null);
-      await dispatch(
-        saveInventoryItem({
-          ...payload,
-          cantidad_actual: Number(payload.cantidad_actual),
-          cantidad_minima: Number(payload.cantidad_minima),
-          costo_unitario: Number(payload.costo_unitario),
-        })
-      ).unwrap();
-      handleClose();
-    } catch (apiError) {
-      setDialogError(
-        apiError?.detail ||
-          "No fue posible guardar el producto. Intenta nuevamente."
-      );
-    }
-  };
+  const [isDialogOpen, setDialogOpen] = useState(false);
 
   return (
     <section className="admin-inventory">
       <div className="adm-inv-header">
-        <h2>Gestión de inventario</h2>
-        <button onClick={handleAddInventory} className="green-btn">
-          + Agregar producto
+        <h2>Gestion de inventario</h2>
+        <button onClick={handlAddInventory} className="green-btn">
+          + Agregar Producto
         </button>
       </div>
 
@@ -96,50 +52,46 @@ const AdminInventory = () => {
         </div>
       </div>
 
-      {status === "loading" && <p>Cargando inventario...</p>}
-      {error && <p className="error-text">{error}</p>}
-
       <section className="admin-cards-container">
-        {filteredItems.map((data) => {
-          const statusBadge = getStockStatus(data);
+        {inventoryData &&
+          inventoryData.length > 0 &&
+          inventoryData.map((data) => {
+            const status = getStockStatus(data);
 
-          return (
-            <AdminCards key={data.id} customClass="inventory-cards">
-              <div
-                className="content-card"
-                title={`Editar ${data.nombre}`}
-                onClick={() => handleEditInventory(data)}
-              >
-                <Package size={30} color="gray" />
-                <div>
-                  <h2>{data.nombre}</h2>
-                  <p>
-                    {data.cantidad_actual}
-                    {data.unidad} disponibles · {data.categoria || "Sin categoría"}
-                  </p>
+            return (
+              <AdminCards customClass="inventory-cards">
+                <div
+                  className="content-card"
+                  title={"Editar " + data.nombreProducto}
+                  onClick={() => handleEditInventory(data)}
+                >
+                  <Package size={30} color="gray"></Package>
+                  <div>
+                    <h2>{data.nombreProducto}</h2>
+                    <p>
+                      {" "}
+                      {data.cantidad}
+                      {data.unidadMedida} disponibles • {data.categoria}
+                    </p>
+                  </div>
+                  <div className="icon-edit">
+                    <Pencil size={20}></Pencil>
+                  </div>
                 </div>
-                <div className="icon-edit">
-                  <Pencil size={20} />
+                <div className="stock-status">
+                  <p className={`shadow ${status.className}`}>{status.label}</p>
                 </div>
-              </div>
-              <div className="stock-status">
-                <p className={`shadow ${statusBadge.className}`}>
-                  {statusBadge.label}
-                </p>
-              </div>
-            </AdminCards>
-          );
-        })}
+              </AdminCards>
+            );
+          })}
       </section>
       {isDialogOpen && (
         <AdminInventoryModal
           isOpen={isDialogOpen}
           onClose={handleClose}
           data={dataToEdit}
-          onSubmit={handleSubmitModal}
-        />
+        ></AdminInventoryModal>
       )}
-      {dialogError && <p className="error-text">{dialogError}</p>}
     </section>
   );
 };

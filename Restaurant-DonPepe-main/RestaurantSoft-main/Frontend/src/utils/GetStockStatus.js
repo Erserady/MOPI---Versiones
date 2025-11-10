@@ -1,16 +1,9 @@
-export function getStockStatus(item = {}) {
-  const current =
-    Number(item.cantidad_actual ?? item.cantidad ?? 0);
-  const minimum =
-    Number(item.cantidad_minima ?? item.stockMinimo ?? 0);
-
-  if (current <= minimum) {
+export function getStockStatus(item) {
+  if (item.cantidad <= item.stockMinimo)
     return { className: "low", label: "Bajo" };
-  }
 
-  if (current <= minimum * 2) {
+  if (item.cantidad <= item.stockMinimo * 2)
     return { className: "medium", label: "Medio" };
-  }
 
   return { className: "stock", label: "En Stock" };
 }

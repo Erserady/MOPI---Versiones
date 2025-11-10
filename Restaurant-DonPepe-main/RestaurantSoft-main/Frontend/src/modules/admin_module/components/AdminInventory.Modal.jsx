@@ -1,39 +1,32 @@
-import { useEffect } from "react";
-import { useImmer } from "use-immer";
+/*Modal creado para agregar o editar un articulo en el inventario */
+
 import CustomDialog from "../../../common/CustomDialog";
 import InputForm from "../../../common/InputForm";
 import { InputsAdminInvetory } from "../../../contracts/InputsAdmin.Inventory";
+import { useImmer } from "use-immer";
 
-const EMPTY_FORM = {
-  nombre: "",
-  cantidad_actual: 0,
-  unidad: "unidad",
-  cantidad_minima: 0,
-  costo_unitario: 0,
+// QUEDA A LA ESPERA DE LA API PARA PODER EDITAR Y AGREGAR NUEVOS PRODUCTOS
+const EmptyObject = {
+  nombreProducto: "",
+  cantidad: 0,
+  unidadMedida: "",
+  stockMinimo: 0,
+  costoUnitario: 0,
   categoria: "",
   proveedor: "",
-  ubicacion: "",
-  activo: true,
 };
 
-const mapDataToForm = (data) => {
-  if (!data) return EMPTY_FORM;
-  return {
-    ...EMPTY_FORM,
-    ...data,
-  };
-};
+const AdminInventoryModal = ({ data, isOpen, onClose }) => {
+  const [Data, updateData] = useImmer(data || EmptyObject);
 
-const AdminInventoryModal = ({ data, isOpen, onClose, onSubmit }) => {
-  const [formState, updateForm] = useImmer(mapDataToForm(data));
-
-  useEffect(() => {
-    updateForm(() => mapDataToForm(data));
-  }, [data, updateForm, isOpen]);
-
-  const handleSubmit = (event) => {
-    event?.preventDefault();
-    onSubmit?.(formState);
+  const handleFetch = () => {
+    // Aquí iría la lógica para enviar 'Data' a la API
+    if (data) {
+      console.log("Editando:", Data);
+    }
+    if (!data) {
+      console.log("Agregando:", Data);
+    }
   };
 
   return (
@@ -41,37 +34,32 @@ const AdminInventoryModal = ({ data, isOpen, onClose, onSubmit }) => {
       {isOpen && (
         <>
           {data ? <h2>Editar Producto</h2> : <h2>Agregar Producto</h2>}
-          <form className="admin-inventory-form" onSubmit={handleSubmit}>
-            {InputsAdminInvetory.map((input) => (
-              <InputForm
-                key={input.id}
-                type={input.type}
-                label={input.label}
-                placeholder={input.placeholder}
-                required={input.required}
-                options={input.options}
-                className={input.className}
-                value={formState[input.id] ?? ""}
-                onChange={(e) =>
-                  updateForm((draft) => {
-                    draft[input.id] = e.target.value;
-                  })
-                }
-              />
-            ))}
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="modal-btn ghost-btn shadow"
-                onClick={onClose}
-              >
-                Cancelar
-              </button>
-              <button type="submit" className="modal-btn green-btn shadow">
-                Guardar datos
-              </button>
-            </div>
+          <form action="" className="admin-inventory-form">
+            {Data &&
+              InputsAdminInvetory.map((input) => (
+                <InputForm
+                  type={input.type}
+                  label={input.label}
+                  placeholder={input.placeholder}
+                  required={input.required}
+                  options={input.options}
+                  className={input.className}
+                  value={Data[input.id] || ""}
+                  onChange={(e) =>
+                    updateData((draft) => {
+                      draft[input.id] = e.target.value;
+                    })
+                  }
+                ></InputForm>
+              ))}
           </form>
+          <button
+            type="submit"
+            onClick={handleFetch}
+            className="modal-btn green-btn shadow"
+          >
+            Guardar Datos
+          </button>
         </>
       )}
     </CustomDialog>

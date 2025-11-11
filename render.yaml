@@ -11,6 +11,8 @@ services:
     startCommand: |
       cd "Backend - MOPI - Restaurante"
       python manage.py migrate
+      python manage.py populate_users
+      python manage.py populate_all_data
       python manage.py collectstatic --no-input
       gunicorn drfsimplecrud.wsgi:application
     envVars:
@@ -29,7 +31,7 @@ services:
       - key: RENDER_EXTERNAL_HOSTNAME
         sync: false
       - key: CORS_ALLOWED_ORIGINS
-        sync: false
+        value: https://mopi-frontend.onrender.com,http://localhost:5173,http://127.0.0.1:5173
     healthCheckPath: /admin/
     autoDeploy: true
 
@@ -46,7 +48,7 @@ services:
     staticPublishPath: ./Restaurant-DonPepe-main/RestaurantSoft-main/Frontend/dist
     envVars:
       - key: VITE_API_URL
-        sync: false
+        value: https://mopi-backend.onrender.com
     routes:
       - type: rewrite
         source: /*
@@ -64,6 +66,6 @@ databases:
   - name: mopi-database
     plan: free
     region: oregon
-    databaseName: base_de_datos_mopi
+    databaseName: base_de_datos_mopi_2qk1
     user: base_de_datos_mopi_user
     postgresMajorVersion: 16

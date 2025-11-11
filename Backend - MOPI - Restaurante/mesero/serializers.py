@@ -5,8 +5,17 @@ from django.db import transaction
 class TableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
-        fields = ['id', 'mesa_id', 'mesa', 'ubicacion']
+        fields = ['id', 'mesa_id', 'mesa', 'ubicacion', 'number', 'capacity', 'status']
         read_only_fields = ['id']
+    
+    def create(self, validated_data):
+        # Sincronizar number con mesa_id si no se proporciona mesa_id
+        if 'number' in validated_data and 'mesa_id' not in validated_data:
+            validated_data['mesa_id'] = validated_data['number']
+        # Sincronizar mesa con number para compatibilidad
+        if 'number' in validated_data and not validated_data.get('mesa'):
+            validated_data['mesa'] = validated_data['number']
+        return super().create(validated_data)
 
 
 class WaiterOrderSerializer(serializers.ModelSerializer):

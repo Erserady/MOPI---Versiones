@@ -1,227 +1,371 @@
-import React, { useMemo } from "react";
-import { Utensils, Wallet, TrendingUp, AlertTriangle, Users, Clock, Activity } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { 
+  DollarSign, 
+  TrendingUp, 
+  TrendingDown,
+  Plus, 
+  Trash2, 
+  Table as TableIcon,
+  ArrowUpRight,
+  ArrowDownRight,
+  Wallet,
+  RefreshCw
+} from "lucide-react";
 import "../styles/admin_overview.css";
 import AdminCards from "./AdminCards";
 import { useMetadata } from "../../../hooks/useMetadata";
-
-const FALLBACK_CATEGORIES = [
-  "CARNE ROJA",
-  "CARNE BLANCA",
-  "CARNE DE CERDO",
-  "MARISCOS",
-  "VARIADOS",
-  "CERVEZAS",
-  "ENLATADOS",
-];
+import { getMesas, createMesa, deleteMesa } from "../../../services/waiterService";
+import { getCajas, getFacturas } from "../../../services/cashierService";
+import { useDataSync } from "../../../hooks/useDataSync";
 
 const AdminOverview = () => {
   const { data: adminMeta } = useMetadata("admin");
   const currencySymbol = adminMeta?.currency?.symbol || "C$";
-  const categories = adminMeta?.menu?.categories || FALLBACK_CATEGORIES;
+  
+  // Estados locales
+  const [newTableNumber, setNewTableNumber] = useState("");
+  const [newTableCapacity, setNewTableCapacity] = useState(4);
+  const [isAddingTable, setIsAddingTable] = useState(false);
+  const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [mesaToDelete, setMesaToDelete] = useState(null);
+  
+  // Obtener datos en tiempo real
+  const { data: mesas, loading: loadingMesas, refetch: refetchMesas } = useDataSync(getMesas, 10000);
+  const { data: cajas, loading: loadingCajas, refetch: refetchCajas } = useDataSync(getCajas, 30000);
+  const { data: facturas, loading: loadingFacturas } = useDataSync(getFacturas, 30000);
 
-  const kpiCards = [
-    {
-      label: "Pedidos atendidos hoy",
-      value: 128,
-      trend: "+12%",
-      description: "vs. ayer",
-      icon: <Utensils size={20} />,
-    },
-    {
-      label: "Platos vendidos",
-      value: 386,
-      trend: "+8%",
-      description: "turno matutino",
-      icon: <TrendingUp size={20} />,
-    },
-    {
-      label: "Ingresos del día",
-      value: `${currencySymbol} 2,465`,
-      trend: "+5%",
-      description: "flujo confirmado",
-      icon: <Wallet size={20} />,
-    },
-    {
-      label: "Ticket promedio",
-      value: `${currencySymbol} 19.80`,
-      trend: "-2%",
-      description: "últimas 4 hrs",
-      icon: <Activity size={20} />,
-    },
-  ];
+  // Calcular métricas de caja con validación defensiva
+  const cajaAbierta = cajas?.find(c => c.estado === 'abierta');
+  const saldoInicial = parseFloat(cajaAbierta?.saldo_inicial || 0) || 0;
+  const facturasHoy = facturas?.filter(f => {
+    const today = new Date().toISOString().split('T')[0];
+    return f.fecha_emision?.startsWith(today);
+  }) || [];
+  
+  const totalIngresos = facturasHoy.reduce((sum, f) => {
+    const valor = parseFloat(f.total || 0);
+    return sum + (isNaN(valor) ? 0 : valor);
+  }, 0);
+  
+  const totalEgresos = 0; // Aquí podrías agregar lógica de egresos si existe
+  const saldoActual = parseFloat(saldoInicial) + parseFloat(totalIngresos) - parseFloat(totalEgresos);
+  const ganancia = parseFloat(saldoActual) - parseFloat(saldoInicial);
+  
+  // Función helper para formatear moneda de forma segura
+  const formatCurrency = (value) => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return '0.00';
+    return num.toFixed(2);
+  };
+  
+  // Manejar agregar mesa
+  const handleAddTable = async () => {
+    if (!newTableNumber || newTableNumber.trim() === '') {
+      setError('El número de mesa es requerido');
+      return;
+    }
+    
+    try {
+      setError(null);
+      setIsAddingTable(true);
+      await createMesa({
+        number: newTableNumber.trim(),
+        capacity: parseInt(newTableCapacity) || 4,
+        status: 'available'
+      });
+      setNewTableNumber('');
+      setNewTableCapacity(4);
+      await refetchMesas();
+    } catch (err) {
+      setError('Error al crear la mesa: ' + err.message);
+    } finally {
+      setIsAddingTable(false);
+    }
+  };
+  
+  // Manejar eliminar mesa - mostrar modal
+  const handleDeleteTable = (mesa) => {
+    setMesaToDelete(mesa);
+    setShowDeleteModal(true);
+  };
+  
+  // Confirmar eliminación de mesa
+  const confirmDeleteTable = async () => {
+    if (!mesaToDelete) return;
+    
+    // Guardar posición actual del scroll
+    const scrollY = window.scrollY;
+    const scrollX = window.scrollX;
+    
+    try {
+      setError(null);
+      await deleteMesa(mesaToDelete.id);
+      await refetchMesas();
+      setShowDeleteModal(false);
+      setMesaToDelete(null);
+      
+      // Restaurar posición del scroll después de eliminar
+      setTimeout(() => {
+        window.scrollTo(scrollX, scrollY);
+      }, 0);
+    } catch (err) {
+      setError('Error al eliminar la mesa: ' + err.message);
+      setShowDeleteModal(false);
+      
+      // Restaurar scroll incluso si hay error
+      setTimeout(() => {
+        window.scrollTo(scrollX, scrollY);
+      }, 0);
+    }
+  };
+  
+  // Cancelar eliminación
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setMesaToDelete(null);
+  };
 
-  const salesByCategory = useMemo(() => {
-    const dishesPattern = [132, 118, 92, 76, 64, 48, 39];
-    const revenuePattern = [960, 880, 640, 520, 420, 310, 260];
-    return categories.map((category, idx) => ({
-      category,
-      dishes: dishesPattern[idx % dishesPattern.length],
-      revenue: revenuePattern[idx % revenuePattern.length],
-    }));
-  }, [categories]);
 
-  const maxDishValue = Math.max(...salesByCategory.map((item) => item.dishes));
-
-  const cashFlowData = useMemo(
-    () => [
-      { label: "Lun", income: 850, expense: 420 },
-      { label: "Mar", income: 940, expense: 510 },
-      { label: "Mié", income: 1020, expense: 580 },
-      { label: "Jue", income: 980, expense: 560 },
-      { label: "Vie", income: 1180, expense: 640 },
-      { label: "Sáb", income: 1640, expense: 820 },
-      { label: "Dom", income: 1390, expense: 760 },
-    ],
-    []
-  );
-
-  const lowStockItems = [
-    { name: "Pechuga de pollo", stock: 6, unit: "kg", status: "Crítico" },
-    { name: "Camarón jumbo", stock: 12, unit: "kg", status: "Bajo" },
-    { name: "Queso mozzarella", stock: 5, unit: "kg", status: "Crítico" },
-    { name: "Cerveza nacional", stock: 28, unit: "cajas", status: "Bajo" },
-    { name: "Gaseosa 355ml", stock: 16, unit: "pack", status: "Bajo" },
-  ];
-
-  const serviceInsights = [
-    { label: "Meseros en turno", value: 8, detail: "capacidad al 90%", icon: <Users size={18} /> },
-    { label: "Tiempo promedio de atención", value: "08:12 min", detail: "objetivo 7 min", icon: <Clock size={18} /> },
-    { label: "Órdenes en cocina", value: 14, detail: "4 requieren prioridad", icon: <Utensils size={18} /> },
-  ];
+  if (loadingMesas || loadingCajas) {
+    return (
+      <section className="admin-overview-new">
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <RefreshCw className="spin" size={40} />
+          <p style={{ marginTop: '1rem', color: '#6b7280' }}>Cargando panel de administración...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section className="admin-overview">
-      <header className="overview-header">
-        <div>
-          <p className="eyebrow">Visibilidad completa de la operación</p>
-          <h1>Resumen Operativo</h1>
-          <p className="support">
-            Monitorea ventas, desempeño de caja e inventario crítico para tomar decisiones en tiempo real.
-          </p>
-        </div>
-        <div className="status-pill">
-          <span className="dot online" />
-          Operación estable
-        </div>
-      </header>
-
-      <div className="kpi-grid">
-        {kpiCards.map((card) => (
-          <AdminCards key={card.label} customClass="kpi-card">
-            <div className="icon-badge">{card.icon}</div>
-            <p className="label">{card.label}</p>
-            <strong className="value">{card.value}</strong>
-            <div className="trend">
-              <span>{card.trend}</span>
-              <small>{card.description}</small>
+    <section className="admin-overview-new">
+      {/* Modal de Confirmación para Eliminar */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-icon-danger">
+                <Trash2 size={32} />
+              </div>
+              <h2 className="modal-title">¿Eliminar mesa?</h2>
             </div>
-          </AdminCards>
-        ))}
+            <div className="modal-body">
+              <p className="modal-message">
+                ¿Estás seguro de que deseas eliminar la mesa <strong>{mesaToDelete?.number}</strong>?
+              </p>
+              <p className="modal-warning">
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={cancelDelete}>
+                Cancelar
+              </button>
+              <button className="btn-modal-danger" onClick={confirmDeleteTable}>
+                <Trash2 size={18} />
+                Eliminar Mesa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="overview-header-new">
+        <div>
+          <h1 className="overview-title">Panel de Administración</h1>
+          <p className="overview-subtitle">Gestiona las operaciones del restaurante</p>
+        </div>
+        <div className="header-status">
+          <span className="status-badge">
+            <span className="status-dot"></span>
+            Sistema Activo
+          </span>
+        </div>
       </div>
 
-      <div className="overview-grid">
-        <AdminCards customClass="chart-card">
-          <div className="card-header">
-            <div>
-              <p className="eyebrow">Ventas por categoría</p>
-              <h2>{currencySymbol} {salesByCategory.reduce((acc, item) => acc + item.revenue, 0).toLocaleString()}</h2>
-            </div>
-            <span className="chip">Últimas 24 hrs</span>
+      {error && (
+        <div className="error-banner">
+          <span>{error}</span>
+          <button onClick={() => setError(null)}>✕</button>
+        </div>
+      )}
+
+      {/* Sección de Flujo de Caja */}
+      <div className="section-container">
+        <div className="section-header">
+          <div className="section-title-group">
+            <Wallet size={24} className="section-icon" />
+            <h2 className="section-title">Flujo de Caja</h2>
           </div>
-          <div className="category-bars">
-            {salesByCategory.map((item) => (
-              <div key={item.category} className="bar-row">
-                <div className="bar-label">
-                  <span>{item.category}</span>
-                  <small>{item.dishes} platos</small>
-                </div>
-                <div className="bar-track">
-                  <div className="bar-fill" style={{ width: `${(item.dishes / maxDishValue) * 100}%` }} />
-                </div>
-                <span className="bar-value">
-                  {currencySymbol} {item.revenue.toLocaleString()}
-                </span>
+          <button className="btn-refresh" onClick={refetchCajas} title="Actualizar">
+            <RefreshCw size={16} />
+          </button>
+        </div>
+
+        <div className="cash-flow-grid">
+          {/* Saldo Inicial */}
+          <div className="cash-card">
+            <div className="cash-card-icon blue">
+              <DollarSign size={24} />
+            </div>
+            <div className="cash-card-content">
+              <p className="cash-card-label">Saldo Inicial</p>
+              <h3 className="cash-card-value">{currencySymbol}{formatCurrency(saldoInicial)}</h3>
+              <p className="cash-card-detail">Al apertura de caja</p>
+            </div>
+          </div>
+
+          {/* Ingresos */}
+          <div className="cash-card">
+            <div className="cash-card-icon green">
+              <ArrowUpRight size={24} />
+            </div>
+            <div className="cash-card-content">
+              <p className="cash-card-label">Ingresos Hoy</p>
+              <h3 className="cash-card-value success">{currencySymbol}{formatCurrency(totalIngresos)}</h3>
+              <p className="cash-card-detail">{facturasHoy.length} facturas emitidas</p>
+            </div>
+          </div>
+
+          {/* Egresos */}
+          <div className="cash-card">
+            <div className="cash-card-icon red">
+              <ArrowDownRight size={24} />
+            </div>
+            <div className="cash-card-content">
+              <p className="cash-card-label">Egresos Hoy</p>
+              <h3 className="cash-card-value danger">{currencySymbol}{formatCurrency(totalEgresos)}</h3>
+              <p className="cash-card-detail">Gastos operacionales</p>
+            </div>
+          </div>
+
+          {/* Saldo Actual */}
+          <div className="cash-card highlight">
+            <div className="cash-card-icon purple">
+              <Wallet size={24} />
+            </div>
+            <div className="cash-card-content">
+              <p className="cash-card-label">Saldo Actual</p>
+              <h3 className="cash-card-value">{currencySymbol}{formatCurrency(saldoActual)}</h3>
+              <div className="cash-card-badge">
+                {ganancia >= 0 ? (
+                  <>
+                    <TrendingUp size={14} />
+                    <span>+{currencySymbol}{formatCurrency(ganancia)}</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown size={14} />
+                    <span>{currencySymbol}{formatCurrency(ganancia)}</span>
+                  </>
+                )}
               </div>
-            ))}
-          </div>
-        </AdminCards>
-
-        <AdminCards customClass="chart-card">
-          <div className="card-header">
-            <div>
-              <p className="eyebrow">Flujo de caja semanal</p>
-              <h2>{currencySymbol} 7,800</h2>
             </div>
-            <span className="chip success">Caja equilibrada</span>
           </div>
-          <div className="cashflow-grid">
-            {cashFlowData.map((item) => (
-              <div key={item.label} className="cashflow-column">
-                <span className="cashflow-label">{item.label}</span>
-                <div className="cashflow-bar income" style={{ height: `${item.income / 20}%` }} title={`Ingresos ${currencySymbol}${item.income}`} />
-                <div className="cashflow-bar expense" style={{ height: `${item.expense / 20}%` }} title={`Egresos ${currencySymbol}${item.expense}`} />
-              </div>
-            ))}
-          </div>
-          <div className="cashflow-legend">
-            <span><span className="dot income" />Ingresos confirmados</span>
-            <span><span className="dot expense" />Egresos programados</span>
-          </div>
-        </AdminCards>
+        </div>
+      </div>
 
-        <AdminCards customClass="inventory-card">
-          <div className="card-header">
-            <div>
-              <p className="eyebrow">Inventario en riesgo</p>
-              <h2>Reposiciones urgentes</h2>
-            </div>
-            <AlertTriangle size={20} className="text-warning" />
+      {/* Sección de Administración de Mesas */}
+      <div className="section-container">
+        <div className="section-header">
+          <div className="section-title-group">
+            <TableIcon size={24} className="section-icon" />
+            <h2 className="section-title">Administración de Mesas</h2>
           </div>
-          <table className="inventory-table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Stock</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lowStockItems.map((item) => (
-                <tr key={item.name}>
-                  <td>{item.name}</td>
-                  <td>
-                    <strong>{item.stock}</strong> {item.unit}
-                  </td>
-                  <td>
-                    <span className={`badge ${item.status === "Crítico" ? "danger" : "warning"}`}>{item.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </AdminCards>
+          <span className="section-count">{mesas?.length || 0} mesas</span>
+        </div>
 
-        <AdminCards customClass="operations-card">
-          <div className="card-header">
-            <div>
-              <p className="eyebrow">Operación en piso</p>
-              <h2>Indicadores en vivo</h2>
+        {/* Formulario para agregar mesa */}
+        <div className="add-table-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="tableNumber">Número de Mesa</label>
+              <input
+                id="tableNumber"
+                type="text"
+                placeholder="Ej: A1, B2, 10"
+                value={newTableNumber}
+                onChange={(e) => setNewTableNumber(e.target.value)}
+                className="form-input"
+              />
             </div>
-            <span className="chip neutral">Actualización cada 60s</span>
+            <div className="form-group">
+              <label htmlFor="tableCapacity">Capacidad</label>
+              <input
+                id="tableCapacity"
+                type="number"
+                min="1"
+                max="20"
+                value={newTableCapacity}
+                onChange={(e) => setNewTableCapacity(e.target.value)}
+                className="form-input"
+              />
+            </div>
+            <button 
+              onClick={handleAddTable} 
+              disabled={isAddingTable}
+              className="btn-primary"
+            >
+              <Plus size={18} />
+              {isAddingTable ? 'Agregando...' : 'Agregar Mesa'}
+            </button>
           </div>
-          <ul className="operations-list">
-            {serviceInsights.map((item) => (
-              <li key={item.label}>
-                <div className="icon-badge subtle">{item.icon}</div>
-                <div className="operation-info">
-                  <p>{item.label}</p>
-                  <small>{item.detail}</small>
+        </div>
+
+        {/* Lista de mesas */}
+        <div className="tables-grid">
+          {mesas && mesas.length > 0 ? (
+            mesas.map((mesa) => (
+              <div key={mesa.id} className="table-card">
+                <div className="table-card-header">
+                  <div className="table-number-large">
+                    <TableIcon size={24} />
+                    <div className="table-info-main">
+                      <span className="table-number-text">Mesa {mesa.number}</span>
+                      <span className="table-capacity-text">{mesa.capacity} personas</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteTable(mesa)}
+                    className="btn-delete"
+                    title="Eliminar mesa"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-                <strong>{item.value}</strong>
-              </li>
-            ))}
-          </ul>
-        </AdminCards>
+                <div className="table-card-body">
+                  <div className="table-info-row">
+                    <span className="table-info-label">ID:</span>
+                    <span className="table-info-value">#{mesa.id}</span>
+                  </div>
+                  <div className="table-info-row">
+                    <span className="table-info-label">Número:</span>
+                    <span className="table-info-value-highlight">{mesa.number}</span>
+                  </div>
+                  <div className="table-info-row">
+                    <span className="table-info-label">Capacidad:</span>
+                    <span className="table-info-value-highlight">{mesa.capacity} personas</span>
+                  </div>
+                  <div className="table-info-row">
+                    <span className="table-info-label">Estado:</span>
+                    <span className={`table-status ${mesa.status}`}>
+                      {mesa.status === 'available' ? 'Disponible' : 
+                       mesa.status === 'occupied' ? 'Ocupada' : 'Reservada'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <TableIcon size={48} strokeWidth={1.5} />
+              <p>No hay mesas registradas</p>
+              <small>Agrega la primera mesa usando el formulario superior</small>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

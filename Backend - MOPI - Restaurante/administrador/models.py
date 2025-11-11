@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from mesero.models import Table, WaiterOrder
 from caja.models import Factura, Pago, Caja
 from users.models import User as CustomUser
+from decimal import Decimal
 
 class CategoriaMenu(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -36,7 +37,7 @@ class Plato(models.Model):
     
     def save(self, *args, **kwargs):
         # Calcular precio con impuesto (18%)
-        self.precio_con_impuesto = self.precio * 1.18
+        self.precio_con_impuesto = self.precio * Decimal('1.18')
         super().save(*args, **kwargs)
     
     def __str__(self):

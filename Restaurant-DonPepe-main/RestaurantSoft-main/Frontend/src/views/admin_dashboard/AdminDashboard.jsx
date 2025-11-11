@@ -9,6 +9,7 @@ import AdminProducts from "../../modules/admin_module/components/AdminProducts";
 import AdminStaff from "../../modules/admin_module/components/AdminStaff";
 import AdminOverview from "../../modules/admin_module/components/AdminOverview";
 import { useMetadata } from "../../hooks/useMetadata";
+import ErrorBoundary from "../../components/ErrorBoundary";
 
 const AdminDashboard = () => {
   const welcomeTitle = "Panel de Administrador";
@@ -20,15 +21,15 @@ const AdminDashboard = () => {
   const handleView = (subview) => {
     switch (subview) {
       case "resume":
-        return <AdminOverview></AdminOverview>;
+        return <ErrorBoundary><AdminOverview /></ErrorBoundary>;
       case "inventory":
-        return <AdminInventory></AdminInventory>;
+        return <ErrorBoundary><AdminInventory /></ErrorBoundary>;
       case "products":
-        return <AdminProducts></AdminProducts>;
+        return <ErrorBoundary><AdminProducts /></ErrorBoundary>;
       case "staff":
-        return <AdminStaff></AdminStaff>;
+        return <ErrorBoundary><AdminStaff /></ErrorBoundary>;
       default:
-        return <AdminOverview></AdminOverview>;
+        return <ErrorBoundary><AdminOverview /></ErrorBoundary>;
     }
   };
 

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from .models import CategoriaMenu, Plato, Inventario, MovimientoInventario, ConfiguracionSistema
+from .permissions import IsAdminOrStaff
 from .serializers import (
     CategoriaMenuSerializer, PlatoSerializer, InventarioSerializer, 
     MovimientoInventarioSerializer, ConfiguracionSistemaSerializer,
@@ -17,7 +18,7 @@ from caja.models import Factura, Pago, Caja
 from users.models import User
 
 class DashboardViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrStaff]
     
     def list(self, request):
         hoy = timezone.now().date()
@@ -70,12 +71,12 @@ class DashboardViewSet(viewsets.ViewSet):
 class CategoriaMenuViewSet(viewsets.ModelViewSet):
     queryset = CategoriaMenu.objects.all()
     serializer_class = CategoriaMenuSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrStaff]
 
 class PlatoViewSet(viewsets.ModelViewSet):
     queryset = Plato.objects.all()
     serializer_class = PlatoSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrStaff]
     
     def get_queryset(self):
         queryset = Plato.objects.all()
@@ -87,7 +88,7 @@ class PlatoViewSet(viewsets.ModelViewSet):
 class InventarioViewSet(viewsets.ModelViewSet):
     queryset = Inventario.objects.all()
     serializer_class = InventarioSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrStaff]
     
     @action(detail=False, methods=['get'])
     def bajos(self, request):
@@ -118,12 +119,12 @@ class InventarioViewSet(viewsets.ModelViewSet):
 class MovimientoInventarioViewSet(viewsets.ModelViewSet):
     queryset = MovimientoInventario.objects.all()
     serializer_class = MovimientoInventarioSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrStaff]
 
 class ConfiguracionSistemaViewSet(viewsets.ModelViewSet):
     queryset = ConfiguracionSistema.objects.all()
     serializer_class = ConfiguracionSistemaSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrStaff]
     
     def list(self, request):
         # Siempre retornar o crear la configuración única
@@ -182,7 +183,7 @@ class GestionPersonalViewSet(viewsets.ModelViewSet):
 
 class GestionFacturasViewSet(viewsets.ModelViewSet):
     queryset = Factura.objects.all()
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrStaff]
     serializer_class = FacturaDashboardSerializer
     
     @action(detail=True, methods=['post'])

@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from .serializers import (
     UserCreateSerializer, 
     UserSerializer, 
@@ -18,6 +20,7 @@ from django.db import transaction
 
 User = get_user_model()
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(GenericAPIView):
     """
     Registro de usuarios:
@@ -27,6 +30,7 @@ class RegisterView(GenericAPIView):
     """
     serializer_class = UserCreateSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []  # Deshabilitar autenticación para registro
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -49,9 +53,11 @@ class RegisterView(GenericAPIView):
         )
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []  # Deshabilitar autenticación para login
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -81,10 +87,12 @@ class UsersByRoleView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class VerifyPinView(GenericAPIView):
     """Vista para verificar el PIN de un usuario."""
     serializer_class = PinVerificationSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []  # Deshabilitar autenticación para verificación de PIN
     
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

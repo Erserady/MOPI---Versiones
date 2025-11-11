@@ -9,7 +9,19 @@ from .serializers import TableSerializer, WaiterOrderSerializer
 class TableViewSet(viewsets.ModelViewSet):
     queryset = Table.objects.all().order_by('mesa_id')
     serializer_class = TableSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]  # Requiere autenticación para todas las operaciones
+    
+    def destroy(self, request, *args, **kwargs):
+        """Override destroy para agregar logs y mejor manejo de errores"""
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class WaiterOrderViewSet(viewsets.ModelViewSet):
     queryset = WaiterOrder.objects.all().order_by('-created_at')

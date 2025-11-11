@@ -1,0 +1,76 @@
+# Docker Compose - Restaurante Don Pepe
+# Stack completo: PostgreSQL + Django Backend + React Frontend
+
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: mopi_postgres
+    environment:
+      POSTGRES_DB: mopi_db
+      POSTGRES_USER: mopi_user
+      POSTGRES_PASSWORD: mopi_pass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mopi_user -d mopi_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mopi_network
+    restart: unless-stopped
+
+  # Backend Django
+  backend:
+    build:
+      context: "./Backend - MOPI - Restaurante"
+      dockerfile: Dockerfile
+    container_name: mopi_backend
+    env_file:
+      - .env.backend
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Backend - MOPI - Restaurante:/app
+      - static_volume:/app/staticfiles
+    networks:
+      - mopi_network
+    restart: unless-stopped
+    command: ["/app/docker/entrypoint.sh"]
+
+  # Frontend React + Nginx
+  frontend:
+    build:
+      context: "./Restaurant-DonPepe-main/RestaurantSoft-main/Frontend"
+      dockerfile: Dockerfile
+      args:
+        # El frontend se ejecuta en el navegador del usuario, no en el contenedor
+        # Por eso debe apuntar a localhost:8000 (desde la perspectiva del navegador)
+        VITE_API_URL: http://localhost:8000
+    container_name: mopi_frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+    networks:
+      - mopi_network
+    restart: unless-stopped
+
+# Volúmenes persistentes
+volumes:
+  pgdata:
+    name: mopi_postgres_data
+  static_volume:
+    name: mopi_static_files
+
+# Red personalizada
+networks:
+  mopi_network:
+    name: mopi_network
+    driver: bridge

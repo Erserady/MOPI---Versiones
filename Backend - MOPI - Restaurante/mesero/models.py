@@ -1,19 +1,33 @@
 from django.db import models
 
 class Table(models.Model):
-    # mesa_id: identificador visible (p.ex. "MESA-1" o número)
+    # mesa_id: identificador visible (p.ex. "MESA-1" o número) - LEGACY
     mesa_id = models.CharField(max_length=50, unique=True)
-    mesa = models.CharField(max_length=50, blank=True, null=True, help_text="Nombre/numero legible de la mesa")
+    mesa = models.CharField(max_length=50, blank=True, null=True, help_text="Nombre/numero legible de la mesa - LEGACY")
     ubicacion = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Nuevos campos para compatibilidad con panel de administrador
+    number = models.CharField(max_length=50, blank=True, null=True, help_text="Número de mesa visible")
+    capacity = models.IntegerField(default=4, help_text="Capacidad de personas")
+    status = models.CharField(
+        max_length=20, 
+        default='available',
+        choices=[
+            ('available', 'Disponible'),
+            ('occupied', 'Ocupada'),
+            ('reserved', 'Reservada'),
+        ],
+        help_text="Estado de la mesa"
+    )
 
     def __str__(self):
-        return f"{self.mesa or self.mesa_id}"
+        return f"{self.number or self.mesa or self.mesa_id}"
 
 class WaiterOrder(models.Model):
     # order_id único (puede mapear a cocina.order o a sistema externo)
     order_id = models.CharField(max_length=100, unique=True)
-    # relación con mesa
-    table = models.ForeignKey(Table, on_delete=models.PROTECT, related_name='orders')
+    # relación con mesa - CASCADE permite eliminar mesa aunque tenga órdenes
+    table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='orders')
     pedido = models.TextField(help_text="Detalle (items) del pedido")
     cliente = models.CharField(max_length=200, blank=True, null=True)
     cantidad = models.PositiveIntegerField(default=1)

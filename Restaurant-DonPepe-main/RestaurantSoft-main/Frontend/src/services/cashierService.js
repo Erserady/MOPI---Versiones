@@ -51,7 +51,19 @@ export async function createFactura(data) {
     method: 'POST',
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Error creando factura');
+  
+  if (!res.ok) {
+    let errorMessage = 'Error creando factura';
+    try {
+      const errorData = await res.json();
+      console.error('Error del backend:', errorData);
+      errorMessage = JSON.stringify(errorData);
+    } catch (e) {
+      errorMessage = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(errorMessage);
+  }
+  
   return res.json();
 }
 

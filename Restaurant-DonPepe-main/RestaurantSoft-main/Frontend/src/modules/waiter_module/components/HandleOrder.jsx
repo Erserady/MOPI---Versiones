@@ -1,68 +1,49 @@
 import { useImmer } from "use-immer";
+import { useState, useEffect } from "react";
 import DishTable from "./DishTable";
-
-const categories = [
-  "🥃 Licores Importados",
-  "🍺 Cervezas",
-  "🥩 Carne de Res",
-  "🍗 Carne Blanca",
-  "🐖 Carne de Cerdo",
-  "🐟 Mariscos",
-  "🍤 Cocktail",
-  "🍲 Sopas",
-  "🍸 Cocktail y Vino",
-  "🚬 Cigarros",
-  "🥃 Ron Nacional",
-  "🧃 Productos CDN",
-  "🍹 RTD",
-  "🥂 Hard Seltzer",
-  "🍽️ Variados",
-  "-Enlatados/Desechables",
-];
-
-const initialMenu = [
-  {
-    id: 1,
-    name: "Pollo a la Plancha",
-    category: "🍗 Carne Blanca",
-    price: 15.5,
-    available: true,
-    description: "Jugoso pollo a la plancha con guarnición.",
-  },
-  {
-    id: 2,
-    name: "Limonada",
-    category: "-Enlatados/Desechables",
-    price: 2.5,
-    available: true,
-  },
-  {
-    id: 3,
-    name: "Brownie",
-    category: "🍽️ Variados",
-    price: 4.0,
-    available: false,
-  },
-  {
-    id: 4,
-    name: "Filete de Res",
-    category: "🥩 Carne de Res",
-    price: 18.0,
-    available: true,
-  },
-  {
-    id: 5,
-    name: "Cerveza Victoria",
-    category: "🍺 Cervezas",
-    price: 3.5,
-    available: true,
-  },
-];
+import { getPlatos, getCategorias } from "../../../services/adminMenuService";
+import { RefreshCw } from "lucide-react";
 
 const HandleOrder = () => {
-  const [menu] = useImmer(initialMenu);
-  const [activeCategory, setActiveCategory] = useImmer(categories[0]);
+  const [menu, setMenu] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useImmer([]);
+
+  // Cargar categorías y platos del backend
+  useEffect(() => {
+    const loadMenuData = async () => {
+      try {
+        setLoading(true);
+        const [catData, platosData] = await Promise.all([
+          getCategorias(),
+          getPlatos()
+        ]);
+        
+        setCategories(catData.map(c => c.nombre));
+        setActiveCategory(catData[0]?.nombre || null);
+        
+        // Transformar platos al formato esperado
+        const menuFormateado = platosData.map(plato => ({
+          id: plato.id,
+          name: plato.nombre,
+          category: plato.categoria_nombre || plato.categoria,
+          price: parseFloat(plato.precio || 0),
+          available: plato.disponible !== false,
+          description: plato.descripcion || "",
+        }));
+        
+        setMenu(menuFormateado);
+      } catch (error) {
+        console.error("Error cargando menú:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadMenuData();
+  }, []);
 
   const filteredMenu = menu.filter((dish) => dish.category === activeCategory);
 
@@ -132,6 +113,15 @@ const HandleOrder = () => {
     console.log("✅ Orden confirmada:", orderObject);
     alert("Orden confirmada (revisa la consola)");
   };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '3rem' }}>
+        <RefreshCw className="spin" size={40} />
+        <p style={{ marginTop: '1rem', color: '#6b7280' }}>Cargando menú...</p>
+      </div>
+    );
+  }
 
   return (
     <>

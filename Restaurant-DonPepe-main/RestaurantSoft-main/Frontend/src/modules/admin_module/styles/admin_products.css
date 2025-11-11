@@ -38,6 +38,8 @@
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: transform .15s ease, box-shadow .15s ease, background .15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .category-card:hover { transform: translateY(-2px); }
@@ -100,17 +102,117 @@
 .category-detail .actions .secondary,
 .category-detail .actions .success,
 .category-detail .actions .danger {
-  display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; color: white;
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  padding: 8px 14px; 
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  color: white;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease, opacity 0.2s;
+  min-height: 44px; /* Tamaño mínimo recomendado para touch */
+}
+
+.category-detail .actions button:active {
+  transform: scale(0.98);
+  opacity: 0.9;
 }
 .category-detail .actions .primary { background: #3b82f6; }
 .category-detail .actions .secondary { background: #6b7280; }
 .category-detail .actions .success { background: #10b981; }
 .category-detail .actions .danger { background: #ef4444; }
 
-.table-wrapper { background: #f1f1f1; border-radius: 12px; padding: 12px; }
-.products-table { width: 100%; border-collapse: collapse; }
-.products-table thead th { background: #d4d4d4; color: #374151; text-align: left; padding: 12px; }
-.products-table tbody td { padding: 12px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+.table-wrapper { 
+  background: #f1f1f1; 
+  border-radius: 12px; 
+  padding: 12px;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Indicador de progreso de scroll */
+.scroll-progress-bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  margin-bottom: 8px;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.scroll-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 2px;
+  transition: width 0.1s ease-out;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* Estilo personalizado para scrollbar - más visible */
+.table-wrapper::-webkit-scrollbar {
+  width: 12px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 10px;
+  margin: 8px 0;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 10px;
+  border: 2px solid #f1f1f1;
+  transition: background 0.2s;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:active {
+  background: #1d4ed8;
+}
+
+/* Scrollbar para Firefox */
+.table-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #e5e7eb;
+}
+
+.products-table { 
+  width: 100%; 
+  border-collapse: collapse;
+}
+
+.products-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.products-table thead th { 
+  background: #d4d4d4; 
+  color: #374151; 
+  text-align: left; 
+  padding: 12px;
+  border-bottom: 2px solid #9ca3af;
+}
+
+.products-table tbody td { 
+  padding: 12px; 
+  border-bottom: 1px solid #e5e7eb; 
+  vertical-align: middle;
+  background: white;
+}
 
 .name-cell input,
 td input,
@@ -123,14 +225,148 @@ td select { width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-rad
 .badge.ok { background: #10b981; color: white; }
 .badge.na { background: #ef4444; color: white; }
 
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+  background: white;
+  margin-top: 0;
+}
+
+/* Responsive Design */
 @media (max-width: 1200px) {
-  .products-layout { grid-template-columns: 1fr; }
+  .products-layout { 
+    grid-template-columns: 1fr; 
+  }
+  
+  .table-wrapper {
+    max-height: 500px;
+  }
 }
 
 @media (max-width: 980px) {
-  .categories-panel { grid-template-columns: repeat(2, 1fr); }
+  .categories-panel { 
+    grid-template-columns: repeat(3, 1fr); 
+  }
+  
+  .category-detail .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .category-detail .filters {
+    width: 100%;
+  }
+  
+  .category-detail .actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .category-detail .actions .edit-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+  
+  .category-detail .actions button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 640px) {
-  .categories-panel { grid-template-columns: 1fr; }
+  .admin-products-container {
+    padding: 10px;
+  }
+  
+  .admin-products-container .title {
+    font-size: 1.5rem;
+  }
+  
+  .categories-panel { 
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .category-card {
+    height: 140px;
+  }
+  
+  .category-card .thumb {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .category-card .label {
+    font-size: 0.75rem;
+  }
+  
+  .table-wrapper {
+    max-height: 400px;
+    padding: 8px;
+  }
+  
+  .products-table thead th {
+    font-size: 0.85rem;
+    padding: 8px;
+  }
+  
+  .products-table tbody td {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+  
+  /* Mejorar inputs en modo edición para móviles */
+  .name-cell input,
+  td input[type="number"] {
+    font-size: 16px; /* Previene zoom en iOS */
+    padding: 10px 8px;
+  }
+  
+  /* Ajustar barra de progreso en móviles */
+  .scroll-progress-bar {
+    height: 3px;
+  }
+  
+  .category-detail .filters .search {
+    width: 100%;
+  }
+  
+  .category-detail .filters .search input {
+    width: 100%;
+  }
+  
+  /* Scrollbar más delgada en móviles */
+  .table-wrapper::-webkit-scrollbar {
+    width: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .categories-panel { 
+    grid-template-columns: 1fr;
+  }
+  
+  .products-layout {
+    gap: 12px;
+  }
+  
+  .category-card {
+    height: 100px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0 12px;
+  }
+  
+  .category-card .thumb {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .table-wrapper {
+    max-height: 350px;
+  }
 }

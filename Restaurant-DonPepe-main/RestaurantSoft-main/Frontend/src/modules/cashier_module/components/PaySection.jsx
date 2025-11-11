@@ -34,29 +34,36 @@ const PaySection = () => {
   }
 
   // Transformar datos del backend al formato esperado por PayCard
-  const ordersFormatted = mesasData?.map(mesa => ({
-    id: `MESA-${mesa.mesa_id}`,
-    tableNumber: mesa.mesa_nombre,
-    createdAt: new Date().toISOString(),
-    status: 'completed',
-    accounts: [
-      {
-        accountId: `ACC-${mesa.mesa_id}`,
-        isPaid: false,
-        label: 'Cuenta principal',
-        items: mesa.ordenes_pendientes.map(orden => ({
-          type: 'Principal',
-          ready: true,
-          name: orden.pedido,
-          quantity: orden.cantidad,
-          unitPrice: 10.0, // Precio por defecto, debería venir del plato
-          subtotal: orden.cantidad * 10.0,
-        })),
-        subtotal: mesa.ordenes_pendientes.reduce((acc, orden) => acc + (orden.cantidad * 10.0), 0),
-      },
-    ],
-    total: mesa.ordenes_pendientes.reduce((acc, orden) => acc + (orden.cantidad * 10.0), 0),
-  })) || [];
+  const ordersFormatted = mesasData?.map(mesa => {
+    console.log('🔍 Mesa del backend:', mesa);
+    return {
+      id: `MESA-${mesa.mesa_id}`,
+      mesaId: mesa.mesa_id,  // ✅ ID de la mesa para el backend
+      tableId: mesa.mesa_id,  // ✅ Alias alternativo
+      orderIds: mesa.ordenes_pendientes.map(orden => orden.id),  // ✅ IDs de las órdenes
+      tableNumber: mesa.mesa_nombre,
+      waiter: mesa.ordenes_pendientes[0]?.cliente || 'Sin asignar',  // Nombre del mesero/cliente
+      createdAt: new Date().toISOString(),
+      status: 'completed',
+      accounts: [
+        {
+          accountId: `ACC-${mesa.mesa_id}`,
+          isPaid: false,
+          label: 'Cuenta principal',
+          items: mesa.ordenes_pendientes.map(orden => ({
+            type: 'Principal',
+            ready: true,
+            name: orden.pedido,
+            quantity: orden.cantidad,
+            unitPrice: 10.0, // Precio por defecto, debería venir del plato
+            subtotal: orden.cantidad * 10.0,
+          })),
+          subtotal: mesa.ordenes_pendientes.reduce((acc, orden) => acc + (orden.cantidad * 10.0), 0),
+        },
+      ],
+      total: mesa.ordenes_pendientes.reduce((acc, orden) => acc + (orden.cantidad * 10.0), 0),
+    };
+  }) || [];
 
   return (
     <div>

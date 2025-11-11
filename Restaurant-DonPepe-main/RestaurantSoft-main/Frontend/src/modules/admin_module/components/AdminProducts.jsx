@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useImmer } from "use-immer";
 import { Plus, Edit, Save, X, Search, RefreshCw } from "lucide-react";
 import "../styles/admin_products.css";
@@ -10,8 +10,13 @@ import ImgCarneBlanca from "../../../../imagenes/CarneBlanca.jpg";
 import ImgCerdo from "../../../../imagenes/Cerdo.jpg";
 import ImgMariscos from "../../../../imagenes/Mariscos.jpg";
 import ImgVariado from "../../../../imagenes/Variado.jpg";
-import ImgCervezas from "../../../../imagenes/Cervezas.png";
 import ImgEnlatados from "../../../../imagenes/Enlatados.jpg";
+import ImgLicores from "../../../../imagenes/Licores.jpg";
+import ImgSopas from "../../../../imagenes/Sopas.png";
+import ImgMonte from "../../../../imagenes/Carne de monte y ensaladas.jpg";
+import ImgCervezaNacional from "../../../../imagenes/Cerveza_Nacional.jpeg";
+import ImgCervezaInternacional from "../../../../imagenes/Cerveza_Internacional.jpg";
+import ImgCocteles from "../../../../imagenes/Cocteles.jpg";
 
 // Imágenes por defecto para categorías
 const categoriasFallback = [
@@ -25,13 +30,24 @@ const categoriasFallback = [
 ];
 
 const defaultCategoryImagePath = {
+  // Categorías originales
   "CARNE ROJA": ImgRes,
   "CARNE BLANCA": ImgCarneBlanca,
   "CARNE DE CERDO": ImgCerdo,
-  MARISCOS: ImgMariscos,
-  VARIADOS: ImgVariado,
-  CERVEZAS: ImgCervezas,
-  ENLATADOS: ImgEnlatados,
+  "MARISCOS": ImgMariscos,
+  "VARIADOS": ImgVariado,
+  "CERVEZAS": ImgCervezaNacional, // Usar cerveza nacional como fallback
+  "ENLATADOS": ImgEnlatados,
+  
+  // Categorías del backend (populate_all_data)
+  "CARNE DE RES": ImgRes,
+  "ENLATADOS Y DESECHABLES": ImgEnlatados,
+  "LICORES IMPORTADOS": ImgLicores,
+  "SOPAS": ImgSopas,
+  "CARNE DE MONTE Y ENSALADAS": ImgMonte,
+  "CERVEZA NACIONAL": ImgCervezaNacional,
+  "CERVEZA INTERNACIONAL": ImgCervezaInternacional,
+  "COCTELES": ImgCocteles,
 };
 
 const AdminProducts = () => {
@@ -47,6 +63,8 @@ const AdminProducts = () => {
   const [categoryImages, setCategoryImages] = useState({});
   const [editingProducts, updateEditingProducts] = useImmer(null);
   const [saving, setSaving] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const tableWrapperRef = useRef(null);
 
   // Sincronizar categorías con el backend
   const { 
@@ -59,6 +77,7 @@ const AdminProducts = () => {
   const { 
     data: platosBackend, 
     loading: loadingPlatos,
+    error: errorPlatos,
     refetch: refetchPlatos 
   } = useDataSync(getPlatos, 5000);
 
@@ -192,7 +211,24 @@ const AdminProducts = () => {
     if (isEditing) {
       handleCancel();
     }
+    // Resetear scroll al cambiar de categoría
+    if (tableWrapperRef.current) {
+      tableWrapperRef.current.scrollTop = 0;
+      setScrollProgress(0);
+    }
   };
+
+  // Manejar el scroll para actualizar el indicador de progreso
+  const handleScroll = useCallback((e) => {
+    const element = e.target;
+    const scrollHeight = element.scrollHeight - element.clientHeight;
+    if (scrollHeight > 0) {
+      const progress = (element.scrollTop / scrollHeight) * 100;
+      setScrollProgress(progress);
+    } else {
+      setScrollProgress(0);
+    }
+  }, []);
 
   if (loadingCategorias || !categorias) {
     return (
@@ -201,6 +237,20 @@ const AdminProducts = () => {
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <RefreshCw className="spin" size={32} />
           <p>Cargando categorías...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (errorPlatos) {
+    return (
+      <section className="admin-products-container">
+        <h1 className="title">Menú</h1>
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#e74c3c' }}>
+          <p>Error al cargar los platos: {errorPlatos}</p>
+          <button onClick={refetchPlatos} style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>
+            Reintentar
+          </button>
         </div>
       </section>
     );
@@ -271,7 +321,16 @@ const AdminProducts = () => {
             </div>
           </div>
 
-          <div className="table-wrapper shadow">
+          <div className="table-wrapper shadow" ref={tableWrapperRef} onScroll={handleScroll}>
+            {/* Indicador de progreso de scroll */}
+            {listByCategory.length > 10 && (
+              <div className="scroll-progress-bar">
+                <div 
+                  className="scroll-progress-fill" 
+                  style={{ width: `${scrollProgress}%` }}
+                />
+              </div>
+            )}
             <table className="products-table">
               <thead>
                 <tr>
@@ -303,7 +362,7 @@ const AdminProducts = () => {
                           onChange={(e) => handleChange(p.id, "precio", e.target.value)}
                         />
                       ) : (
-                        `${currencySymbol}${p.precio.toFixed(2)}`
+                        `${currencySymbol}${parseFloat(p.precio || 0).toFixed(2)}`
                       )}
                     </td>
                   </tr>

@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
 import CustomDialog from "../../../common/CustomDialog";
+import { createFactura, createPago, getCajas } from "../../../services/cashierService";
+import { updateMesa } from "../../../services/waiterService";
 import "../styles/pay_dialog.css";
 
 const PayDialog = ({ orders, isOpen, onClose }) => {
@@ -20,10 +22,118 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
   const [paymentMethod, setpaymentMethod] = useState("cash");
   const [paymenthAmmount, setpaymenthAmmount] = useState(0);
   const [accountSelected, setaccountSelected] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
 
   const renderFlag = useMemo(() => {
     return orders.accounts.filter((item) => item.isPaid === false).length > 1;
   }, [orders.accounts]);
+
+  const handleProcessPayment = async () => {
+    try {
+      setIsProcessing(true);
+      setError(null);
+
+      // 🔍 Debug: Ver qué datos tenemos
+      console.log('📦 Datos del objeto orders:', orders);
+      console.log('🆔 mesaId:', orders.mesaId);
+      console.log('🆔 tableId:', orders.tableId);
+      console.log('📋 orderIds:', orders.orderIds);
+
+      // Validar si es pago en efectivo y hay monto
+      if (paymentMethod === 'cash' && (!paymenthAmmount || parseFloat(paymenthAmmount) < parseFloat(orders.total))) {
+        setError('El monto en efectivo debe ser mayor o igual al total');
+        setIsProcessing(false);
+        return;
+      }
+
+      // 0. Obtener caja abierta
+      const cajas = await getCajas();
+      const cajaAbierta = cajas.find(c => c.estado === 'abierta');
+      
+      if (!cajaAbierta) {
+        setError('No hay ninguna caja abierta. Por favor, abra una caja primero.');
+        setIsProcessing(false);
+        return;
+      }
+
+      // ✅ Validar que tenemos los datos necesarios
+      const mesaId = orders.mesaId || orders.tableId;
+      const orderIds = orders.orderIds || [];
+
+      console.log('✅ Validación de datos:');
+      console.log('  - Mesa ID:', mesaId);
+      console.log('  - Order IDs:', orderIds);
+      console.log('  - Caja ID:', cajaAbierta.id);
+
+      if (!mesaId) {
+        setError('Error: No se encontró el ID de la mesa. Por favor, intente nuevamente.');
+        setIsProcessing(false);
+        return;
+      }
+
+      if (!orderIds || orderIds.length === 0) {
+        setError('Error: No hay órdenes para procesar. Por favor, intente nuevamente.');
+        setIsProcessing(false);
+        return;
+      }
+
+      // 1. Crear factura con los datos correctos que espera el backend
+      const facturaData = {
+        table_id: mesaId,  // ID de la mesa
+        order_ids: orderIds,  // IDs de las órdenes
+        caja_id: cajaAbierta.id,  // ID de la caja abierta
+      };
+
+      console.log('Enviando datos de factura:', facturaData);
+      const factura = await createFactura(facturaData);
+      console.log('Factura creada:', factura);
+
+      // 2. Crear pago
+      const pagoData = {
+        factura: factura.id,
+        monto: parseFloat(orders.total || factura.total),
+        metodo_pago: paymentMethod === 'cash' ? 'efectivo' : 'tarjeta',
+        caja: cajaAbierta.id,
+      };
+
+      console.log('Enviando datos de pago:', pagoData);
+      await createPago(pagoData);
+
+      // 3. Actualizar estado de la mesa a "available" (libre)
+      let mesaActualizada = false;
+      if (mesaId) {
+        try {
+          console.log('Intentando actualizar mesa a disponible:', mesaId);
+          await updateMesa(mesaId, { status: 'available' });
+          mesaActualizada = true;
+          console.log('✅ Mesa actualizada correctamente');
+        } catch (mesaError) {
+          // ⚠️ No detener el flujo si falla la actualización de mesa
+          console.warn('⚠️ Error al actualizar mesa (pago ya procesado):', mesaError.message);
+          // El pago ya se procesó correctamente, solo notificar el problema
+        }
+      }
+
+      // 4. Calcular cambio
+      const total = parseFloat(orders.total || factura.total);
+      const cambio = paymentMethod === 'cash' ? parseFloat(paymenthAmmount) - total : 0;
+
+      // 5. Cerrar modal y notificar éxito
+      const mensaje = mesaActualizada 
+        ? `✅ Pago procesado exitosamente\nTotal: C$${total.toFixed(2)}\nCambio: C$${cambio.toFixed(2)}`
+        : `✅ Pago procesado exitosamente\nTotal: C$${total.toFixed(2)}\nCambio: C$${cambio.toFixed(2)}\n\n⚠️ Nota: Actualice el estado de la mesa manualmente`;
+      
+      alert(mensaje);
+      onClose();
+      
+    } catch (err) {
+      console.error('Error procesando pago:', err);
+      setError('Error al procesar el pago: ' + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return isOpen ? (
     <CustomDialog isOpen={isOpen} onClose={onClose}>
@@ -134,8 +244,20 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
         )}
       </section>
 
+      {error && (
+        <div style={{ padding: '1rem', background: '#fee2e2', borderRadius: '8px', marginBottom: '1rem' }}>
+          <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>
+        </div>
+      )}
+
       <section className="button-action">
-        <button className="shadow">Realizar pago</button>
+        <button 
+          className="shadow"
+          onClick={handleProcessPayment}
+          disabled={isProcessing}
+        >
+          {isProcessing ? 'Procesando...' : 'Realizar pago'}
+        </button>
       </section>
     </CustomDialog>
   ) : (

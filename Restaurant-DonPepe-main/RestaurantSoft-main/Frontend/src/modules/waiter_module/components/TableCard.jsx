@@ -4,8 +4,14 @@ import { useNavigate } from "react-router-dom";
 const TableCard = ({ tables }) => {
   const navigate = useNavigate();
 
-  const handleNavigate = (tableNumber) => {
-    navigate(`/waiter-dashboard/${tableNumber}/orders-handler`);
+  const handleNavigate = () => {
+    const mesaId = tables.mesa_id || tables.tableNumber;
+    navigate(`/waiter-dashboard/${mesaId}/orders-handler`, {
+      state: {
+        mesaId,
+        tableNumber: tables.tableNumber,
+      },
+    });
   };
 
   return (
@@ -26,10 +32,7 @@ const TableCard = ({ tables }) => {
           <strong>Mesero asignado:</strong>{" "}
           {tables.assignedWaiter || "No asignado"}
         </p>
-        <button
-          className="new-order-btn"
-          onClick={() => handleNavigate(tables.tableNumber)}
-        >
+        <button className="new-order-btn" onClick={handleNavigate}>
           {tables.tableStatus === "ocupada" ? "Editar Orden" : "Añadir Orden"}
         </button>
       </article>

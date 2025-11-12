@@ -3,15 +3,25 @@ from .models import Table, WaiterOrder
 from django.db import transaction
 
 class TableSerializer(serializers.ModelSerializer):
+    assigned_waiter_name = serializers.SerializerMethodField()
+    # Hacer mesa_id opcional en la entrada, se generará automáticamente
+    mesa_id = serializers.CharField(required=False)
+    
     class Meta:
         model = Table
-        fields = ['id', 'mesa_id', 'mesa', 'ubicacion', 'number', 'capacity', 'status']
-        read_only_fields = ['id']
+        fields = ['id', 'mesa_id', 'mesa', 'ubicacion', 'number', 'capacity', 'status', 'assigned_waiter', 'assigned_waiter_name']
+        read_only_fields = ['id', 'assigned_waiter_name']
+    
+    def get_assigned_waiter_name(self, obj):
+        """Retornar nombre del mesero asignado"""
+        if obj.assigned_waiter:
+            return obj.assigned_waiter.get_full_name() or obj.assigned_waiter.username
+        return None
     
     def create(self, validated_data):
         # Sincronizar number con mesa_id si no se proporciona mesa_id
         if 'number' in validated_data and 'mesa_id' not in validated_data:
-            validated_data['mesa_id'] = validated_data['number']
+            validated_data['mesa_id'] = f"MESA-{validated_data['number']}"
         # Sincronizar mesa con number para compatibilidad
         if 'number' in validated_data and not validated_data.get('mesa'):
             validated_data['mesa'] = validated_data['number']

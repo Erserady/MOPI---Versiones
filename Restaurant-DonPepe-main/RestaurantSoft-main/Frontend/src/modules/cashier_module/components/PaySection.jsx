@@ -36,6 +36,44 @@ const PaySection = () => {
   // Transformar datos del backend al formato esperado por PayCard
   const ordersFormatted = mesasData?.map(mesa => {
     console.log('🔍 Mesa del backend:', mesa);
+    
+    // Procesar todas las órdenes de la mesa
+    let allItems = [];
+    let totalMesa = 0;
+    
+    mesa.ordenes_pendientes.forEach(orden => {
+      try {
+        // Parsear el JSON del pedido
+        const pedidoItems = JSON.parse(orden.pedido);
+        
+        // Agregar cada item con su precio real
+        pedidoItems.forEach(item => {
+          const subtotal = item.cantidad * item.precio;
+          allItems.push({
+            type: 'Principal',
+            ready: true,
+            name: item.nombre,
+            quantity: item.cantidad,
+            unitPrice: item.precio,
+            subtotal: subtotal,
+            nota: item.nota || ''
+          });
+          totalMesa += subtotal;
+        });
+      } catch (error) {
+        console.error('Error parseando pedido:', orden.pedido, error);
+        // Fallback si no se puede parsear
+        allItems.push({
+          type: 'Principal',
+          ready: true,
+          name: orden.pedido,
+          quantity: orden.cantidad,
+          unitPrice: 0,
+          subtotal: 0,
+        });
+      }
+    });
+    
     return {
       id: `MESA-${mesa.mesa_id}`,
       mesaId: mesa.mesa_id,  // ✅ ID de la mesa para el backend
@@ -50,18 +88,11 @@ const PaySection = () => {
           accountId: `ACC-${mesa.mesa_id}`,
           isPaid: false,
           label: 'Cuenta principal',
-          items: mesa.ordenes_pendientes.map(orden => ({
-            type: 'Principal',
-            ready: true,
-            name: orden.pedido,
-            quantity: orden.cantidad,
-            unitPrice: 10.0, // Precio por defecto, debería venir del plato
-            subtotal: orden.cantidad * 10.0,
-          })),
-          subtotal: mesa.ordenes_pendientes.reduce((acc, orden) => acc + (orden.cantidad * 10.0), 0),
+          items: allItems,
+          subtotal: totalMesa,
         },
       ],
-      total: mesa.ordenes_pendientes.reduce((acc, orden) => acc + (orden.cantidad * 10.0), 0),
+      total: totalMesa,
     };
   }) || [];
 

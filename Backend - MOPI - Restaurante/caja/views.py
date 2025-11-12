@@ -38,15 +38,44 @@ class CajaViewSet(viewsets.ModelViewSet):
         if caja.estado == 'cerrada':
             return Response({'error': 'La caja ya está cerrada'}, status=status.HTTP_400_BAD_REQUEST)
         
+        # Validar que no haya pedidos pendientes DE ESTA SESIÓN (después de la apertura)
+        # Solo contar pedidos que:
+        # 1. Estado = 'pendiente'
+        # 2. Creados después de la apertura de esta sesión
+        # 3. NO tienen factura asociada (los que tienen factura ya están en proceso)
+        pedidos_pendientes = WaiterOrder.objects.filter(
+            estado='pendiente',
+            created_at__gte=caja.fecha_apertura,  # Solo de esta sesión
+            facturas__isnull=True  # Solo pedidos sin facturar
+        ).count()
+        if pedidos_pendientes > 0:
+            return Response({
+                'error': 'No se puede cerrar la caja',
+                'mensaje': f'Hay {pedidos_pendientes} pedido(s) pendiente(s) de esta sesión sin facturar. Todos los pedidos deben ser pagados o cancelados antes de cerrar la caja.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validar que no haya facturas pendientes DE ESTA SESIÓN (después de la apertura)
+        facturas_pendientes = Factura.objects.filter(
+            caja=caja, 
+            estado='pendiente',
+            created_at__gte=caja.fecha_apertura  # Solo facturas de esta sesión
+        ).count()
+        if facturas_pendientes > 0:
+            return Response({
+                'error': 'No se puede cerrar la caja',
+                'mensaje': f'Hay {facturas_pendientes} factura(s) pendiente(s) de esta sesión. Todas las facturas deben ser pagadas antes de cerrar la caja.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         saldo_final = Decimal(request.data.get('saldo_final', 0))
         observaciones = request.data.get('observaciones', '')
         
         with transaction.atomic():
-            # Calcular saldo teórico
-            saldo_teorico = caja.saldo_inicial + sum(
-                pago.monto for pago in caja.pagos.all() 
-                if pago.metodo_pago == 'efectivo'
+            # Calcular saldo teórico solo con pagos de esta sesión (después de la apertura)
+            pagos_sesion = caja.pagos.filter(
+                created_at__gte=caja.fecha_apertura,
+                metodo_pago='efectivo'
             )
+            saldo_teorico = caja.saldo_inicial + sum(pago.monto for pago in pagos_sesion)
             
             diferencia = saldo_final - saldo_teorico
             
@@ -65,8 +94,16 @@ class CajaViewSet(viewsets.ModelViewSet):
             caja.estado = 'cerrada'
             caja.fecha_cierre = timezone.now()
             caja.save()
+            
+            # Recargar la caja desde la BD para asegurar que los cambios se guardaron
+            caja.refresh_from_db()
         
-        return Response({'message': 'Caja cerrada exitosamente', 'cierre_id': cierre.id})
+        serializer = self.get_serializer(caja)
+        return Response({
+            'message': 'Caja cerrada exitosamente',
+            'cierre_id': cierre.id,
+            'caja': serializer.data
+        })
 
 class FacturaViewSet(viewsets.ModelViewSet):
     queryset = Factura.objects.all().order_by('-created_at')
@@ -97,18 +134,28 @@ class FacturaViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Calcular total (aquí necesitarías lógica de precios)
-            # Por ahora, usaremos un cálculo simple basado en cantidad
-            subtotal = sum(order.cantidad * 10 for order in orders)  # $10 por item
-            impuestos = subtotal * Decimal('0.18')  # 18% de impuestos
-            total = subtotal + impuestos
+            # Calcular total parseando el JSON del pedido con los precios reales
+            import json
+            total = Decimal('0.00')
+            for order in orders:
+                try:
+                    # Parsear el JSON del pedido
+                    pedido_items = json.loads(order.pedido)
+                    # Sumar el precio de cada item
+                    for item in pedido_items:
+                        cantidad = item.get('cantidad', 1)
+                        precio = Decimal(str(item.get('precio', 0)))
+                        total += cantidad * precio
+                except (json.JSONDecodeError, ValueError, KeyError) as e:
+                    # Si hay error parseando, usar 0
+                    pass
             
-            # Crear factura
+            # Crear factura (sin impuestos adicionales)
             factura = Factura.objects.create(
                 table=table,
                 numero_factura=f"FACT-{Factura.objects.count() + 1:06d}",
-                subtotal=subtotal,
-                impuestos=impuestos,
+                subtotal=total,  # Subtotal = Total (sin desglose)
+                impuestos=Decimal('0.00'),  # Sin impuestos adicionales
                 total=total,
                 caja=caja,
                 creado_por=request.user

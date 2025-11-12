@@ -1,150 +1,365 @@
+/* ===== PANEL DE CAJA MODERNO Y PROFESIONAL ===== */
+
 .cashier-section {
-  .cashier-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas */
-    grid-template-rows: repeat(2, 1fr); /* 3 filas */
-    gap: 15px;
-    height: auto;
-    padding: 5px;
-    justify-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
 
-    .cashier-actions {
-      grid-column: span 1; /* ocupa 1 columna */
-      grid-row: span 1; /* ocupa 1 fila */
-      grid-column-start: 1;
-      grid-row-start: 1;
-      width: clamp(310px, 44.25vw, 900px);
-      height: 206px;
-      background-color: #e6f0ff;
-      .cashier-card-content {
-        margin-top: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+.cashier-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0;
+}
 
-        button {
-          border-radius: 10px;
-          font-size: 18px;
-          font-weight: 600;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-        }
-        .close {
-          background-color: rgb(210, 33, 33);
-          color: white;
-          &:hover {
-            background-color: rgb(177, 28, 28);
-          }
-        }
-        .report {
-          background-color: rgb(115, 115, 115);
-          color: white;
-          &:hover {
-            background-color: rgb(73, 72, 72);
-          }
-        }
-      }
-    }
+/* ===== GRID LAYOUT ===== */
+.cashier-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
 
-    .cashier-state {
-      grid-column: span 1;
-      grid-row: span 1;
-      grid-column-start: 2;
-      grid-row-start: 1;
-      width: clamp(310px, 44.25vw, 900px);
-      height: 206px;
-      background-color: #f0f4f8;
-      .cashier-card-content {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        margin-top: 5px;
-      }
+/* ===== TARJETAS BASE ===== */
+.cashier-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #e2e8f0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-      p {
-        border: 1px solid rgb(173, 173, 173);
-        display: flex;
-        justify-content: space-between;
-        padding: 5px;
-        border-radius: 10px;
-      }
-      .cashier-success {
-        color: green;
-      }
-    }
+.cashier-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
 
-    .cashier-history {
-      grid-column: span 2; /* ocupa ambas columnas */
-      grid-row: span 2; /* ocupa 2 filas */
-      grid-row-start: 2;
-      width: clamp(310px, 94.05vw, 1340px);
+.cashier-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f1f5f9;
+}
 
-      .cashier-card-content {
-        margin-top: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
+.cashier-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-      .cashier-transaction {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: white;
-        padding: 10px;
-        border: 1px solid rgb(185, 185, 185);
-        border-radius: 10px;
-      }
+/* ===== ESTADO DE CAJA ===== */
+.cashier-state {
+  grid-column: span 4;
+  background: #fef3c7;
+  border: 2px solid #fbbf24;
+}
 
-      .title-transaction {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-align: center;
-        width: 80%;
-        div {
-          display: flex;
-          justify-content: center;
-          align-items: start;
-          flex-direction: column;
-          width: 70%;
-          @media (max-width: 800px) {
-            align-items: center;
-          }
-        }
-      }
+.cashier-state:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.3);
+}
 
-      .cashier-amount {
-        color: green;
-        font-weight: 700;
-      }
-    }
+.cashier-state .cashier-card-title {
+  color: #92400e;
+  border-bottom-color: #fbbf24;
+}
 
-    @media (max-width: 720px) {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      padding: 5px;
+.cashier-state p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  margin: 0.5rem 0;
+  background: #fffbeb;
+  border-radius: 12px;
+  border: 1px solid #fcd34d;
+  font-size: 0.9375rem;
+  color: #78350f;
+  transition: all 0.2s;
+}
 
-      .cashier-history {
-        width: clamp(310px, 80.05vw, 720px);
-      }
-    }
-  }
-  .cashier-card {
-    width: 100%;
-    height: auto;
-    background-color: rgb(237, 248, 237);
-    border-radius: 10px;
-    padding: 15px;
+.cashier-state p:hover {
+  background: white;
+  transform: translateX(4px);
+}
+
+.cashier-state p strong {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #92400e;
+}
+
+.cashier-state small {
+  display: block;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #fcd34d;
+  font-size: 0.875rem;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+.cashier-success {
+  color: #86efac !important;
+  font-weight: 700;
+}
+
+/* ===== ACCIONES DE CAJA ===== */
+.cashier-actions {
+  grid-column: span 4;
+  background: #fce7f3;
+  border: 2px solid #f9a8d4;
+}
+
+.cashier-actions .cashier-card-title {
+  color: #831843;
+  border-bottom-color: #f9a8d4;
+}
+
+.cashier-actions .cashier-card-content {
+  gap: 1rem;
+}
+
+.cashier-btn {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.cashier-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.cashier-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.cashier-btn svg {
+  position: relative;
+  z-index: 1;
+}
+
+.cashier-btn span {
+  position: relative;
+  z-index: 1;
+}
+
+.cashier-btn.open {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+}
+
+.cashier-btn.open:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+  background: #059669;
+}
+
+.cashier-btn.close {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+}
+
+.cashier-btn.close:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
+  background: #dc2626;
+}
+
+.cashier-btn.report {
+  background: #64748b;
+  color: white;
+  border: 2px solid #64748b;
+}
+
+.cashier-btn.report:hover {
+  background: #475569;
+  border-color: #475569;
+}
+
+.cashier-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.cashier-btn:disabled:hover::before {
+  width: 0;
+  height: 0;
+}
+
+/* ===== FLUJO DE EFECTIVO ===== */
+.cashier-flow {
+  grid-column: span 4;
+  background: #dbeafe;
+  border: 2px solid #93c5fd;
+}
+
+.cashier-flow .cashier-card-title {
+  color: #1e3a8a;
+  border-bottom-color: #93c5fd;
+}
+
+/* ===== HISTORIAL ===== */
+.cashier-history {
+  grid-column: span 12;
+  max-height: 500px;
+}
+
+.cashier-history .cashier-card-content {
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar personalizado */
+.cashier-history .cashier-card-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cashier-history .cashier-card-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.cashier-history .cashier-card-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.cashier-history .cashier-card-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.cashier-transaction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.cashier-transaction:hover {
+  background: white;
+  border-color: #cbd5e1;
+  transform: translateX(4px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.title-transaction {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.title-transaction svg {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.title-transaction div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title-transaction p {
+  margin: 0;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.9375rem;
+}
+
+.title-transaction small {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.cashier-amount {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #10b981;
+  white-space: nowrap;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .cashier-state,
+  .cashier-actions,
+  .cashier-flow {
+    grid-column: span 6;
   }
 }
 
-/* Spinner animation */
+@media (max-width: 768px) {
+  .cashier-section {
+    padding: 1rem;
+  }
+
+  .cashier-title {
+    font-size: 1.5rem;
+  }
+
+  .cashier-grid {
+    gap: 1rem;
+  }
+
+  .cashier-state,
+  .cashier-actions,
+  .cashier-flow,
+  .cashier-history {
+    grid-column: span 12;
+  }
+
+  .cashier-card {
+    padding: 1.25rem;
+  }
+
+  .cashier-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+}
+
+/* ===== ANIMACIONES ===== */
 .spin {
   animation: spin 1s linear infinite;
 }
@@ -157,3 +372,29 @@
     transform: rotate(360deg);
   }
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cashier-card {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.cashier-transaction {
+  animation: fadeIn 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.cashier-transaction:nth-child(1) { animation-delay: 0.05s; }
+.cashier-transaction:nth-child(2) { animation-delay: 0.1s; }
+.cashier-transaction:nth-child(3) { animation-delay: 0.15s; }
+.cashier-transaction:nth-child(4) { animation-delay: 0.2s; }
+.cashier-transaction:nth-child(5) { animation-delay: 0.25s; }

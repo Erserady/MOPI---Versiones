@@ -32,7 +32,7 @@
     }
   },
   "navigation": [
-    { "title": "Resumen", "section": "resume", "visible": true },
+    { "title": "Gestión", "section": "resume", "visible": true },
     { "title": "Inventario", "section": "inventory", "visible": true },
     { "title": "Menú", "section": "products", "visible": true },
     { "title": "Personal", "section": "staff", "visible": true }

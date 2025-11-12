@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 class Table(models.Model):
     # mesa_id: identificador visible (p.ex. "MESA-1" o número) - LEGACY
@@ -18,6 +19,16 @@ class Table(models.Model):
             ('reserved', 'Reservada'),
         ],
         help_text="Estado de la mesa"
+    )
+    
+    # Mesero asignado
+    assigned_waiter = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_tables',
+        help_text='Mesero asignado a esta mesa'
     )
 
     def __str__(self):

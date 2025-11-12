@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import CustomDialog from "../../../common/CustomDialog";
 import { createFactura, createPago, getCajas } from "../../../services/cashierService";
 import { updateMesa } from "../../../services/waiterService";
+import { useNotification } from "../../../hooks/useNotification";
+import Notification from "../../../common/Notification";
 import "../styles/pay_dialog.css";
 
 const PayDialog = ({ orders, isOpen, onClose }) => {
@@ -24,6 +26,7 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
   const [accountSelected, setaccountSelected] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const { notification, showNotification, hideNotification } = useNotification();
 
   const renderFlag = useMemo(() => {
     return orders.accounts.filter((item) => item.isPaid === false).length > 1;
@@ -105,9 +108,9 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
       if (mesaId) {
         try {
           console.log('Intentando actualizar mesa a disponible:', mesaId);
-          await updateMesa(mesaId, { status: 'available' });
+          await updateMesa(mesaId, { status: 'available', assigned_waiter: null });
           mesaActualizada = true;
-          console.log('✅ Mesa actualizada correctamente');
+          console.log('✅ Mesa actualizada correctamente (liberada y sin mesero asignado)');
         } catch (mesaError) {
           // ⚠️ No detener el flujo si falla la actualización de mesa
           console.warn('⚠️ Error al actualizar mesa (pago ya procesado):', mesaError.message);
@@ -120,11 +123,12 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
       const cambio = paymentMethod === 'cash' ? parseFloat(paymenthAmmount) - total : 0;
 
       // 5. Cerrar modal y notificar éxito
-      const mensaje = mesaActualizada 
-        ? `✅ Pago procesado exitosamente\nTotal: C$${total.toFixed(2)}\nCambio: C$${cambio.toFixed(2)}`
-        : `✅ Pago procesado exitosamente\nTotal: C$${total.toFixed(2)}\nCambio: C$${cambio.toFixed(2)}\n\n⚠️ Nota: Actualice el estado de la mesa manualmente`;
-      
-      alert(mensaje);
+      showNotification({
+        type: 'success',
+        title: 'Pago procesado exitosamente',
+        message: `Total: C$${total.toFixed(2)} | Cambio: C$${cambio.toFixed(2)}${!mesaActualizada ? ' (Actualice mesa manualmente)' : ''}`,
+        duration: 5000
+      });
       onClose();
       
     } catch (err) {
@@ -259,6 +263,16 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
           {isProcessing ? 'Procesando...' : 'Realizar pago'}
         </button>
       </section>
+
+      {notification && (
+        <Notification
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onClose={hideNotification}
+          duration={notification.duration}
+        />
+      )}
     </CustomDialog>
   ) : (
     ""

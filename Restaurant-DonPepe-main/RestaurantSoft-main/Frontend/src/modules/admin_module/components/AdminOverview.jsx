@@ -15,7 +15,7 @@ import "../styles/admin_overview.css";
 import AdminCards from "./AdminCards";
 import { useMetadata } from "../../../hooks/useMetadata";
 import { getMesas, createMesa, deleteMesa } from "../../../services/waiterService";
-import { getCajas, getFacturas } from "../../../services/cashierService";
+import { getCajas, getFacturas, getPagos } from "../../../services/cashierService";
 import { useDataSync } from "../../../hooks/useDataSync";
 
 const AdminOverview = () => {
@@ -30,27 +30,53 @@ const AdminOverview = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mesaToDelete, setMesaToDelete] = useState(null);
   
-  // Obtener datos en tiempo real
-  const { data: mesas, loading: loadingMesas, refetch: refetchMesas } = useDataSync(getMesas, 10000);
-  const { data: cajas, loading: loadingCajas, refetch: refetchCajas } = useDataSync(getCajas, 30000);
-  const { data: facturas, loading: loadingFacturas } = useDataSync(getFacturas, 30000);
+  // Obtener datos en tiempo real (cada 5 segundos para reflejar cambios inmediatamente)
+  const { data: mesas, loading: loadingMesas, refetch: refetchMesas } = useDataSync(getMesas, 5000);
+  const { data: cajas, loading: loadingCajas, refetch: refetchCajas } = useDataSync(getCajas, 5000);
+  const { data: facturas, loading: loadingFacturas } = useDataSync(getFacturas, 5000);
+  const { data: pagos, loading: loadingPagos } = useDataSync(getPagos, 5000);
 
   // Calcular métricas de caja con validación defensiva
   const cajaAbierta = cajas?.find(c => c.estado === 'abierta');
   const saldoInicial = parseFloat(cajaAbierta?.saldo_inicial || 0) || 0;
-  const facturasHoy = facturas?.filter(f => {
-    const today = new Date().toISOString().split('T')[0];
-    return f.fecha_emision?.startsWith(today);
-  }) || [];
   
-  const totalIngresos = facturasHoy.reduce((sum, f) => {
-    const valor = parseFloat(f.total || 0);
-    return sum + (isNaN(valor) ? 0 : valor);
-  }, 0);
+  // Filtrar pagos solo de la caja abierta actual Y después de su apertura
+  // Si no hay caja abierta, mostrar 0
+  const pagosHoy = cajaAbierta
+    ? (pagos?.filter(p => {
+        // Solo pagos de la caja abierta actual Y después de su apertura
+        if (p.caja !== cajaAbierta.id) return false;
+        
+        // Verificar que el pago sea después de la apertura de esta caja
+        const fechaPago = new Date(p.created_at);
+        const fechaApertura = new Date(cajaAbierta.fecha_apertura);
+        
+        return fechaPago >= fechaApertura;
+      }) || [])
+    : [];
+  
+  // Calcular ingresos por método de pago (solo si hay caja abierta)
+  const ingresosEfectivo = cajaAbierta
+    ? pagosHoy
+        .filter(p => p.metodo_pago === 'efectivo')
+        .reduce((sum, p) => sum + parseFloat(p.monto || 0), 0)
+    : 0;
+  
+  const ingresosTarjeta = cajaAbierta
+    ? pagosHoy
+        .filter(p => p.metodo_pago === 'tarjeta')
+        .reduce((sum, p) => sum + parseFloat(p.monto || 0), 0)
+    : 0;
+  
+  const totalIngresos = ingresosEfectivo + ingresosTarjeta;
   
   const totalEgresos = 0; // Aquí podrías agregar lógica de egresos si existe
-  const saldoActual = parseFloat(saldoInicial) + parseFloat(totalIngresos) - parseFloat(totalEgresos);
-  const ganancia = parseFloat(saldoActual) - parseFloat(saldoInicial);
+  
+  // El saldo en caja solo incluye efectivo (tarjetas no están físicamente en caja)
+  const saldoEnCaja = cajaAbierta
+    ? parseFloat(saldoInicial) + parseFloat(ingresosEfectivo) - parseFloat(totalEgresos)
+    : 0;
+  const gananciaTotal = parseFloat(totalIngresos) - parseFloat(totalEgresos);
   
   // Función helper para formatear moneda de forma segura
   const formatCurrency = (value) => {
@@ -225,7 +251,10 @@ const AdminOverview = () => {
             <div className="cash-card-content">
               <p className="cash-card-label">Ingresos Hoy</p>
               <h3 className="cash-card-value success">{currencySymbol}{formatCurrency(totalIngresos)}</h3>
-              <p className="cash-card-detail">{facturasHoy.length} facturas emitidas</p>
+              <p className="cash-card-detail">
+                💵 {currencySymbol}{formatCurrency(ingresosEfectivo)} | 
+                💳 {currencySymbol}{formatCurrency(ingresosTarjeta)}
+              </p>
             </div>
           </div>
 
@@ -241,24 +270,24 @@ const AdminOverview = () => {
             </div>
           </div>
 
-          {/* Saldo Actual */}
+          {/* Saldo en Caja (Solo Efectivo) */}
           <div className="cash-card highlight">
             <div className="cash-card-icon purple">
               <Wallet size={24} />
             </div>
             <div className="cash-card-content">
-              <p className="cash-card-label">Saldo Actual</p>
-              <h3 className="cash-card-value">{currencySymbol}{formatCurrency(saldoActual)}</h3>
+              <p className="cash-card-label">Saldo en Caja (Efectivo)</p>
+              <h3 className="cash-card-value">{currencySymbol}{formatCurrency(saldoEnCaja)}</h3>
               <div className="cash-card-badge">
-                {ganancia >= 0 ? (
+                {gananciaTotal >= 0 ? (
                   <>
                     <TrendingUp size={14} />
-                    <span>+{currencySymbol}{formatCurrency(ganancia)}</span>
+                    <span>+{currencySymbol}{formatCurrency(gananciaTotal)} total</span>
                   </>
                 ) : (
                   <>
                     <TrendingDown size={14} />
-                    <span>{currencySymbol}{formatCurrency(ganancia)}</span>
+                    <span>{currencySymbol}{formatCurrency(gananciaTotal)} total</span>
                   </>
                 )}
               </div>

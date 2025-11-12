@@ -17,6 +17,10 @@ import ImgMonte from "../../../../imagenes/Carne de monte y ensaladas.jpg";
 import ImgCervezaNacional from "../../../../imagenes/Cerveza_Nacional.jpeg";
 import ImgCervezaInternacional from "../../../../imagenes/Cerveza_Internacional.jpg";
 import ImgCocteles from "../../../../imagenes/Cocteles.jpg";
+import ImgCigarros from "../../../../imagenes/cigarros.jpg";
+import ImgRon from "../../../../imagenes/Ron.png";
+import ImgVinos from "../../../../imagenes/vinos.jpg";
+import ImgExtras from "../../../../imagenes/extras.jpg";
 
 // Imágenes por defecto para categorías
 const categoriasFallback = [
@@ -48,6 +52,10 @@ const defaultCategoryImagePath = {
   "CERVEZA NACIONAL": ImgCervezaNacional,
   "CERVEZA INTERNACIONAL": ImgCervezaInternacional,
   "COCTELES": ImgCocteles,
+  "CIGARROS": ImgCigarros,
+  "RON NACIONAL": ImgRon,
+  "COCTAILS Y VINOS": ImgVinos,
+  "EXTRAS": ImgExtras,
 };
 
 const AdminProducts = () => {

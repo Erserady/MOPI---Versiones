@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.shortcuts import render
 from .models import Table, WaiterOrder
 from .serializers import TableSerializer, WaiterOrderSerializer
+from caja.models import Caja
 
 class TableViewSet(viewsets.ModelViewSet):
     queryset = Table.objects.all().order_by('mesa_id')
@@ -27,6 +28,36 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
     queryset = WaiterOrder.objects.all().order_by('-created_at')
     serializer_class = WaiterOrderSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def create(self, request, *args, **kwargs):
+        """Validar que la caja esté abierta antes de crear un pedido"""
+        # Verificar si hay una caja abierta
+        caja_abierta = Caja.objects.filter(estado='abierta').first()
+        
+        if not caja_abierta:
+            return Response({
+                'error': 'No se pueden crear pedidos',
+                'mensaje': 'La caja debe estar abierta para poder tomar pedidos. Por favor, contacte al administrador para abrir la caja.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Si la caja está abierta, proceder con la creación normal
+        response = super().create(request, *args, **kwargs)
+        
+        # Si la orden se creó exitosamente, actualizar el estado de la mesa
+        if response.status_code == status.HTTP_201_CREATED:
+            try:
+                order = WaiterOrder.objects.get(id=response.data['id'])
+                table = order.table
+                
+                # Actualizar estado de la mesa a "occupied" y asignar mesero
+                table.status = 'occupied'
+                table.assigned_waiter = request.user
+                table.save()
+                
+            except WaiterOrder.DoesNotExist:
+                pass
+        
+        return response
 
     @action(detail=False, methods=['get'], url_path='open', permission_classes=[permissions.AllowAny])
     def open_orders(self, request):

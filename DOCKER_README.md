@@ -45,10 +45,17 @@ Este comando:
 - ✅ Construye las imágenes del backend y frontend
 - ✅ Crea la base de datos PostgreSQL
 - ✅ Ejecuta las migraciones automáticamente
-- ✅ Carga los datos iniciales con `populate_all_data`
 - ✅ Inicia todos los servicios en segundo plano
 
-### 3. Verificar que todo esté corriendo
+### 3. (Una sola vez) Cargar datos de demostración
+
+Solo si necesitas los registros de ejemplo iniciales, ejecútalo manualmente para evitar sobreescribir datos existentes:
+
+```bash
+docker compose exec backend python manage.py populate_all_data
+```
+
+### 4. Verificar que todo esté corriendo
 
 ```bash
 docker compose ps
@@ -59,7 +66,7 @@ Deberías ver 3 contenedores en estado "Up":
 - `mopi_backend`
 - `mopi_frontend`
 
-### 4. Acceder a la aplicación
+### 5. Acceder a la aplicación
 
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000

@@ -3,25 +3,27 @@
 # Script de inicio para el contenedor backend Django
 set -e
 
-echo "🔍 Esperando a que la base de datos esté lista..."
-# Esperar a que PostgreSQL esté disponible
+echo "[db] Esperando a que la base de datos esté lista..."
 while ! pg_isready -h db -p 5432 -U mopi_user > /dev/null 2>&1; do
-    echo "⏳ Esperando a PostgreSQL..."
+    echo "[db] PostgreSQL aún no responde, reintentando en 2s..."
     sleep 2
 done
 
-echo "✅ Base de datos disponible!"
+echo "[db] Base de datos disponible."
 
-echo "🔄 Ejecutando migraciones..."
+echo "[init] Ejecutando migraciones..."
 python manage.py migrate --noinput
 
-echo "📦 Recolectando archivos estáticos..."
+echo "[init] Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput
 
-echo "🌱 Cargando datos iniciales..."
-python manage.py populate_all_data || echo "⚠️ Advertencia: populate_all_data falló o los datos ya existen"
+cat <<'EOF'
+[info] populate_all_data ya no se ejecuta automáticamente.
+[info] Si necesitas datos de demostración, corre:
+[info]     docker compose exec backend python manage.py populate_all_data
+EOF
 
-echo "🚀 Iniciando servidor Gunicorn..."
+echo "[gunicorn] Iniciando servidor..."
 exec gunicorn drfsimplecrud.wsgi:application \
     --bind 0.0.0.0:8000 \
     --workers 4 \

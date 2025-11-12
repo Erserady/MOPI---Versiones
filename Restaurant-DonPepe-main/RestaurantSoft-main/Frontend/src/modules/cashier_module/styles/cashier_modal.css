@@ -13,12 +13,13 @@
 
 .modal-content {
   background: white;
-  border-radius: 10px;
+  border-radius: 16px;
   width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 700px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .modal-header {
@@ -58,7 +59,27 @@
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .cash-section h3,
@@ -71,38 +92,54 @@
 
 .denominations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-  margin-bottom: 20px;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .denomination-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 5px;
-  background-color: #f8f9fa;
+  display: grid;
+  grid-template-columns: auto 80px 80px;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  transition: all 0.2s;
+}
+
+.denomination-item:hover {
+  border-color: #cbd5e1;
+  background-color: white;
 }
 
 .denomination-item label {
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.875rem;
+  color: #475569;
   font-weight: 500;
 }
 
 .denomination-input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  text-align: center;
+  width: 100%;
+}
+
+.denomination-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .denomination-total {
-  font-size: 0.8rem;
-  color: #28a745;
-  font-weight: 500;
+  font-size: 0.875rem;
+  color: #10b981;
+  font-weight: 600;
+  text-align: right;
 }
 
 .card-section {
@@ -124,28 +161,51 @@
 }
 
 .summary-section {
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 5px;
-  border: 1px solid #e0e0e0;
+  background: #f0f9ff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 2px solid #bae6fd;
+  margin-top: 1rem;
 }
 
 .summary-item {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9375rem;
+  color: #475569;
+}
+
+.summary-item strong {
+  color: #1e293b;
+  font-weight: 600;
 }
 
 .summary-total {
   display: flex;
   justify-content: space-between;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 2px solid #ddd;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #333;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 2px solid #38bdf8;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0c4a6e;
+}
+
+.summary-warning {
+  background: #fef2f2;
+  border: 2px solid #fca5a5;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #991b1b;
+}
+
+.summary-warning svg {
+  flex-shrink: 0;
 }
 
 .modal-footer {
@@ -190,11 +250,20 @@
 @media (max-width: 768px) {
   .modal-content {
     width: 95%;
-    margin: 10px;
+    max-height: 90vh;
   }
   
-  .denominations-grid {
-    grid-template-columns: 1fr;
+  .denomination-item {
+    grid-template-columns: 1fr auto auto;
+  }
+  
+  .denomination-item label {
+    font-size: 0.8125rem;
+  }
+  
+  .denomination-input,
+  .denomination-total {
+    font-size: 0.8125rem;
   }
   
   .card-amount-input {

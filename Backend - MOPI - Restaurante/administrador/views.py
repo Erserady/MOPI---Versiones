@@ -71,12 +71,28 @@ class DashboardViewSet(viewsets.ViewSet):
 class CategoriaMenuViewSet(viewsets.ModelViewSet):
     queryset = CategoriaMenu.objects.all()
     serializer_class = CategoriaMenuSerializer
-    permission_classes = [IsAdminOrStaff]
+    
+    def get_permissions(self):
+        """
+        Permitir lectura a usuarios autenticados (meseros)
+        Escritura solo para admin/staff
+        """
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminOrStaff()]
 
 class PlatoViewSet(viewsets.ModelViewSet):
     queryset = Plato.objects.all()
     serializer_class = PlatoSerializer
-    permission_classes = [IsAdminOrStaff]
+    
+    def get_permissions(self):
+        """
+        Permitir lectura a usuarios autenticados (meseros)
+        Escritura solo para admin/staff
+        """
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminOrStaff()]
     
     def get_queryset(self):
         queryset = Plato.objects.all()

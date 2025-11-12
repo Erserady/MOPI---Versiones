@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import "../styles/cashier_modal.css"; // Asegúrate de que este archivo existe
+import React, { useState, useEffect } from "react";
+import { AlertTriangle } from "lucide-react";
+import "../styles/cashier_modal.css";
 
-const CashierModal = ({ isOpen, onClose, onSave, type, currentCashier = "RexDex" }) => {
+const CashierModal = ({ isOpen, onClose, onSave, type, currentCashier = "RexDex", expectedAmount = 0 }) => {
   const [cashData, setCashData] = useState({
     coins1: 0,
     coins5: 0,
@@ -74,6 +75,8 @@ const CashierModal = ({ isOpen, onClose, onSave, type, currentCashier = "RexDex"
 
   const totalCash = calculateTotalCash();
   const totalAmount = totalCash + cashData.cardAmount;
+  const hasDiscrepancy = type === 'close' && totalAmount < expectedAmount;
+  const difference = expectedAmount - totalAmount;
 
   return (
     <div className="modal-overlay">
@@ -133,7 +136,29 @@ const CashierModal = ({ isOpen, onClose, onSave, type, currentCashier = "RexDex"
               <span>Total General:</span>
               <strong>C$ {totalAmount.toFixed(2)}</strong>
             </div>
+            {type === 'close' && expectedAmount > 0 && (
+              <div className="summary-item" style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #bae6fd' }}>
+                <span>Saldo Esperado:</span>
+                <strong>C$ {expectedAmount.toFixed(2)}</strong>
+              </div>
+            )}
           </div>
+
+          {hasDiscrepancy && (
+            <div className="summary-warning">
+              <AlertTriangle size={24} />
+              <div>
+                <strong style={{ display: 'block', marginBottom: '0.25rem' }}>
+                  ⚠️ Faltante en Caja
+                </strong>
+                <span>
+                  El monto contado (C$ {totalAmount.toFixed(2)}) es menor al esperado.
+                  <br />
+                  Diferencia: <strong>C$ {difference.toFixed(2)}</strong>
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="modal-footer">

@@ -84,7 +84,25 @@ export async function createOrden(data) {
     method: 'POST',
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Error creando orden');
+  
+  if (!res.ok) {
+    // Intentar extraer mensaje de error del backend
+    let errorMessage = 'Error creando orden';
+    try {
+      const errorData = await res.json();
+      if (errorData.mensaje) {
+        errorMessage = errorData.mensaje;
+      } else if (errorData.error) {
+        errorMessage = errorData.error;
+      } else if (errorData.detail) {
+        errorMessage = errorData.detail;
+      }
+    } catch (e) {
+      errorMessage = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(errorMessage);
+  }
+  
   return res.json();
 }
 

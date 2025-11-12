@@ -33,7 +33,7 @@ class Factura(models.Model):
     ]
     
     # Relación con la mesa y órdenes
-    table = models.ForeignKey(Table, on_delete=models.PROTECT, related_name='facturas')
+    table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas')
     orders = models.ManyToManyField(WaiterOrder, related_name='facturas')
     caja = models.ForeignKey(Caja, on_delete=models.PROTECT, related_name='facturas')
     
@@ -54,7 +54,8 @@ class Factura(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Factura {self.numero_factura} - Mesa {self.table.mesa_id} - ${self.total}"
+        mesa_info = self.table.mesa_id if self.table else 'Sin mesa'
+        return f"Factura {self.numero_factura} - Mesa {mesa_info} - ${self.total}"
 
 class Pago(models.Model):
     factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name='pagos')
@@ -84,9 +85,30 @@ class CierreCaja(models.Model):
         return f"Cierre {self.caja.numero_caja} - {self.fecha_cierre.date()}"
 
     def calcular_totales(self):
+        # Calcular totales por método de pago solo de esta sesión de caja
+        # Filtra pagos desde la apertura hasta el cierre
+        from django.db.models import Sum
+        
+        # Obtener fecha de apertura de la caja
+        fecha_apertura = self.caja.fecha_apertura
+        
+        # Filtrar pagos entre apertura y cierre de esta sesión
+        pagos = self.caja.pagos.filter(
+            created_at__gte=fecha_apertura,
+            created_at__lte=self.fecha_cierre
+        )
+        
         # Calcular totales por método de pago
-        pagos = self.caja.pagos.filter(created_at__lte=self.fecha_cierre)
-        self.total_efectivo = sum(pago.monto for pago in pagos.filter(metodo_pago='efectivo'))
-        self.total_tarjeta = sum(pago.monto for pago in pagos.filter(metodo_pago='tarjeta'))
-        self.total_transferencia = sum(pago.monto for pago in pagos.filter(metodo_pago='transferencia'))
+        self.total_efectivo = pagos.filter(metodo_pago='efectivo').aggregate(
+            total=Sum('monto')
+        )['total'] or 0
+        
+        self.total_tarjeta = pagos.filter(metodo_pago='tarjeta').aggregate(
+            total=Sum('monto')
+        )['total'] or 0
+        
+        self.total_transferencia = pagos.filter(metodo_pago='transferencia').aggregate(
+            total=Sum('monto')
+        )['total'] or 0
+        
         self.save()

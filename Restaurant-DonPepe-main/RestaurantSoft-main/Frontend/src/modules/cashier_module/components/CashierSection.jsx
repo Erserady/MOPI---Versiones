@@ -2,14 +2,20 @@ import React, { useState, useEffect } from "react";
 import "../styles/cashier_section.css";
 import { CreditCard, Receipt, DollarSign, Banknote, RefreshCw, AlertCircle } from "lucide-react";
 import CashierModal from "./Cashier.Modal";
+import TransactionDetailModal from "./TransactionDetailModal";
 import { getCajas, getPagos, abrirCaja, cerrarCaja } from "../../../services/cashierService";
 import { useDataSync } from "../../../hooks/useDataSync";
+import { useNotification } from "../../../hooks/useNotification";
+import Notification from "../../../common/Notification";
 
 const CashierSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("open");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { notification, showNotification, hideNotification } = useNotification();
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   
   // Sincronizar datos de cajas y pagos cada 5 segundos
   const { data: cajas, refetch: refetchCajas } = useDataSync(getCajas, 5000);
@@ -17,32 +23,65 @@ const CashierSection = () => {
   
   // Obtener caja actual (la primera abierta o la última)
   const cajaActual = cajas?.find(c => c.estado === 'abierta') || cajas?.[0];
+  
+  // Debug: Log cuando cambia el estado de la caja
+  useEffect(() => {
+    if (cajaActual) {
+      console.log('Estado actual de caja:', cajaActual.estado, 'ID:', cajaActual.id);
+    }
+  }, [cajaActual?.estado]);
 
   // Calcular estadísticas de la caja
-  const pagosHoy = pagos?.filter(p => {
-    const today = new Date().toISOString().split('T')[0];
-    return p.created_at?.startsWith(today);
-  }) || [];
+  // Solo mostrar pagos de la caja actual (abierta) Y después de la fecha de apertura
+  // Si la caja está cerrada, no mostrar pagos (nuevo día)
+  const pagosHoy = cajaActual?.estado === 'abierta' 
+    ? (pagos?.filter(p => {
+        // Filtrar pagos que pertenecen a la caja actual Y son después de la apertura
+        if (p.caja !== cajaActual.id) return false;
+        
+        // Verificar que el pago sea después de la apertura de esta caja
+        const fechaPago = new Date(p.created_at);
+        const fechaApertura = new Date(cajaActual.fecha_apertura);
+        
+        return fechaPago >= fechaApertura;
+      }) || [])
+    : [];
   
-  const ventasEfectivo = pagosHoy
-    .filter(p => p.metodo_pago === 'efectivo')
-    .reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
+  const ventasEfectivo = cajaActual?.estado === 'abierta'
+    ? pagosHoy
+        .filter(p => p.metodo_pago === 'efectivo')
+        .reduce((sum, p) => sum + parseFloat(p.monto || 0), 0)
+    : 0;
   
-  const ventasTarjeta = pagosHoy
-    .filter(p => p.metodo_pago === 'tarjeta')
-    .reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
+  const ventasTarjeta = cajaActual?.estado === 'abierta'
+    ? pagosHoy
+        .filter(p => p.metodo_pago === 'tarjeta')
+        .reduce((sum, p) => sum + parseFloat(p.monto || 0), 0)
+    : 0;
   
   const ventasTotal = ventasEfectivo + ventasTarjeta;
   
-  const saldoActual = (parseFloat(cajaActual?.saldo_inicial || 0) + ventasEfectivo);
+  const saldoActual = cajaActual?.estado === 'abierta'
+    ? (parseFloat(cajaActual?.saldo_inicial || 0) + ventasEfectivo)
+    : 0;
 
   const openModal = (type) => {
     if (type === 'open' && cajaActual?.estado === 'abierta') {
-      alert('Ya hay una caja abierta. Primero debe cerrar la caja actual.');
+      showNotification({
+        type: 'warning',
+        title: 'Caja ya abierta',
+        message: 'Ya hay una caja abierta. Primero debe cerrar la caja actual.',
+        duration: 4000
+      });
       return;
     }
     if (type === 'close' && cajaActual?.estado !== 'abierta') {
-      alert('No hay ninguna caja abierta para cerrar.');
+      showNotification({
+        type: 'warning',
+        title: 'No hay caja abierta',
+        message: 'No hay ninguna caja abierta para cerrar.',
+        duration: 4000
+      });
       return;
     }
     setModalType(type);
@@ -52,6 +91,16 @@ const CashierSection = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setError(null);
+  };
+
+  const handleTransactionClick = (pago) => {
+    setSelectedTransaction(pago);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedTransaction(null);
   };
 
   const handleSaveCashier = async (data) => {
@@ -64,30 +113,84 @@ const CashierSection = () => {
         if (cajaActual && cajaActual.estado === 'cerrada') {
           await abrirCaja(cajaActual.id, data.totalAmount);
         } else {
-          alert('No se puede abrir la caja. Contacte al administrador.');
+          showNotification({
+            type: 'error',
+            title: 'Error al abrir caja',
+            message: 'No se puede abrir la caja. Contacte al administrador.',
+            duration: 5000
+          });
           return;
         }
-        alert(`✅ Caja abierta con saldo inicial de C$${data.totalAmount.toFixed(2)}`);
+        showNotification({
+          type: 'success',
+          title: 'Caja abierta exitosamente',
+          message: `Saldo inicial: C$${data.totalAmount.toFixed(2)}`,
+          duration: 4000
+        });
       } else {
         // Cerrar caja
         if (cajaActual && cajaActual.estado === 'abierta') {
-          await cerrarCaja(cajaActual.id, data.totalAmount, 'Cierre normal');
+          const result = await cerrarCaja(cajaActual.id, data.totalAmount, 'Cierre normal');
+          console.log('Resultado de cerrar caja:', result);
         } else {
-          alert('No hay caja abierta para cerrar.');
+          showNotification({
+            type: 'error',
+            title: 'Error al cerrar caja',
+            message: 'No hay caja abierta para cerrar.',
+            duration: 5000
+          });
           return;
         }
-        alert(`✅ Caja cerrada. Saldo final: C$${data.totalAmount.toFixed(2)}`);
+        
+        // Cerrar modal primero
+        setIsModalOpen(false);
+        
+        // Refrescar datos múltiples veces para asegurar actualización
+        await refetchCajas();
+        await new Promise(resolve => setTimeout(resolve, 500)); // Esperar 500ms
+        await refetchCajas();
+        await refetchPagos();
+        
+        showNotification({
+          type: 'success',
+          title: 'Caja cerrada exitosamente',
+          message: `Saldo final: C$${data.totalAmount.toFixed(2)}`,
+          duration: 4000
+        });
       }
       
-      // Refrescar datos
-      await refetchCajas();
-      await refetchPagos();
-      setIsModalOpen(false);
+      // Refrescar datos (para apertura)
+      if (data.type === "open") {
+        await refetchCajas();
+        await refetchPagos();
+        setIsModalOpen(false);
+      }
       
     } catch (err) {
       console.error('Error al gestionar caja:', err);
-      setError(err.message);
-      alert(`❌ Error: ${err.message}`);
+      
+      // Intentar extraer mensaje del error
+      let errorMessage = err.message;
+      try {
+        const errorData = JSON.parse(err.message);
+        if (errorData.mensaje) {
+          errorMessage = errorData.mensaje;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch (e) {
+        // Si no es JSON, usar el mensaje tal cual
+      }
+      
+      setError(errorMessage);
+      showNotification({
+        type: 'error',
+        title: 'Error',
+        message: errorMessage,
+        duration: 6000
+      });
+      
+      setIsModalOpen(false); // Cerrar modal en caso de error
     } finally {
       setLoading(false);
     }
@@ -149,6 +252,26 @@ const CashierSection = () => {
         </div>
       )}
 
+      {cajaActual?.estado === 'cerrada' && (
+        <div style={{ 
+          padding: '1.5rem', 
+          background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', 
+          borderRadius: '12px', 
+          marginBottom: '1.5rem',
+          border: '2px solid #3b82f6',
+          textAlign: 'center'
+        }}>
+          <h3 style={{ color: '#1e40af', margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
+            📅 Nuevo Día
+          </h3>
+          <p style={{ color: '#1e3a8a', margin: 0, fontSize: '1rem' }}>
+            La caja está cerrada. Los datos del día anterior están guardados en el historial.
+            <br />
+            <strong>Abre una nueva caja para comenzar el día.</strong>
+          </p>
+        </div>
+      )}
+
       <div className="cashier-grid">
         <CashierCard title="Estado de Caja" customClass="cashier-state">
           <p>
@@ -177,14 +300,17 @@ const CashierSection = () => {
         </CashierCard>
 
         <CashierCard title="Acciones de Caja" customClass="cashier-actions">
-          <button className="cashier-btn shadow open" onClick={() => openModal("open")}>
-            <DollarSign /> Abrir Caja
+          <button className="cashier-btn shadow open" onClick={() => openModal("open")} disabled={loading}>
+            <DollarSign size={20} />
+            <span>Abrir Caja</span>
           </button>
-          <button className="cashier-btn shadow close" onClick={() => openModal("close")}>
-            <DollarSign /> Cerrar Caja
+          <button className="cashier-btn shadow close" onClick={() => openModal("close")} disabled={loading}>
+            <DollarSign size={20} />
+            <span>Cerrar Caja</span>
           </button>
-          <button className="cashier-btn report shadow">
-            <Banknote /> Reporte de Caja
+          <button className="cashier-btn report shadow" disabled={loading}>
+            <Banknote size={20} />
+            <span>Reporte de Caja</span>
           </button>
         </CashierCard>
 
@@ -215,7 +341,12 @@ const CashierSection = () => {
         >
           {pagosHoy.length > 0 ? (
             pagosHoy.slice(0, 10).reverse().map((pago, idx) => (
-              <div key={pago.id || idx} className="cashier-transaction">
+              <div 
+                key={pago.id || idx} 
+                className="cashier-transaction"
+                onClick={() => handleTransactionClick(pago)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="title-transaction">
                   <Receipt />
                   <div>
@@ -248,6 +379,23 @@ const CashierSection = () => {
         onClose={handleCloseModal}
         onSave={handleSaveCashier}
         type={modalType}
+        expectedAmount={saldoActual}
+      />
+
+      {notification && (
+        <Notification
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onClose={hideNotification}
+          duration={notification.duration}
+        />
+      )}
+
+      <TransactionDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+        transaction={selectedTransaction}
       />
     </section>
   );

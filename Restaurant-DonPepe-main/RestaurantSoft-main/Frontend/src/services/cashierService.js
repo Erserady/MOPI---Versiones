@@ -20,7 +20,22 @@ export async function abrirCaja(id, saldoInicial) {
     method: 'POST',
     body: JSON.stringify({ saldo_inicial: saldoInicial }),
   });
-  if (!res.ok) throw new Error('Error abriendo caja');
+  
+  if (!res.ok) {
+    let errorMessage = 'Error abriendo caja';
+    try {
+      const errorData = await res.json();
+      if (errorData.mensaje) {
+        errorMessage = errorData.mensaje;
+      } else if (errorData.error) {
+        errorMessage = errorData.error;
+      }
+    } catch (e) {
+      errorMessage = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(errorMessage);
+  }
+  
   return res.json();
 }
 
@@ -29,7 +44,24 @@ export async function cerrarCaja(id, saldoFinal, observaciones = '') {
     method: 'POST',
     body: JSON.stringify({ saldo_final: saldoFinal, observaciones }),
   });
-  if (!res.ok) throw new Error('Error cerrando caja');
+  
+  if (!res.ok) {
+    // Intentar extraer mensaje de error del backend
+    let errorMessage = 'Error cerrando caja';
+    try {
+      const errorData = await res.json();
+      if (errorData.mensaje) {
+        errorMessage = errorData.mensaje;
+      } else if (errorData.error) {
+        errorMessage = errorData.error;
+      }
+    } catch (e) {
+      // Si no se puede parsear, usar mensaje genérico
+      errorMessage = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(errorMessage);
+  }
+  
   return res.json();
 }
 
@@ -79,7 +111,31 @@ export async function createPago(data) {
     method: 'POST',
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Error creando pago');
+  
+  if (!res.ok) {
+    let errorMessage = 'Error creando pago';
+    try {
+      const errorData = await res.json();
+      if (errorData.mensaje) {
+        errorMessage = errorData.mensaje;
+      } else if (errorData.error) {
+        errorMessage = errorData.error;
+      } else if (errorData.detail) {
+        errorMessage = errorData.detail;
+      }
+      // Si hay errores de validación, concatenarlos
+      if (typeof errorData === 'object' && !errorData.mensaje && !errorData.error) {
+        const errors = Object.entries(errorData)
+          .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+          .join('; ');
+        if (errors) errorMessage = errors;
+      }
+    } catch (e) {
+      errorMessage = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(errorMessage);
+  }
+  
   return res.json();
 }
 
@@ -90,7 +146,7 @@ export async function getMesasConOrdenesPendientes() {
   return res.json();
 }
 
-// Cierres de caja
+// Cierres de caja (historial)
 export async function getCierresCaja() {
   const res = await apiFetch(`${API_BASE_URL}/api/caja/cierres/`);
   if (!res.ok) throw new Error('Error obteniendo cierres de caja');
@@ -100,6 +156,13 @@ export async function getCierresCaja() {
 export async function getCierreCaja(id) {
   const res = await apiFetch(`${API_BASE_URL}/api/caja/cierres/${id}/`);
   if (!res.ok) throw new Error('Error obteniendo cierre de caja');
+  return res.json();
+}
+
+// Obtener historial de una caja específica
+export async function getHistorialCaja(cajaId) {
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/cierres/?caja=${cajaId}`);
+  if (!res.ok) throw new Error('Error obteniendo historial de caja');
   return res.json();
 }
 

@@ -37,21 +37,34 @@ const TableSection = () => {
 
   // Transformar datos del backend al formato esperado por TableCard
   const tablesFormatted = mesasData?.map(mesa => {
+    // 🔍 LOG: Ver datos que llegan del backend
+    console.log('🔍 Mesa del backend:', mesa);
+    
     // Buscar órdenes pendientes para esta mesa
     const ordenesActivas = ordenesData?.filter(
       orden => orden.table === mesa.id && orden.estado === 'pendiente'
     ) || [];
     
-    return {
-      tableNumber: mesa.mesa || mesa.mesa_id,
-      tableStatus: ordenesActivas.length > 0 ? "ocupada" : "libre",
-      guestCount: ordenesActivas.length,
-      assignedWaiter: "",
+    // Mapear el estado del backend al formato del frontend
+    const statusMap = {
+      'available': 'libre',
+      'occupied': 'ocupada',
+      'reserved': 'reservada'
+    };
+    
+    const formatted = {
+      tableNumber: mesa.number || mesa.mesa || mesa.mesa_id,
+      tableStatus: statusMap[mesa.status] || "libre",  // ✅ Usar estado del backend
+      guestCount: mesa.capacity || 4,  // ✅ Usar capacidad real de la mesa
+      assignedWaiter: mesa.assigned_waiter_name || null,  // ✅ Mostrar nombre del mesero asignado
       mergedTables: [],
       currentOrderId: ordenesActivas[0]?.id || null,
       ubicacion: mesa.ubicacion,
-      mesa_id: mesa.mesa_id,
+      mesa_id: mesa.mesa_id || mesa.id,
     };
+    
+    console.log('✅ Mesa formateada:', formatted);
+    return formatted;
   }) || [];
 
   return (

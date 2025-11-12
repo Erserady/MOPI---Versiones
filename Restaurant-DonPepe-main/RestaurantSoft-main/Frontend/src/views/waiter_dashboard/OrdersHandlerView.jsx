@@ -14,6 +14,9 @@ const OrdersHandlerView = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showNav, setShowNav] = useState(false);
+  const mesaId = location.state?.mesaId || tableNumber;
+  const displayNumber =
+    location.state?.tableNumber || location.state?.mesaId || tableNumber;
 
   useEffect(() => {
     !showNav ? setShowNav(location.pathname.includes("orders-handler/")) : "";
@@ -21,13 +24,13 @@ const OrdersHandlerView = () => {
 
   const HandleCustomOrder = (orderNumber) => {
     console.log(orderNumber);
-    navigate(`/waiter-dashboard/${tableNumber}/orders-handler/${orderNumber}`);
+    navigate(`/waiter-dashboard/${mesaId}/orders-handler/${orderNumber}`);
   };
 
   return (
     <section className="orders-handler-view">
-      <h1 id="content-view">Pedidos para la mesa {tableNumber}</h1>
-      <HandleOrder></HandleOrder>
+      <h1 id="content-view">Pedidos para la mesa {displayNumber}</h1>
+      <HandleOrder mesaId={mesaId} displayNumber={displayNumber}></HandleOrder>
       <button
         className="return-btn"
         onClick={() => navigate("/waiter-dashboard")}

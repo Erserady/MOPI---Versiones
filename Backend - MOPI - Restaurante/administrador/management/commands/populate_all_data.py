@@ -69,6 +69,10 @@ class Command(BaseCommand):
             {'nombre': 'LICORES IMPORTADOS', 'descripcion': 'Licores importados', 'orden': 10},
             {'nombre': 'CERVEZA NACIONAL', 'descripcion': 'Cervezas nacionales', 'orden': 11},
             {'nombre': 'CERVEZA INTERNACIONAL', 'descripcion': 'Cervezas internacionales', 'orden': 12},
+            {'nombre': 'CIGARROS', 'descripcion': 'Selecciones de cigarros nacionales e importados', 'orden': 13},
+            {'nombre': 'RON NACIONAL', 'descripcion': 'Variedad de rones nacionales y Flor de Caña', 'orden': 14},
+            {'nombre': 'COCTAILS Y VINOS', 'descripcion': 'Cocteles clásicos y selección de vinos', 'orden': 15},
+            {'nombre': 'EXTRAS', 'descripcion': 'Acompañamientos y adicionales para tus platos', 'orden': 16},
         ]
         
         categorias = {}
@@ -290,6 +294,56 @@ class Command(BaseCommand):
             {'nombre': 'Bliss', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 83, 'ingredientes': 'Bliss', 'tiempo_preparacion': 1},
             {'nombre': 'Bamboo', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 69, 'ingredientes': 'Bamboo', 'tiempo_preparacion': 1},
             {'nombre': 'Fusion', 'categoria': 'CERVEZA INTERNACIONAL', 'precio': 74, 'ingredientes': 'Fusion', 'tiempo_preparacion': 1},
+            
+            # CIGARROS
+            {'nombre': 'Belmont 1/2', 'categoria': 'CIGARROS', 'precio': 80, 'ingredientes': 'Medio paquete de cigarros Belmont', 'tiempo_preparacion': 1},
+            {'nombre': 'Belmont doble click 1/2', 'categoria': 'CIGARROS', 'precio': 85, 'ingredientes': 'Medio paquete de Belmont Double Click', 'tiempo_preparacion': 1},
+            {'nombre': 'Dunhill 1/2', 'categoria': 'CIGARROS', 'precio': 80, 'ingredientes': 'Medio paquete de cigarros Dunhill', 'tiempo_preparacion': 1},
+            {'nombre': 'PallMall 1/2', 'categoria': 'CIGARROS', 'precio': 80, 'ingredientes': 'Medio paquete de cigarros PallMall', 'tiempo_preparacion': 1},
+            
+            # RON NACIONAL
+            {'nombre': 'Centenario 12 años 1/2', 'categoria': 'RON NACIONAL', 'precio': 730, 'ingredientes': 'Ron Centenario 12 años', 'tiempo_preparacion': 2},
+            {'nombre': 'Centenario 18 años 1/2', 'categoria': 'RON NACIONAL', 'precio': 870, 'ingredientes': 'Ron Centenario 18 años', 'tiempo_preparacion': 2},
+            {'nombre': 'Gran Reserva FC 1/2', 'categoria': 'RON NACIONAL', 'precio': 340, 'ingredientes': 'Flor de Caña Gran Reserva', 'tiempo_preparacion': 2},
+            {'nombre': 'Gran Reserva FC 1/4', 'categoria': 'RON NACIONAL', 'precio': 180, 'ingredientes': 'Flor de Caña Gran Reserva', 'tiempo_preparacion': 2},
+            {'nombre': 'Extra Lite FC 1/2', 'categoria': 'RON NACIONAL', 'precio': 250, 'ingredientes': 'Flor de Caña Extra Lite', 'tiempo_preparacion': 2},
+            {'nombre': 'Extra Lite FC 1/4', 'categoria': 'RON NACIONAL', 'precio': 135, 'ingredientes': 'Flor de Caña Extra Lite', 'tiempo_preparacion': 2},
+            {'nombre': 'Ultra Lite FC 1/2', 'categoria': 'RON NACIONAL', 'precio': 230, 'ingredientes': 'Flor de Caña Ultra Lite', 'tiempo_preparacion': 2},
+            {'nombre': 'Ultra Lite FC 1/4', 'categoria': 'RON NACIONAL', 'precio': 125, 'ingredientes': 'Flor de Caña Ultra Lite', 'tiempo_preparacion': 2},
+            {'nombre': 'Trago FC (selección variable)', 'categoria': 'RON NACIONAL', 'precio': 0, 'ingredientes': 'Trago Flor de Caña según selección del cliente', 'tiempo_preparacion': 2},
+            {'nombre': 'Cristalino FC 1/2', 'categoria': 'RON NACIONAL', 'precio': 575, 'ingredientes': 'Flor de Caña Cristalino', 'tiempo_preparacion': 2},
+            {'nombre': 'Cristalino FC Botella', 'categoria': 'RON NACIONAL', 'precio': 1050, 'ingredientes': 'Flor de Caña Cristalino', 'tiempo_preparacion': 2},
+            {'nombre': 'FC Expresso 1/2', 'categoria': 'RON NACIONAL', 'precio': 270, 'ingredientes': 'Flor de Caña Expresso', 'tiempo_preparacion': 2},
+            
+            # COCTAILS Y VINOS
+            {'nombre': 'Margarita', 'categoria': 'COCTAILS Y VINOS', 'precio': 120, 'ingredientes': 'Coctel Margarita preparado al instante', 'tiempo_preparacion': 5},
+            {'nombre': 'Piña colada', 'categoria': 'COCTAILS Y VINOS', 'precio': 130, 'ingredientes': 'Piña colada cremosa', 'tiempo_preparacion': 5},
+            {'nombre': 'Mojito', 'categoria': 'COCTAILS Y VINOS', 'precio': 100, 'ingredientes': 'Mojito tradicional con hierbabuena', 'tiempo_preparacion': 5},
+            {'nombre': 'Strawberry', 'categoria': 'COCTAILS Y VINOS', 'precio': 120, 'ingredientes': 'Coctel de fresa estilo daiquiri', 'tiempo_preparacion': 5},
+            {'nombre': 'Vino tinto/blanco Botella', 'categoria': 'COCTAILS Y VINOS', 'precio': 650, 'ingredientes': 'Botella de vino tinto o blanco', 'tiempo_preparacion': 2},
+            {'nombre': 'Copa de vino tinto/blanco', 'categoria': 'COCTAILS Y VINOS', 'precio': 100, 'ingredientes': 'Copa de vino tinto o blanco', 'tiempo_preparacion': 2},
+            
+            # EXTRAS
+            {'nombre': 'Empaque', 'categoria': 'EXTRAS', 'precio': 35, 'ingredientes': 'Empaque para llevar', 'tiempo_preparacion': 1},
+            {'nombre': 'Tostones', 'categoria': 'EXTRAS', 'precio': 60, 'ingredientes': 'Porción de tostones fritos', 'tiempo_preparacion': 5},
+            {'nombre': 'Tajadas', 'categoria': 'EXTRAS', 'precio': 60, 'ingredientes': 'Porción de tajadas maduras', 'tiempo_preparacion': 5},
+            {'nombre': 'Extra Salsa', 'categoria': 'EXTRAS', 'precio': 85, 'ingredientes': 'Porción adicional de salsa de la casa', 'tiempo_preparacion': 2},
+            {'nombre': 'Ensalada Grande', 'categoria': 'EXTRAS', 'precio': 65, 'ingredientes': 'Ensalada fresca grande', 'tiempo_preparacion': 5},
+            {'nombre': 'Tortilla', 'categoria': 'EXTRAS', 'precio': 7, 'ingredientes': 'Tortilla de maíz casera', 'tiempo_preparacion': 2},
+            {'nombre': 'Tortilla/Queso Sopa', 'categoria': 'EXTRAS', 'precio': 25, 'ingredientes': 'Tortilla con queso para sopa', 'tiempo_preparacion': 2},
+            {'nombre': 'Tortilla/Queso G', 'categoria': 'EXTRAS', 'precio': 75, 'ingredientes': 'Tortilla con queso grande', 'tiempo_preparacion': 2},
+            {'nombre': 'Queso grande', 'categoria': 'EXTRAS', 'precio': 70, 'ingredientes': 'Porción de queso grande', 'tiempo_preparacion': 1},
+            {'nombre': 'Queso Sopero', 'categoria': 'EXTRAS', 'precio': 20, 'ingredientes': 'Porción de queso para sopa', 'tiempo_preparacion': 1},
+            {'nombre': 'Arroz', 'categoria': 'EXTRAS', 'precio': 40, 'ingredientes': 'Porción de arroz blanco', 'tiempo_preparacion': 5},
+            {'nombre': 'Frijoles/Nachos', 'categoria': 'EXTRAS', 'precio': 85, 'ingredientes': 'Frijoles con nachos', 'tiempo_preparacion': 5},
+            {'nombre': 'Pure de papa', 'categoria': 'EXTRAS', 'precio': 70, 'ingredientes': 'Pure de papa cremoso', 'tiempo_preparacion': 5},
+            {'nombre': 'Papa campesina', 'categoria': 'EXTRAS', 'precio': 55, 'ingredientes': 'Papas campesinas', 'tiempo_preparacion': 5},
+            {'nombre': 'Papa asada', 'categoria': 'EXTRAS', 'precio': 60, 'ingredientes': 'Papa asada al horno', 'tiempo_preparacion': 5},
+            {'nombre': 'Papa francesa', 'categoria': 'EXTRAS', 'precio': 60, 'ingredientes': 'Papas fritas estilo francés', 'tiempo_preparacion': 5},
+            {'nombre': 'Papa/Horno', 'categoria': 'EXTRAS', 'precio': 60, 'ingredientes': 'Papa horneada con mantequilla', 'tiempo_preparacion': 5},
+            {'nombre': 'Cafe', 'categoria': 'EXTRAS', 'precio': 50, 'ingredientes': 'Cafe recien preparado', 'tiempo_preparacion': 4},
+            {'nombre': 'Limon', 'categoria': 'EXTRAS', 'precio': 7, 'ingredientes': 'Porción de limón fresco', 'tiempo_preparacion': 1},
+            {'nombre': 'Valde', 'categoria': 'EXTRAS', 'precio': 25, 'ingredientes': 'Valde con hielo o bebida', 'tiempo_preparacion': 2},
         ]
         
         platos_creados = []

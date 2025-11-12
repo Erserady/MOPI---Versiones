@@ -2,14 +2,29 @@ import { useImmer } from "use-immer";
 import { useState, useEffect } from "react";
 import DishTable from "./DishTable";
 import { getPlatos, getCategorias } from "../../../services/adminMenuService";
+import { createOrden } from "../../../services/waiterService";
+import { useNotification } from "../../../hooks/useNotification";
+import Notification from "../../../common/Notification";
 import { RefreshCw } from "lucide-react";
+import { useLocation, useParams } from "react-router-dom";
 
-const HandleOrder = () => {
+const HandleOrder = ({ mesaId: mesaIdProp, displayNumber: displayNumberProp }) => {
+  const { tableNumber: routeTableParam } = useParams();
+  const location = useLocation();
+  const mesaId = mesaIdProp || location.state?.mesaId || routeTableParam;
+  const displayNumber =
+    displayNumberProp ||
+    location.state?.tableNumber ||
+    routeTableParam ||
+    mesaId ||
+    "?";
   const [menu, setMenu] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useImmer([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showNotification, notification } = useNotification();
 
   // Cargar categorías y platos del backend
   useEffect(() => {
@@ -100,18 +115,65 @@ const HandleOrder = () => {
 
   const total = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
 
-  const handleConfirmOrder = () => {
-    const orderObject = {
-      orderId: `ORD-${Date.now()}`,
-      tableNumber: 2,
-      orderStatus: "Pendiente",
-      isPaid: false,
-      total: total,
-      items: cartItems,
-    };
+  const handleConfirmOrder = async () => {
+    if (cartItems.length === 0) {
+      showNotification({
+        type: 'warning',
+        title: 'Carrito vacío',
+        message: 'Agrega al menos un platillo antes de confirmar la orden',
+        duration: 3000
+      });
+      return;
+    }
 
-    console.log("✅ Orden confirmada:", orderObject);
-    alert("Orden confirmada (revisa la consola)");
+    setIsSubmitting(true);
+
+    try {
+      // Preparar los datos de la orden
+      const safeMesaId = mesaId || routeTableParam || "MESA-UNKNOWN";
+      const orderData = {
+        order_id: `ORD-${Date.now()}`,
+        mesa_id: safeMesaId,
+        pedido: JSON.stringify(cartItems.map(item => ({
+          nombre: item.dishName,
+          cantidad: item.dishQuantity,
+          precio: item.unitPrice,
+          nota: item.description
+        }))),
+        cantidad: cartItems.reduce((sum, item) => sum + item.dishQuantity, 0),
+        nota: `Total: C$${total.toFixed(2)}`,
+        estado: 'pendiente'
+      };
+
+      console.log('📤 Enviando orden:', orderData);
+
+      // Enviar al backend
+      const response = await createOrden(orderData);
+
+      console.log('✅ Orden creada:', response);
+
+      // Mostrar notificación de éxito
+      showNotification({
+        type: 'success',
+        title: '¡Orden confirmada!',
+        message: `Orden #${response.order_id} creada para Mesa ${displayNumber}. Total: C$${total.toFixed(2)}`,
+        duration: 5000
+      });
+
+      // Limpiar carrito
+      setCartItems([]);
+
+    } catch (error) {
+      console.error('❌ Error al confirmar orden:', error);
+      showNotification({
+        type: 'error',
+        title: 'Error al crear orden',
+        message: error.message || 'No se pudo crear la orden. Intenta nuevamente.',
+        duration: 5000
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -126,7 +188,7 @@ const HandleOrder = () => {
   return (
     <>
       <h3>
-        Orden #{1231} - Mesa {2} | Total: C${total.toFixed(2)}
+        Mesa {displayNumber || '?'} | Total: C${total.toFixed(2)}
       </h3>
 
       <div className="custom-order-container">
@@ -184,9 +246,22 @@ const HandleOrder = () => {
       </section>
 
       {cartItems.length > 0 && (
-        <button className="confirm-btn" onClick={handleConfirmOrder}>
-          Confirmar Orden
+        <button 
+          className="confirm-btn" 
+          onClick={handleConfirmOrder}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Procesando...' : 'Confirmar Orden'}
         </button>
+      )}
+
+      {notification && (
+        <Notification
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onClose={notification.onClose}
+        />
       )}
     </>
   );

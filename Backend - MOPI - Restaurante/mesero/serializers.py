@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import Table, WaiterOrder
 from django.db import transaction
+from django.utils import timezone
+from .models import Table, WaiterOrder
+
 
 class TableSerializer(serializers.ModelSerializer):
     assigned_waiter_name = serializers.SerializerMethodField()
@@ -32,9 +34,10 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
     # aceptar aliases en la entrada (write-only aliases)
     mesa = serializers.CharField(write_only=True, required=False)         # e.g. "Mesa 5" o mesa_id
     mesa_id = serializers.CharField(write_only=True, required=False)
-    tableNumber = serializers.CharField(write_only=True, required=False)  # alias inglés
+    tableNumber = serializers.CharField(write_only=True, required=False)  # alias ingles
     items = serializers.CharField(write_only=True, required=False)        # alias para pedido
     waiterName = serializers.CharField(write_only=True, required=False)   # opcional info extra
+    elapsed_seconds = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = WaiterOrder
@@ -42,9 +45,9 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'order_id', 'table', 'mesa', 'mesa_id', 'tableNumber',
             'pedido', 'items', 'cliente', 'cantidad', 'nota', 'preparacion_enlazada',
-            'estado', 'waiterName', 'created_at', 'updated_at'
+            'estado', 'waiterName', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds'
         ]
-        read_only_fields = ['id', 'table', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'table', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds']
 
     def to_representation(self, instance):
         """Normalizar salida: mostrar mesa por su nombre/mesa_id y mapear campos"""
@@ -98,3 +101,9 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
         # crear WaiterOrder con FK a table
         order = WaiterOrder.objects.create(table=table_obj, **validated_data)
         return order
+
+    def get_elapsed_seconds(self, obj):
+        if obj.en_cocina_since:
+            delta = timezone.now() - obj.en_cocina_since
+            return max(int(delta.total_seconds()), 0)
+        return None

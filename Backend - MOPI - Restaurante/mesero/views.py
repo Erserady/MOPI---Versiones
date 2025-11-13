@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.shortcuts import render
 from .models import Table, WaiterOrder
 from .serializers import TableSerializer, WaiterOrderSerializer
+from .utils import sync_cocina_timestamp
 from caja.models import Caja
 
 class TableViewSet(viewsets.ModelViewSet):
@@ -53,11 +54,17 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
                 table.status = 'occupied'
                 table.assigned_waiter = request.user
                 table.save()
+                sync_cocina_timestamp(order)
                 
             except WaiterOrder.DoesNotExist:
                 pass
         
         return response
+
+    def perform_update(self, serializer):
+        previous_state = serializer.instance.estado
+        instance = serializer.save()
+        sync_cocina_timestamp(instance, previous_state=previous_state)
 
     @action(detail=False, methods=['get'], url_path='open', permission_classes=[permissions.AllowAny])
     def open_orders(self, request):

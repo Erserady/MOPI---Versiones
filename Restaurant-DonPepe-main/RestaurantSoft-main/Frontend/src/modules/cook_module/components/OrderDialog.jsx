@@ -1,92 +1,174 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
+import { Clock3, ChefHat } from "lucide-react";
 import CustomDialog from "../../../common/CustomDialog";
+import {
+  STATUS_LABELS,
+  STATUS_STEPS,
+  formatDuration,
+  formatDateTime,
+} from "../utils/orderUtils";
 
-const OrderDialog = ({ order, isOpen, onClose, updateDishStatus }) => {
-  const [openTooltipId, setOpenTooltipId] = useState(null);
+const OrderDialog = ({
+  order,
+  isOpen,
+  onClose,
+  onChangeStatus,
+  elapsedSeconds,
+}) => {
+  if (!order) return null;
+  const currentStepIndex = STATUS_STEPS.findIndex(
+    (step) => step.id === order.status
+  );
 
-  const toggleTooltip = (id) => {
-    setOpenTooltipId(openTooltipId === id ? null : id);
-  };
+  const actions = [];
 
-  const handleStatusChange = (dishId, newStatus) => {
-    updateDishStatus(order.orderId, dishId, newStatus);
-  };
+  if (order.status === "pendiente") {
+    actions.push({
+      id: "send",
+      label: "Preparando",
+      target: "en_preparacion",
+    });
+  }
+
+  if (order.status === "en_preparacion") {
+    actions.push({
+      id: "ready",
+      label: "Listo",
+      target: "listo",
+    });
+  }
+
+  if (order.status === "listo") {
+    actions.push({
+      id: "deliver",
+      label: "Entregado",
+      target: "entregado",
+    });
+  }
+
+  const dishNotes = useMemo(() => {
+    if (!Array.isArray(order.items)) return [];
+    return order.items
+      .map((item, index) => {
+        const rawNote =
+          (typeof item.nota === "string" && item.nota) ||
+          (typeof item.description === "string" && item.description) ||
+          (typeof item.note === "string" && item.note) ||
+          (typeof item.notas === "string" && item.notas);
+        if (!rawNote) return null;
+        const cleaned = rawNote.trim();
+        if (!cleaned || /^total\s*:/i.test(cleaned)) return null;
+        return {
+          key: `${item.nombre || "platillo"}-${index}`,
+          name: item.nombre || "Platillo",
+          note: cleaned,
+        };
+      })
+      .filter(Boolean);
+  }, [order.items]);
 
   return (
     <CustomDialog isOpen={isOpen} onClose={onClose}>
-      <h2>
-        Pedido #{order.orderId} – Mesa {order.tableNumber}
-      </h2>
-      <p>
-        <b>Estado general:</b> {order.orderStatus}
-      </p>
+      <div className="kitchen-dialog">
+        <header className="kitchen-dialog__header">
+          <div>
+            <p className="label">Mesa</p>
+            <h2>#{order.tableNumber}</h2>
+          </div>
+          <div className="status-chip large">
+            <ChefHat size={18} />
+            <span>{STATUS_LABELS[order.status] || order.status}</span>
+          </div>
+        </header>
 
-      <h3>Detalles del pedido</h3>
-      <section className="order-dialog-items">
-        {order.items.map((item) => (
-          <div
-            key={item.dishId}
-            style={{
-              marginBottom: "1rem",
-              borderBottom: "1px solid #ccc",
-              paddingBottom: "0.5rem",
-            }}
-          >
-            <p>
-              <b>{item.dishName}</b> x{item.dishQuantity}
+        <section className="kitchen-dialog__summary">
+          <div>
+            <p className="label">Pedido</p>
+            <p className="body-strong">{order.orderNumber || "Sin folio"}</p>
+          </div>
+          <div>
+            <p className="label">Tiempo en cocina</p>
+            <p className="body-strong">
+              <Clock3 size={16} /> {formatDuration(elapsedSeconds)}
             </p>
-            <p>
-              <small>
-                <b>Estado:</b> {item.dishStatus} | <b>Hora:</b>{" "}
-                {item.createTime}
-              </small>
-            </p>
-            <button
-              style={{
-                fontSize: "0.8rem",
-                border: "1px solid #1976d2",
-                backgroundColor: "#fff",
-                borderRadius: "6px",
-                padding: "2px 6px",
-                cursor: "pointer",
-              }}
-              onClick={() => toggleTooltip(item.dishId)}
-            >
-              Ver comentarios
-            </button>
+          </div>
+        </section>
 
-            {openTooltipId === item.dishId && (
-              <div
-                style={{
-                  background: "#f9f9f9",
-                  border: "1px solid #ccc",
-                  padding: "8px",
-                  marginTop: "6px",
-                  borderRadius: "6px",
-                }}
-              >
-                <p>
-                  <b>Descripción:</b> {item.description}
-                </p>
-                <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-                  {["Pendiente", "En preparación", "Listo"].map((state) => (
-                    <label key={state}>
-                      <input
-                        type="radio"
-                        name={`status-${item.dishId}`}
-                        value={state}
-                        checked={item.dishStatus === state}
-                        onChange={() => handleStatusChange(item.dishId, state)}
-                      />{" "}
-                      {state}
-                    </label>
-                  ))}
-                </div>
-              </div>
+        <section className="kitchen-dialog__details">
+          <div>
+            <h4>Mesero</h4>
+            <p>{order.waiterName || "Sin asignar"}</p>
+          </div>
+          <div>
+            <h4>Notas</h4>
+            {dishNotes.length > 0 ? (
+              <ul className="kitchen-dialog__notes">
+                {dishNotes.map((entry) => (
+                  <li key={entry.key}>
+                    <strong>{entry.name}:</strong>
+                    <span>{entry.note}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Sin instrucciones especiales.</p>
             )}
           </div>
-        ))}
-      </section>
+        </section>
+
+        <section className="kitchen-dialog__items">
+          <h4>Detalle de platillos</h4>
+          {Array.isArray(order.items) && order.items.length > 0 ? (
+            <ul>
+              {order.items.map((item, index) => (
+                <li key={`${item.nombre}-${index}`}>
+                  <span>{item.nombre || "Platillo"}</span>
+                  <span>x{item.cantidad || 1}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="body-muted">Sin platillos registrados.</p>
+          )}
+        </section>
+
+        <section className="kitchen-dialog__times">
+          <div>
+            <span className="label">Creado</span>
+            <strong>{formatDateTime(order.createdAt)}</strong>
+          </div>
+          <div>
+            <span className="label">En cocina desde</span>
+            <strong>
+              {order.kitchenSince ? formatDateTime(order.kitchenSince) : "--"}
+            </strong>
+          </div>
+        </section>
+
+        <section className="kitchen-dialog__timeline">
+          {STATUS_STEPS.map((step, index) => (
+            <div
+              key={step.id}
+              className={`timeline-step ${index <= currentStepIndex ? "active" : ""}`}
+            >
+              <span className="timeline-dot" />
+              <span className="timeline-label">{step.label}</span>
+            </div>
+          ))}
+        </section>
+
+        <section className="kitchen-dialog__actions">
+          {actions.map((action) => (
+            <button
+              key={action.id}
+              onClick={() => onChangeStatus(action.target)}
+              className="ghost-button"
+            >
+              {action.label}
+            </button>
+          ))}
+        </section>
+      </div>
     </CustomDialog>
   );
 };

@@ -45,6 +45,11 @@ class WaiterOrder(models.Model):
     nota = models.TextField(blank=True, null=True)
     preparacion_enlazada = models.CharField(max_length=100, blank=True, null=True, help_text="opcional: id de orden en cocina")
     estado = models.CharField(max_length=50, default='pendiente', help_text="pendiente, servido, pagado")
+    en_cocina_since = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Momento exacto en que la orden entró a cocina"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 const TableCard = ({ tables }) => {
   const navigate = useNavigate();
+  const hasActiveOrder = Boolean(tables.currentOrderId || tables.currentOrder);
+  const buttonLabel = hasActiveOrder ? "Editar orden" : "Anadir orden";
 
   const handleNavigate = () => {
     const mesaId = tables.mesa_id || tables.tableNumber;
@@ -10,6 +12,7 @@ const TableCard = ({ tables }) => {
       state: {
         mesaId,
         tableNumber: tables.tableNumber,
+        currentOrder: tables.currentOrder || null,
       },
     });
   };
@@ -18,7 +21,6 @@ const TableCard = ({ tables }) => {
     <>
       <article className="table-card shadow">
         <div className="table-card-header">
-          {" "}
           <h2>Mesa #{tables.tableNumber}</h2>
           <span className={tables.tableStatus.toLowerCase()}>
             {tables.tableStatus.toUpperCase()}
@@ -33,7 +35,7 @@ const TableCard = ({ tables }) => {
           {tables.assignedWaiter || "No asignado"}
         </p>
         <button className="new-order-btn" onClick={handleNavigate}>
-          {tables.tableStatus === "ocupada" ? "Editar Orden" : "Añadir Orden"}
+          {buttonLabel}
         </button>
       </article>
     </>

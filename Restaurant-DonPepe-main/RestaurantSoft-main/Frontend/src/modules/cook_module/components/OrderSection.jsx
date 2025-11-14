@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { RefreshCw, Activity, Flame, CheckCircle2, ListChecks } from "lucide-react";
-import OrderCard from "./OrderCard";
+import { RefreshCw, Activity, Flame, CheckCircle2, ListChecks, ChefHat, Layers } from "lucide-react";
+import PriorityOrderCard from "./PriorityOrderCard";
+import DishGroupCard from "./DishGroupCard";
 import "../styles/order_section.css";
 import { useDataSync } from "../../../hooks/useDataSync";
 import { getOrdenesActivas, cambiarEstadoOrden } from "../../../services/cookService";
@@ -18,10 +19,10 @@ const STATUS_FILTERS = [
 ];
 
 const SLA_LEGEND = [
-  { id: "ok", label: "<10 min", description: "En tiempo", tone: "ok" },
-  { id: "warning", label: "10 - 20 min", description: "Atencion", tone: "warning" },
-  { id: "late", label: ">20 min", description: "Fuera de SLA", tone: "late" },
-  { id: "critical", label: ">30 min", description: "Prioridad absoluta", tone: "critical" },
+  { id: "ok", label: "<10 min", tone: "ok" },
+  { id: "warning", label: "10 - 20 min", tone: "warning" },
+  { id: "late", label: ">20 min", tone: "late" },
+  { id: "critical", label: ">30 min", tone: "critical" },
 ];
 
 const SUMMARY_LAYOUT = [
@@ -60,6 +61,7 @@ const OrderSection = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [lastSyncTs, setLastSyncTs] = useState(null);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [showDishGroups, setShowDishGroups] = useState(false);
 
   useEffect(() => {
     const ticker = setInterval(() => setNowTick(Date.now()), 1000);
@@ -72,30 +74,80 @@ const OrderSection = () => {
     }
   }, [ordenesData]);
 
+  // Formatear y asignar prioridades
   const ordersFormatted = useMemo(() => {
     if (!Array.isArray(ordenesData)) return [];
-    return ordenesData.map((orden, index) => {
-      const items = parseOrderItems(orden.items ?? orden.pedido);
-      const fallbackTable =
-        orden.mesa_label ||
-        orden.mesa_id ||
-        extractTableLabel(orden.pedido, "N/A");
-      return {
-        recordId: orden.id,
-        orderNumber: orden.order_id || orden.pedido_id || orden.numero,
-        tableNumber: fallbackTable,
-        mesaId: orden.mesa_id,
-        status: orden.estado,
-        statusLabel: STATUS_LABELS[orden.estado] || orden.estado,
-        items,
-        notes: orden.nota,
-        createdAt: orden.created_at,
-        kitchenSince: orden.en_cocina_since,
-        elapsedSeconds: orden.elapsed_seconds ?? null,
-        waiterName: orden.waiter_name,
-      };
-    });
+    
+    const formatted = ordenesData
+      .map((orden, index) => {
+        const items = parseOrderItems(orden.items ?? orden.pedido);
+        const fallbackTable =
+          orden.mesa_label ||
+          orden.mesa_id ||
+          extractTableLabel(orden.pedido, "N/A");
+        return {
+          recordId: orden.id,
+          orderNumber: orden.order_id || orden.pedido_id || orden.numero,
+          tableNumber: fallbackTable,
+          mesaId: orden.mesa_id,
+          status: orden.estado,
+          statusLabel: STATUS_LABELS[orden.estado] || orden.estado,
+          items,
+          notes: orden.nota,
+          createdAt: orden.created_at,
+          kitchenSince: orden.en_cocina_since,
+          elapsedSeconds: orden.elapsed_seconds ?? null,
+          waiterName: orden.waiter_name,
+        };
+      })
+      .sort((a, b) => {
+        // Ordenar por fecha de creación (orden cronológico)
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateA - dateB;
+      });
+    
+    // Asignar prioridad numérica (1, 2, 3...)
+    return formatted.map((order, index) => ({
+      ...order,
+      priority: index + 1,
+    }));
   }, [ordenesData]);
+
+  // Agrupar platillos de todas las órdenes
+  const dishGroups = useMemo(() => {
+    const groups = {};
+    
+    ordersFormatted.forEach((order) => {
+      if (!Array.isArray(order.items)) return;
+      
+      order.items.forEach((item) => {
+        const dishName = item.nombre || "Platillo sin nombre";
+        
+        if (!groups[dishName]) {
+          groups[dishName] = [];
+        }
+        
+        groups[dishName].push({
+          recordId: order.recordId,
+          tableNumber: order.tableNumber,
+          priority: order.priority,
+          quantity: item.cantidad || 1,
+          status: order.status,
+          order: order, // Referencia completa para abrir el diálogo
+        });
+      });
+    });
+    
+    // Convertir a array y ordenar por cantidad de mesas (más popular primero)
+    return Object.entries(groups)
+      .map(([dishName, tables]) => ({
+        dishName,
+        tables,
+        totalCount: tables.reduce((sum, t) => sum + t.quantity, 0),
+      }))
+      .sort((a, b) => b.tables.length - a.tables.length);
+  }, [ordersFormatted]);
 
   const statusCounters = useMemo(() => {
     return ordersFormatted.reduce(
@@ -114,6 +166,14 @@ const OrderSection = () => {
     selectedFilter === "all"
       ? ordersFormatted
       : ordersFormatted.filter((order) => order.status === selectedFilter);
+
+  const filteredDishGroups =
+    selectedFilter === "all"
+      ? dishGroups
+      : dishGroups.map((group) => ({
+          ...group,
+          tables: group.tables.filter((t) => t.status === selectedFilter),
+        })).filter((group) => group.tables.length > 0);
 
   const handleStatusChange = async (orderRecordId, newStatus) => {
     try {
@@ -145,6 +205,16 @@ const OrderSection = () => {
 
   const isInitialLoading = loading && !ordenesData;
 
+  const [selectedTable, setSelectedTable] = useState(null);
+
+  const handleTableClick = (tableInfo) => {
+    // Buscar la orden completa
+    const order = ordersFormatted.find((o) => o.recordId === tableInfo.recordId);
+    if (order) {
+      setSelectedTable(order);
+    }
+  };
+
   let boardContent = null;
   if (isInitialLoading) {
     boardContent = (
@@ -162,15 +232,56 @@ const OrderSection = () => {
   } else {
     boardContent = (
       <>
-        <section className="kitchen-bubble-grid">
-          {filteredOrders.map((order) => (
-            <OrderCard
-              key={order.recordId}
-              order={order}
-              onChangeStatus={handleStatusChange}
-            />
-          ))}
+        {/* Sección de todas las mesas en orden - SIEMPRE PRIMERO */}
+        <section className="kitchen-section">
+          <div className="section-header">
+            <div className="section-header-content">
+              <Layers size={24} />
+              <div>
+                <h2>Órdenes en Espera</h2>
+                <p>Orden cronológico de llegada</p>
+              </div>
+            </div>
+            <span className="section-badge">{filteredOrders.length} mesas</span>
+          </div>
+          <div className="priority-orders-grid">
+            {filteredOrders.map((order) => (
+              <PriorityOrderCard
+                key={order.recordId}
+                order={order}
+                priority={order.priority}
+                onChangeStatus={handleStatusChange}
+              />
+            ))}
+          </div>
         </section>
+
+        {/* Sección de platillos agrupados - OPCIONAL */}
+        {showDishGroups && filteredDishGroups.length > 0 && (
+          <section className="kitchen-section dish-groups-section">
+            <div className="section-header">
+              <div className="section-header-content">
+                <ChefHat size={24} />
+                <div>
+                  <h2>Platillos Agrupados</h2>
+                  <p>Optimiza preparando platillos similares juntos</p>
+                </div>
+              </div>
+              <span className="section-badge">{filteredDishGroups.length} tipos</span>
+            </div>
+            <div className="dish-groups-grid">
+              {filteredDishGroups.map((group) => (
+                <DishGroupCard
+                  key={group.dishName}
+                  dishName={group.dishName}
+                  tables={group.tables}
+                  onTableClick={handleTableClick}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         {filteredOrders.length === 0 && (
           <div className="kitchen-board__empty">
             <p>No hay pedidos en este estado.</p>
@@ -184,8 +295,8 @@ const OrderSection = () => {
     <div className="kitchen-board">
       <div className="kitchen-board__hero">
         <div>
-          <p className="eyebrow hero-eyebrow">Cocina en vivo</p>
-          <h1>Encomiendas de mesas</h1>
+          <p className="eyebrow hero-eyebrow">🔥 Panel de Cocina</p>
+          <h1>Monitoreo de pedidos</h1>
         </div>
         <div className="kitchen-board__sync">
           <span>{lastSyncLabel}</span>
@@ -224,16 +335,24 @@ const OrderSection = () => {
             </button>
           ))}
         </div>
-        <div className="kitchen-sla-legend">
-          {SLA_LEGEND.map((item) => (
-            <div key={item.id} className={`kitchen-legend-pill ${item.tone}`}>
-              <span className="legend-dot" />
-              <div>
-                <strong>{item.label}</strong>
-                <small>{item.description}</small>
+        <div className="kitchen-board__controls-right">
+          <div className="kitchen-sla-legend">
+            {SLA_LEGEND.map((item) => (
+              <div key={item.id} className={`kitchen-legend-pill ${item.tone}`}>
+                <span className="legend-dot" />
+                <span className="legend-label">{item.label}</span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          
+          <button
+            className={`toggle-groups-button ${showDishGroups ? 'active' : ''}`}
+            onClick={() => setShowDishGroups(!showDishGroups)}
+            title={showDishGroups ? "Ocultar platillos agrupados" : "Mostrar platillos agrupados"}
+          >
+            <ChefHat size={18} />
+            <span>{showDishGroups ? 'Ocultar' : 'Agrupar'} Platillos</span>
+          </button>
         </div>
       </div>
 

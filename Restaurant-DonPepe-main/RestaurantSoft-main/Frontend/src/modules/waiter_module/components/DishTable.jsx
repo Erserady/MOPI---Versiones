@@ -95,6 +95,22 @@ const DishTable = ({
           </tr>
         );
 
+      case "summary":
+        return (
+          <tr key={dish.dishId || index}>
+            <td className="dish-name">{dish.dishName}</td>
+            <td className="dish-quantity">{dish.dishQuantity}</td>
+            <td className="dish-notes">{dish.description || "Sin notas"}</td>
+            <td className="dish-subtotal">
+              C$
+              {(
+                dish.subtotal ||
+                (dish.unitPrice || 0) * (dish.dishQuantity || 0)
+              ).toFixed(2)}
+            </td>
+          </tr>
+        );
+
       default:
         return null;
     }

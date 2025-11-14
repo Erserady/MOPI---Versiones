@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Clock3 } from "lucide-react";
+import { Clock } from "lucide-react";
 import OrderDialog from "./OrderDialog";
-import { STATUS_LABELS, formatDuration, getSlaPhase } from "../utils/orderUtils";
+import { formatDuration, getSlaPhase } from "../utils/orderUtils";
 
 const OrderCard = ({ order, onChangeStatus }) => {
   const [now, setNow] = useState(Date.now());
@@ -13,44 +13,42 @@ const OrderCard = ({ order, onChangeStatus }) => {
   }, []);
 
   const effectiveElapsedSeconds = useMemo(() => {
-    const startTimestamp = order.kitchenSince || order.createdAt;
+    const startTimestamp = order.createdAt || order.kitchenSince;
     if (!startTimestamp) return null;
     const startMs = new Date(startTimestamp).getTime();
     return Math.max(0, Math.floor((now - startMs) / 1000));
-  }, [order.kitchenSince, order.createdAt, now]);
+  }, [order.createdAt, order.kitchenSince, now]);
 
   const slaPhase = getSlaPhase(effectiveElapsedSeconds);
+
+  // Determinar si está siendo atendida
+  const isBeingAttended = order.status === "en_preparacion";
 
   const handleOpen = () => setDialogOpen(true);
   const handleStatusRequest = (nextStatus) => {
     onChangeStatus(order.recordId, nextStatus);
   };
 
-  const ariaLabel = `Mesa ${order.tableNumber}, ${
-    STATUS_LABELS[order.status] || order.status
-  }`;
+  const ariaLabel = `Mesa ${order.tableNumber}, ${isBeingAttended ? "Atendiendo" : "Pendiente"}`;
 
   return (
     <>
       <button
         type="button"
-        className={`kitchen-order-bubble status-${order.status} sla-${slaPhase}`}
+        className={`order-card-compact sla-${slaPhase}`}
         onClick={handleOpen}
         aria-label={ariaLabel}
       >
-        <span className="bubble__status">
-          {STATUS_LABELS[order.status] || order.status}
-        </span>
-        <div className="bubble__table">
-          <small>Mesa</small>
-          <strong>{order.tableNumber}</strong>
+        <div className="order-card-compact__header">
+          <span className="order-card-compact__table">Mesa {order.tableNumber}</span>
+          <div className={`order-card-compact__status ${isBeingAttended ? "attending" : "waiting"}`}>
+            <span className="status-dot"></span>
+            <span className="status-text">{isBeingAttended ? "Atendiendo" : "Pendiente"}</span>
+          </div>
         </div>
-        <div className="bubble__order">
-          <span>{order.orderNumber || "Sin folio"}</span>
-        </div>
-        <div className="bubble__timer">
-          <Clock3 size={16} />
-          <span>{formatDuration(effectiveElapsedSeconds)}</span>
+        <div className="order-card-compact__timer">
+          <Clock size={18} />
+          <span className="timer-value">{formatDuration(effectiveElapsedSeconds)}</span>
         </div>
       </button>
 

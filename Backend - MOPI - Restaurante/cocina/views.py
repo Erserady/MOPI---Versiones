@@ -13,13 +13,26 @@ class OrderViewSet(mixins.ListModelMixin,
                    mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
                    viewsets.GenericViewSet):
-    queryset = WaiterOrder.objects.select_related('table').all().order_by('created_at')
+    queryset = (
+        WaiterOrder.objects
+        .select_related('table', 'table__assigned_waiter')
+        .all()
+        .order_by('created_at')
+    )
     serializer_class = KitchenWaiterOrderSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_update(self, serializer):
         previous_state = serializer.instance.estado
+        table = serializer.instance.table
+        original_waiter_id = table.assigned_waiter_id if table else None
+
         instance = serializer.save()
+
+        if table and table.assigned_waiter_id != original_waiter_id:
+            table.assigned_waiter_id = original_waiter_id
+            table.save(update_fields=['assigned_waiter'])
+
         sync_cocina_timestamp(instance, previous_state=previous_state)
 
     @action(
@@ -37,7 +50,12 @@ class OrderViewSet(mixins.ListModelMixin,
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def kitchen_api(request):
-    qs = WaiterOrder.objects.filter(estado__in=ACTIVE_KITCHEN_STATES).order_by('created_at')
+    qs = (
+        WaiterOrder.objects
+        .filter(estado__in=ACTIVE_KITCHEN_STATES)
+        .select_related('table', 'table__assigned_waiter')
+        .order_by('created_at')
+    )
     serializer = KitchenWaiterOrderSerializer(qs, many=True, context={'request': request})
     return Response(serializer.data)
 

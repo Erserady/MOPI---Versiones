@@ -4,6 +4,9 @@ import PayDialog from "./PayDialog";
 
 const PayCard = ({ order }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const kitchenBlocked = order.kitchenHold;
+  const kitchenBlockedText =
+    "Hay platillos en cocina. Espera a que cocina termine antes de cobrar.";
 
   return (
     <article className="pay-card shadow">
@@ -12,7 +15,7 @@ const PayCard = ({ order }) => {
           <Receipt size={30} />
           <div className="pay-card-text">
             <h2 className="pay-card-title">
-              Mesa {order.tableNumber} - {order?.id || "orden"}
+              Mesa {order.tableNumber}
             </h2>
             <p className="pay-card-subtitle">
               <span className="waiter">Mesero:</span> {order.waiter}
@@ -26,9 +29,18 @@ const PayCard = ({ order }) => {
             </span>
           </div>
         </div>
-
+        {kitchenBlocked && (
+          <p className="pay-card-subtitle" style={{ color: "#b45309" }}>
+            ⚠ Pendiente en cocina. No se puede cobrar todavia.
+          </p>
+        )}
         <div className="pay-card-actions">
-          <button className="shadow paid" onClick={() => setDialogOpen(true)}>
+          <button
+            className="shadow paid"
+            onClick={() => setDialogOpen(true)}
+            disabled={kitchenBlocked}
+            title={kitchenBlocked ? kitchenBlockedText : undefined}
+          >
             <CreditCard size={20} /> Procesar Pago
           </button>
           <button className="shadow ticket">

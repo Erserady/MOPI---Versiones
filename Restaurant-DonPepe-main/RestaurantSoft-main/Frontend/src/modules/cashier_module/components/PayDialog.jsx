@@ -33,6 +33,10 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
   }, [orders.accounts]);
 
   const handleProcessPayment = async () => {
+    if (orders.kitchenHold) {
+      setError("No se puede procesar el pago hasta que cocina marque todos los pedidos como listos.");
+      return;
+    }
     try {
       setIsProcessing(true);
       setError(null);
@@ -139,12 +143,99 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
     }
   };
 
+  // Organizar items por categoría
+  const itemsByCategory = useMemo(() => {
+    if (!orders.accounts || orders.accounts.length === 0) return {};
+    
+    const allItems = orders.accounts.flatMap(account => account.items || []);
+    const grouped = {};
+    
+    allItems.forEach(item => {
+      const category = item.category || item.type || 'Otros';
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(item);
+    });
+    
+    return grouped;
+  }, [orders.accounts]);
+
   return isOpen ? (
     <CustomDialog isOpen={isOpen} onClose={onClose}>
       <div className="dialog-header">
         <h2>Procesar pago - Mesa {orders.tableNumber} </h2>
         <p>Selecciona el tipo y método de pago</p>
       </div>
+
+      {/* Detalle de consumo organizado por categorías */}
+      <section className="order-detail-section" style={{ 
+        maxHeight: '300px', 
+        overflowY: 'auto', 
+        marginBottom: '1.5rem',
+        padding: '1rem',
+        background: '#f9fafb',
+        borderRadius: '8px'
+      }}>
+        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Detalle de Consumo</h3>
+        {Object.entries(itemsByCategory).map(([category, items]) => (
+          <div key={category} style={{ marginBottom: '1.5rem' }}>
+            <h4 style={{ 
+              color: '#374151', 
+              fontWeight: '600', 
+              marginBottom: '0.5rem',
+              textTransform: 'uppercase',
+              fontSize: '0.9rem',
+              borderBottom: '2px solid #d1d5db',
+              paddingBottom: '0.25rem'
+            }}>
+              {category}
+            </h4>
+            <div style={{ paddingLeft: '0.5rem' }}>
+              {items.map((item, index) => (
+                <div 
+                  key={`${category}-${index}`}
+                  style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    padding: '0.5rem 0',
+                    borderBottom: index < items.length - 1 ? '1px solid #e5e7eb' : 'none'
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontWeight: '500' }}>{item.name}</span>
+                    {item.nota && (
+                      <span style={{ 
+                        display: 'block', 
+                        fontSize: '0.85rem', 
+                        color: '#6b7280',
+                        fontStyle: 'italic'
+                      }}>
+                        Nota: {item.nota}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ 
+                    textAlign: 'right',
+                    minWidth: '180px',
+                    display: 'flex',
+                    gap: '1rem',
+                    justifyContent: 'flex-end'
+                  }}>
+                    <span style={{ color: '#6b7280' }}>
+                      {item.quantity} x C${item.unitPrice.toFixed(2)}
+                    </span>
+                    <span style={{ fontWeight: '600', minWidth: '80px', textAlign: 'right' }}>
+                      C${item.subtotal.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
       <section className="dialog-pay-type">
         <label htmlFor="payType">Tipo de pago</label>
         <div className="input-section">
@@ -254,11 +345,19 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
         </div>
       )}
 
+      {orders.kitchenHold && (
+        <div style={{ padding: '1rem', background: '#fff7ed', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #fed7aa' }}>
+          <p style={{ color: '#b45309', margin: 0 }}>
+            Hay platillos en cocina. Espera a que el equipo de cocina termine antes de cobrar esta mesa.
+          </p>
+        </div>
+      )}
+
       <section className="button-action">
         <button 
           className="shadow"
           onClick={handleProcessPayment}
-          disabled={isProcessing}
+          disabled={isProcessing || orders.kitchenHold}
         >
           {isProcessing ? 'Procesando...' : 'Realizar pago'}
         </button>

@@ -54,9 +54,13 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
         rep = super().to_representation(instance)
         # mostrar la mesa legible (str de la FK Table)
         rep['mesa'] = str(instance.table)
-        # mapear waiterName desde cliente si existe
-        if instance.cliente and not rep.get('waiterName'):
-            rep['waiterName'] = instance.cliente
+        assigned_waiter = getattr(instance.table, 'assigned_waiter', None)
+        if not rep.get('waiterName'):
+            if assigned_waiter:
+                full_name = assigned_waiter.get_full_name()
+                rep['waiterName'] = full_name or assigned_waiter.username
+            elif instance.cliente:
+                rep['waiterName'] = instance.cliente
         return rep
 
     def to_internal_value(self, data):

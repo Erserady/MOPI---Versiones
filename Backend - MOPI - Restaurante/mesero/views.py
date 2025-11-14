@@ -26,7 +26,12 @@ class TableViewSet(viewsets.ModelViewSet):
             )
 
 class WaiterOrderViewSet(viewsets.ModelViewSet):
-    queryset = WaiterOrder.objects.all().order_by('-created_at')
+    queryset = (
+        WaiterOrder.objects
+        .select_related('table', 'table__assigned_waiter')
+        .all()
+        .order_by('-created_at')
+    )
     serializer_class = WaiterOrderSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -76,7 +81,12 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def mesero_open_api(request):
-    qs = WaiterOrder.objects.filter(estado__in=['pendiente']).order_by('-created_at')
+    qs = (
+        WaiterOrder.objects
+        .filter(estado__in=['pendiente'])
+        .select_related('table', 'table__assigned_waiter')
+        .order_by('-created_at')
+    )
     serializer = WaiterOrderSerializer(qs, many=True, context={'request': request})
     return Response(serializer.data)
 

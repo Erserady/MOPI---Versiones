@@ -216,11 +216,23 @@ def facturas_view(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def mesas_con_ordenes_pendientes(request):
-    """Endpoint para obtener mesas con órdenes pendientes de facturar"""
-    mesas = Table.objects.filter(orders__estado='pendiente').distinct()
+    """
+    Endpoint para obtener mesas con órdenes que aún deben cobrarse.
+    Considera todas las órdenes activas en cocina (pendiente, en preparación, listo, entregado)
+    y cualquier otro estado equivalente a "servido", pero excluye las que ya fueron facturadas.
+    """
+    estados_cobrables = ['pendiente', 'en_preparacion', 'listo', 'entregado', 'servido']
+    mesas = Table.objects.filter(orders__estado__in=estados_cobrables).distinct()
+
     data = []
     for mesa in mesas:
-        ordenes_pendientes = mesa.orders.filter(estado='pendiente')
+        ordenes_pendientes = (
+            mesa.orders
+                .filter(estado__in=estados_cobrables)
+                .order_by('created_at')
+        )
+        if not ordenes_pendientes.exists():
+            continue
         data.append({
             'mesa_id': mesa.id,
             'mesa_nombre': str(mesa),
@@ -230,7 +242,8 @@ def mesas_con_ordenes_pendientes(request):
                     'order_id': orden.order_id,
                     'pedido': orden.pedido,
                     'cliente': orden.cliente,
-                    'cantidad': orden.cantidad
+                    'cantidad': orden.cantidad,
+                    'estado': orden.estado
                 } for orden in ordenes_pendientes
             ]
         })

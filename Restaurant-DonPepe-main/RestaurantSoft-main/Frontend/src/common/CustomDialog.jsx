@@ -17,11 +17,11 @@ const CustomDialog = ({ isOpen, onClose, children }) => {
 
   return (
     <dialog className="custom-dialog" ref={dialogRef}>
+      <button className="custom-dialog-close" onClick={onClose}>
+        X
+      </button>
       <div className="custom-dialog-content">
         {children}
-        <button className="custom-dialog-close" onClick={onClose}>
-          X
-        </button>
       </div>
     </dialog>
   );

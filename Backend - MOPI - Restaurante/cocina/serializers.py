@@ -54,6 +54,10 @@ class KitchenWaiterOrderSerializer(serializers.ModelSerializer):
         return None
 
     def get_waiter_name(self, obj):
+        table = getattr(obj, 'table', None)
+        if table and table.assigned_waiter:
+            full_name = table.assigned_waiter.get_full_name()
+            return full_name or table.assigned_waiter.username
         return obj.cliente or None
 
     def get_items(self, obj):

@@ -1,15 +1,28 @@
 import { useState } from "react";
 import { Receipt, Printer, CreditCard, CircleCheckBig } from "lucide-react";
 import PayDialog from "./PayDialog";
+import OrderDetailsModal from "./OrderDetailsModal";
 
 const PayCard = ({ order }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const kitchenBlocked = order.kitchenHold;
   const kitchenBlockedText =
     "Hay platillos en cocina. Espera a que cocina termine antes de cobrar.";
 
+  const handleCardClick = (e) => {
+    // Solo abrir el modal si no se hizo clic en un botón
+    if (!e.target.closest('button')) {
+      setDetailsModalOpen(true);
+    }
+  };
+
   return (
-    <article className="pay-card shadow">
+    <article 
+      className="pay-card shadow" 
+      onClick={handleCardClick}
+      style={{ cursor: 'pointer' }}
+    >
       <section className="pay-card-body">
         <div className="pay-card-header">
           <Receipt size={30} />
@@ -55,6 +68,11 @@ const PayCard = ({ order }) => {
         orders={order}
         isOpen={isDialogOpen}
         onClose={() => setDialogOpen(false)}
+      />
+      <OrderDetailsModal
+        order={order}
+        isOpen={isDetailsModalOpen}
+        onClose={() => setDetailsModalOpen(false)}
       />
     </article>
   );

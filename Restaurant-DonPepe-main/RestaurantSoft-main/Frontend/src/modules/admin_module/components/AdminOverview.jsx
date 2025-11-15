@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import "../styles/admin_overview.css";
 import AdminCards from "./AdminCards";
+import TransactionHistoryModal from "./TransactionHistoryModal";
 import { useMetadata } from "../../../hooks/useMetadata";
 import { getMesas, createMesa, deleteMesa } from "../../../services/waiterService";
 import { getCajas, getFacturas, getPagos } from "../../../services/cashierService";
@@ -29,6 +30,7 @@ const AdminOverview = () => {
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mesaToDelete, setMesaToDelete] = useState(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   
   // Obtener datos en tiempo real (cada 5 segundos para reflejar cambios inmediatamente)
   const { data: mesas, loading: loadingMesas, refetch: refetchMesas } = useDataSync(getMesas, 5000);
@@ -218,12 +220,12 @@ const AdminOverview = () => {
         </div>
       )}
 
-      {/* Sección de Flujo de Caja */}
+      {/* Sección de Ventas del Día */}
       <div className="section-container">
         <div className="section-header">
           <div className="section-title-group">
             <Wallet size={24} className="section-icon" />
-            <h2 className="section-title">Flujo de Caja</h2>
+            <h2 className="section-title">Ventas del Día</h2>
           </div>
           <button className="btn-refresh" onClick={refetchCajas} title="Actualizar">
             <RefreshCw size={16} />
@@ -270,8 +272,13 @@ const AdminOverview = () => {
             </div>
           </div>
 
-          {/* Saldo en Caja (Solo Efectivo) */}
-          <div className="cash-card highlight">
+          {/* Saldo en Caja (Solo Efectivo) - Clickeable */}
+          <div 
+            className="cash-card highlight clickable" 
+            onClick={() => setShowHistoryModal(true)}
+            style={{ cursor: 'pointer' }}
+            title="Click para ver historial de transacciones"
+          >
             <div className="cash-card-icon purple">
               <Wallet size={24} />
             </div>
@@ -291,6 +298,7 @@ const AdminOverview = () => {
                   </>
                 )}
               </div>
+              <p className="cash-card-hint">Click para ver historial</p>
             </div>
           </div>
         </div>
@@ -343,59 +351,68 @@ const AdminOverview = () => {
           </div>
         </div>
 
-        {/* Lista de mesas */}
-        <div className="tables-grid">
-          {mesas && mesas.length > 0 ? (
-            mesas.map((mesa) => (
-              <div key={mesa.id} className="table-card">
-                <div className="table-card-header">
-                  <div className="table-number-large">
-                    <TableIcon size={24} />
-                    <div className="table-info-main">
-                      <span className="table-number-text">Mesa {mesa.number}</span>
-                      <span className="table-capacity-text">{mesa.capacity} personas</span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => handleDeleteTable(mesa)}
-                    className="btn-delete"
-                    title="Eliminar mesa"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                <div className="table-card-body">
-                  <div className="table-info-row">
-                    <span className="table-info-label">ID:</span>
-                    <span className="table-info-value">#{mesa.id}</span>
-                  </div>
-                  <div className="table-info-row">
-                    <span className="table-info-label">Número:</span>
-                    <span className="table-info-value-highlight">{mesa.number}</span>
-                  </div>
-                  <div className="table-info-row">
-                    <span className="table-info-label">Capacidad:</span>
-                    <span className="table-info-value-highlight">{mesa.capacity} personas</span>
-                  </div>
-                  <div className="table-info-row">
-                    <span className="table-info-label">Estado:</span>
-                    <span className={`table-status ${mesa.status}`}>
-                      {mesa.status === 'available' ? 'Disponible' : 
-                       mesa.status === 'occupied' ? 'Ocupada' : 'Reservada'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="empty-state">
-              <TableIcon size={48} strokeWidth={1.5} />
-              <p>No hay mesas registradas</p>
-              <small>Agrega la primera mesa usando el formulario superior</small>
-            </div>
-          )}
-        </div>
+        {/* Tabla de mesas */}
+        {mesas && mesas.length > 0 ? (
+          <div className="tables-table-container">
+            <table className="tables-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Mesa</th>
+                  <th>Capacidad</th>
+                  <th>Estado</th>
+                  <th className="actions-column">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mesas.map((mesa) => (
+                  <tr key={mesa.id} className="table-row">
+                    <td className="table-id">#{mesa.id}</td>
+                    <td className="table-number">
+                      <div className="table-number-cell">
+                        <TableIcon size={18} />
+                        <span>Mesa {mesa.number}</span>
+                      </div>
+                    </td>
+                    <td className="table-capacity">
+                      <span className="capacity-badge">{mesa.capacity} personas</span>
+                    </td>
+                    <td className="table-status-cell">
+                      <span className={`status-badge-table ${mesa.status}`}>
+                        {mesa.status === 'available' ? 'Disponible' : 
+                         mesa.status === 'occupied' ? 'Ocupada' : 'Reservada'}
+                      </span>
+                    </td>
+                    <td className="table-actions">
+                      <button 
+                        onClick={() => handleDeleteTable(mesa)}
+                        className="btn-delete-table"
+                        title="Eliminar mesa"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="empty-state">
+            <TableIcon size={48} strokeWidth={1.5} />
+            <p>No hay mesas registradas</p>
+            <small>Agrega la primera mesa usando el formulario superior</small>
+          </div>
+        )}
       </div>
+
+      {/* Modal de Historial de Transacciones */}
+      <TransactionHistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        transactions={pagosHoy}
+        cajaInfo={cajaAbierta}
+      />
     </section>
   );
 };

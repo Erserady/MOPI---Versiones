@@ -90,7 +90,10 @@ const PaySection = () => {
         tableId: mesa.mesa_id,
         orderIds: mesaOrders.map((orden) => orden.id),
         tableNumber: mesa.mesa_nombre,
-        waiter: mesaOrders[0]?.cliente || "Sin asignar",
+        waiter: mesaOrders[0]?.waiter_name || 
+                mesaOrders[0]?.mesero || 
+                mesaOrders[0]?.cliente || 
+                "Sin asignar",
         kitchenHold: hasKitchenHold,
         kitchenStatuses: mesaOrders.map((orden) => ({
           id: orden.id,

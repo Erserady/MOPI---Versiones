@@ -12,7 +12,13 @@ class Caja(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADOS_CAJA, default='cerrada')
     saldo_inicial = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     saldo_actual = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    usuario_apertura = models.ForeignKey(User, on_delete=models.PROTECT, related_name='cajas_apertura')
+    usuario_apertura = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='cajas_apertura'
+    )
     fecha_apertura = models.DateTimeField(auto_now_add=True)
     fecha_cierre = models.DateTimeField(null=True, blank=True)
     
@@ -46,7 +52,12 @@ class Factura(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADOS_FACTURA, default='pendiente')
     
     # Auditoría
-    creado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+    creado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -63,7 +74,12 @@ class Pago(models.Model):
     metodo_pago = models.CharField(max_length=20, choices=Factura.METODOS_PAGO)
     referencia = models.CharField(max_length=100, blank=True, null=True)
     caja = models.ForeignKey(Caja, on_delete=models.PROTECT, related_name='pagos')
-    creado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+    creado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -79,7 +95,12 @@ class CierreCaja(models.Model):
     total_tarjeta = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_transferencia = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     observaciones = models.TextField(blank=True, null=True)
-    cerrado_por = models.ForeignKey(User, on_delete=models.PROTECT)
+    cerrado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     
     def __str__(self):
         return f"Cierre {self.caja.numero_caja} - {self.fecha_cierre.date()}"

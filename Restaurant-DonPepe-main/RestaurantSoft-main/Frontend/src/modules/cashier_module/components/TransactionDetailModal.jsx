@@ -95,7 +95,12 @@ const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
                 <div className="transaction-info-content">
                   <span className="transaction-info-label">Atendido por</span>
                   <span className="transaction-info-value">
-                    {factura?.mesero_asignado || factura?.creado_por || 'No asignado'}
+                    {factura?.mesero_asignado || 
+                     factura?.orders?.[0]?.waiter_name || 
+                     factura?.orders?.[0]?.mesero || 
+                     factura?.creado_por || 
+                     transaction.waiter_name ||
+                     'Sin asignar'}
                   </span>
                 </div>
               </div>
@@ -114,48 +119,80 @@ const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
             </div>
           </div>
 
-          {/* Productos Consumidos */}
+          {/* Resumen de Cuenta */}
           {factura?.orders && factura.orders.length > 0 && (
             <div className="transaction-section">
-              <h3 className="transaction-section-title">Productos Consumidos</h3>
+              <h3 className="transaction-section-title">📋 Resumen de Cuenta</h3>
               
               <div className="transaction-products-list">
-                {factura.orders.map((order, orderIndex) => {
-                  // Intentar parsear el pedido como JSON
-                  let items = [];
-                  try {
-                    const parsed = JSON.parse(order.pedido);
-                    items = Array.isArray(parsed) ? parsed : [parsed];
-                  } catch (error) {
-                    // Si no es JSON válido, mostrar como texto
-                    items = [{
-                      nombre: order.pedido,
-                      cantidad: order.cantidad || 1,
-                      precio: 0
-                    }];
-                  }
+                {(() => {
+                  // Agrupar items por nombre para mostrar resumen
+                  const itemsMap = new Map();
+                  
+                  factura.orders.forEach((order) => {
+                    let items = [];
+                    try {
+                      const parsed = JSON.parse(order.pedido);
+                      items = Array.isArray(parsed) ? parsed : [parsed];
+                    } catch (error) {
+                      items = [{
+                        nombre: order.pedido,
+                        cantidad: order.cantidad || 1,
+                        precio: 0
+                      }];
+                    }
 
-                  // Renderizar cada item del pedido
-                  return items.map((item, itemIndex) => (
-                    <div key={`${orderIndex}-${itemIndex}`} className="transaction-product-item">
+                    items.forEach((item) => {
+                      const key = item.nombre;
+                      if (itemsMap.has(key)) {
+                        const existing = itemsMap.get(key);
+                        existing.cantidad += item.cantidad || 0;
+                        existing.total += (item.precio || 0) * (item.cantidad || 0);
+                      } else {
+                        itemsMap.set(key, {
+                          nombre: item.nombre,
+                          cantidad: item.cantidad || 0,
+                          precioUnitario: item.precio || 0,
+                          total: (item.precio || 0) * (item.cantidad || 0)
+                        });
+                      }
+                    });
+                  });
+
+                  // Renderizar items agrupados
+                  return Array.from(itemsMap.values()).map((item, index) => (
+                    <div key={index} className="transaction-product-item">
                       <div className="transaction-product-info">
                         <span className="transaction-product-name">
                           {item.nombre}
                         </span>
-                        <span className="transaction-product-quantity">x{item.cantidad}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span className="transaction-product-quantity">x{item.cantidad}</span>
+                          <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>@ {formatCurrency(item.precioUnitario)}</span>
+                        </div>
                       </div>
                       <span className="transaction-product-price">
-                        {formatCurrency(item.precio * item.cantidad)}
+                        {formatCurrency(item.total)}
                       </span>
                     </div>
                   ));
-                })}
+                })()}
               </div>
 
               {/* Totales */}
               <div className="transaction-totals">
+                <div className="transaction-total-item" style={{ padding: '0.75rem 0', borderTop: '2px dashed #e5e7eb' }}>
+                  <span style={{ color: '#6b7280' }}>Subtotal:</span>
+                  <span style={{ color: '#6b7280' }}>{formatCurrency(factura.subtotal || factura.total)}</span>
+                </div>
+                {factura.impuesto > 0 && (
+                  <div className="transaction-total-item" style={{ padding: '0.5rem 0' }}>
+                    <span style={{ color: '#6b7280' }}>Impuestos:</span>
+                    <span style={{ color: '#6b7280' }}>{formatCurrency(factura.impuesto)}</span>
+                  </div>
+                )}
                 <div className="transaction-total-item transaction-total-final">
-                  <span>Total (impuestos incluidos):</span>
+                  <span>Total:</span>
                   <span>{formatCurrency(factura.total)}</span>
                 </div>
               </div>

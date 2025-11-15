@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Clock, Medal } from "lucide-react";
 import OrderDialog from "./OrderDialog";
-import { formatDuration, getSlaPhase, STATUS_LABELS } from "../utils/orderUtils";
+import { formatDuration, getSlaPhase, STATUS_LABELS, filterCookableItems } from "../utils/orderUtils";
 
 /**
  * Tarjeta de orden con indicador de prioridad numérica
@@ -29,10 +29,10 @@ const PriorityOrderCard = ({ order, priority, onChangeStatus }) => {
     onChangeStatus(order.recordId, nextStatus);
   };
 
-  // Calcular total de platillos sumando cantidades
+  // Calcular total de platillos sumando cantidades (solo items cocinables)
   const totalDishes = useMemo(() => {
-    if (!Array.isArray(order.items)) return 0;
-    return order.items.reduce((sum, item) => sum + (item.cantidad || 1), 0);
+    const cookableItems = filterCookableItems(order.items || []);
+    return cookableItems.reduce((sum, item) => sum + (item.cantidad || 1), 0);
   }, [order.items]);
 
   const ariaLabel = `Prioridad ${priority}, Mesa ${order.tableNumber}, ${

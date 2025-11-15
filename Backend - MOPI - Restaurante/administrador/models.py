@@ -87,7 +87,13 @@ class MovimientoInventario(models.Model):
     cantidad_anterior = models.DecimalField(max_digits=10, decimal_places=2)
     cantidad_nueva = models.DecimalField(max_digits=10, decimal_places=2)
     motivo = models.CharField(max_length=200)
-    usuario = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
+    usuario = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='movimientos_registrados'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

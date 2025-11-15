@@ -1,10 +1,32 @@
-import React, { useEffect, useRef, useState } from "react";
-import { User, RefreshCw, Trash2, Edit, Save, X } from "lucide-react";
+import React, { useState } from "react";
+import { RefreshCw, Trash2, Edit } from "lucide-react";
 import { useDataSync } from "../../../hooks/useDataSync";
 import { getStaff, createStaff, updateStaff, deleteStaff } from "../../../services/adminStaffService";
 
 const roles = ["cashier", "cook", "waiter"];
 const rolesDisplay = { cashier: "CAJA", cook: "COCINA", waiter: "MESERO" };
+const FEEDBACK_TONES = {
+  success: {
+    background: "#d1fae5",
+    border: "#34d399",
+    color: "#065f46",
+  },
+  error: {
+    background: "#fee2e2",
+    border: "#f87171",
+    color: "#991b1b",
+  },
+};
+
+const slugifyIdentifier = (value) => {
+  if (!value) return "";
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "")
+    .toLowerCase();
+};
 
 const AdminStaff = () => {
   // Sincronizar personal desde el backend
@@ -12,10 +34,18 @@ const AdminStaff = () => {
   const [form, setForm] = useState({ first_name: "", last_name: "", role: roles[0], pin: "", color: "#3b82f6" });
   const [editId, setEditId] = useState(null);
   const [saving, setSaving] = useState(false);
-  const fileInputRef = useRef(null);
+  const [feedback, setFeedback] = useState(null);
 
   // Filtrar solo empleados (no admin)
   const staff = staffData?.filter(user => user.role !== 'admin') || [];
+
+  const showFeedback = (type, message) => {
+    if (!type || !message) {
+      setFeedback(null);
+      return;
+    }
+    setFeedback({ type, message });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,30 +55,33 @@ const AdminStaff = () => {
   const handleNew = () => {
     setEditId(null);
     setForm({ first_name: "", last_name: "", role: roles[0], pin: "", color: "#3b82f6" });
+    showFeedback(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    showFeedback(null);
     if (!form.first_name || !form.last_name || !form.pin) {
-      alert('Por favor complete todos los campos requeridos');
+      showFeedback('error', 'Por favor completa todos los campos requeridos');
       return;
     }
     
     if (form.pin.length !== 4) {
-      alert('El PIN debe tener exactamente 4 dígitos');
+      showFeedback('error', 'El PIN debe tener exactamente 4 dígitos');
       return;
     }
     
     setSaving(true);
     try {
+      const identifier = slugifyIdentifier(`${form.first_name}.${form.last_name}`) || slugifyIdentifier(form.first_name) || slugifyIdentifier(form.last_name) || `staff${Date.now()}`;
       const dataToSend = {
         first_name: form.first_name,
         last_name: form.last_name,
         role: form.role,
         pin: form.pin,
         color: form.color,
-        username: `${form.first_name.toLowerCase()}.${form.last_name.toLowerCase()}`,
-        email: `${form.first_name.toLowerCase()}.${form.last_name.toLowerCase()}@restaurant.com`,
+        username: identifier,
+        email: `${identifier}@restaurant.com`,
       };
       
       if (editId) {
@@ -58,11 +91,12 @@ const AdminStaff = () => {
       }
       
       await refetch();
+      showFeedback('success', editId ? 'Empleado actualizado correctamente' : 'Empleado agregado correctamente');
       setEditId(null);
       setForm({ first_name: "", last_name: "", role: roles[0], pin: "", color: "#3b82f6" });
     } catch (error) {
       console.error('Error guardando empleado:', error);
-      alert('Error al guardar empleado: ' + error.message);
+      showFeedback('error', error.message || 'No se pudo guardar la información del empleado.');
     } finally {
       setSaving(false);
     }
@@ -84,9 +118,10 @@ const AdminStaff = () => {
     try {
       await deleteStaff(id);
       await refetch();
+      showFeedback('success', 'Empleado eliminado exitosamente.');
     } catch (error) {
       console.error('Error eliminando empleado:', error);
-      alert('Error al eliminar empleado');
+      showFeedback('error', error.message || 'Error al eliminar empleado.');
     }
   };
 
@@ -121,6 +156,22 @@ const AdminStaff = () => {
   return (
     <section className="admin-staff" style={{ maxWidth: 1100, margin: "0 auto", padding: 20 }}>
       <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: 16 }}>Personal</h1>
+
+      {feedback && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: "12px 16px",
+            borderRadius: 10,
+            border: `1px solid ${(FEEDBACK_TONES[feedback.type] || FEEDBACK_TONES.error).border}`,
+            background: (FEEDBACK_TONES[feedback.type] || FEEDBACK_TONES.error).background,
+            color: (FEEDBACK_TONES[feedback.type] || FEEDBACK_TONES.error).color,
+            fontWeight: 600,
+          }}
+        >
+          {feedback.message}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="staff-form" style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr 1fr 100px 80px auto auto", alignItems: "end", marginBottom: 20 }}>
         <div style={{ display: "grid", gap: 6 }}>

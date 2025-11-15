@@ -9,6 +9,7 @@ import {
   STATUS_LABELS,
   extractTableLabel,
   parseOrderItems,
+  filterCookableItems,
 } from "../utils/orderUtils";
 
 const STATUS_FILTERS = [
@@ -80,7 +81,7 @@ const OrderSection = () => {
     
     const formatted = ordenesData
       .map((orden, index) => {
-        const items = parseOrderItems(orden.items ?? orden.pedido);
+        const items = filterCookableItems(parseOrderItems(orden.items ?? orden.pedido));
         const fallbackTable =
           orden.mesa_label ||
           orden.mesa_id ||

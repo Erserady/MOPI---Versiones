@@ -7,6 +7,7 @@ import {
   formatDuration,
   formatDateTime,
   getSlaPhase,
+  filterCookableItems,
 } from "../utils/orderUtils";
 
 const OrderDialog = ({
@@ -48,6 +49,11 @@ const OrderDialog = ({
   }
 
   const slaPhase = getSlaPhase(elapsedSeconds);
+
+  // Filtrar items que no deben mostrarse en cocina (bebidas, licores, cigarros, etc.)
+  const cookableItems = useMemo(() => {
+    return filterCookableItems(order.items || []);
+  }, [order.items]);
 
   return (
     <CustomDialog isOpen={isOpen} onClose={onClose}>
@@ -115,9 +121,9 @@ const OrderDialog = ({
             <UtensilsCrossed size={20} />
             <h3>Platillos del pedido</h3>
           </div>
-          {Array.isArray(order.items) && order.items.length > 0 ? (
+          {cookableItems.length > 0 ? (
             <div className="dishes-grid">
-              {order.items.map((item, index) => (
+              {cookableItems.map((item, index) => (
                 <div key={`${item.nombre}-${index}`} className="dish-card">
                   <div className="dish-info">
                     <span className="dish-name">{item.nombre || "Platillo"}</span>
@@ -127,15 +133,14 @@ const OrderDialog = ({
               ))}
             </div>
           ) : (
-            <p className="empty-state">Sin platillos registrados</p>
+            <p className="empty-state">No hay platillos para cocinar en este pedido</p>
           )}
         </div>
 
         {/* Comentarios del platillo - Solo se muestra si hay comentarios */}
         {(() => {
-          // Filtrar platillos que tienen comentarios
-          const itemsWithComments = Array.isArray(order.items)
-            ? order.items
+          // Filtrar platillos que tienen comentarios (solo items cocinables)
+          const itemsWithComments = cookableItems
                 .map((item, index) => {
                   // Obtener la nota del platillo
                   let noteText = '';
@@ -158,8 +163,7 @@ const OrderDialog = ({
                   
                   return hasNote ? { ...item, noteText, index } : null;
                 })
-                .filter(Boolean)
-            : [];
+                .filter(Boolean);
 
           // Solo renderizar la sección si hay comentarios
           return itemsWithComments.length > 0 ? (

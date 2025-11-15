@@ -13,6 +13,22 @@ class TableViewSet(viewsets.ModelViewSet):
     serializer_class = TableSerializer
     permission_classes = [permissions.IsAuthenticated]  # Requiere autenticación para todas las operaciones
     
+    def perform_update(self, serializer):
+        original_waiter_id = serializer.instance.assigned_waiter_id
+        updating_assigned = 'assigned_waiter' in serializer.validated_data
+        new_status = serializer.validated_data.get('status', serializer.instance.status)
+        instance = serializer.save()
+
+        if new_status == 'available' and not updating_assigned:
+            if instance.assigned_waiter_id is not None:
+                instance.assigned_waiter = None
+                instance.save(update_fields=['assigned_waiter'])
+            return
+
+        if not updating_assigned and instance.assigned_waiter_id != original_waiter_id:
+            instance.assigned_waiter_id = original_waiter_id
+            instance.save(update_fields=['assigned_waiter'])
+    
     def destroy(self, request, *args, **kwargs):
         """Override destroy para agregar logs y mejor manejo de errores"""
         try:

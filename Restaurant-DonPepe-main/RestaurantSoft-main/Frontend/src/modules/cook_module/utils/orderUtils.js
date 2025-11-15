@@ -75,3 +75,91 @@ export function parseOrderItems(raw) {
   }
   return [];
 }
+
+const CATEGORY_EXCLUDE_LIST = [
+  "enlatados y desechables",
+  "licores importados",
+  "cerveza nacional",
+  "cerveza internacional",
+  "cigarros",
+  "ron nacional",
+];
+const CATEGORY_EXCLUDE_NORMALIZED = CATEGORY_EXCLUDE_LIST.map((value) =>
+  value
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+);
+
+const normalizeText = (value) => {
+  if (!value) return "";
+  return value
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+};
+
+const matchesAnyCategory = (value, categories) => {
+  if (!value) return false;
+  const normalized = normalizeText(value);
+  if (!normalized) return false;
+  return categories.some((category) => normalized === category);
+};
+
+// Lista de keywords en nombres de productos que indican bebidas/licores
+const PRODUCT_NAME_KEYWORDS = [
+  'cerveza', 'beer', 'corona', 'modelo', 'heineken', 'budweiser', 'miller', 'stella', 'victoria',
+  'whisky', 'whiskey', 'vodka', 'tequila', 'ron', 'rum', 'gin', 'brandy', 'cognac',
+  'walker', 'jack daniels', 'johnnie', 'buchanans', 'chivas', 'baileys',
+  'centenario', 'herradura', 'don julio', 'patron', 'jose cuervo',
+  'absolut', 'smirnoff', 'bacardi', 'havana', 'zacapa', 'belmont',
+  'refresco', 'soda', 'coca', 'pepsi', 'sprite', 'fanta', 'squirt',
+  'agua', 'water', 'jugo', 'juice', 'limonada', 'naranjada',
+  'botella', 'bottle', 'lata', 'can',
+  'oz', // indicador de medida para bebidas
+  'litro', 'lt', 'ml',
+  'cigarro', 'cigar', 'tabaco', 'marlboro', 'camel',
+  'desechable', 'enlatado', 'hi-c', 'del valle'
+];
+
+const containsAnyKeyword = (name, keywords) => {
+  if (!name) return false;
+  const normalized = normalizeText(name);
+  if (!normalized) return false;
+  return keywords.some((keyword) => {
+    const normalizedKeyword = normalizeText(keyword);
+    return normalized.includes(normalizedKeyword);
+  });
+};
+
+const shouldFilterItem = (item = {}) => {
+  // 1. Intentar filtrar por categoría
+  const categoryCandidates = [
+    item.categoria,
+    item.category,
+    item.dishCategory,
+    item.tipo,
+    item.type,
+  ];
+
+  if (categoryCandidates.some((value) => matchesAnyCategory(value, CATEGORY_EXCLUDE_NORMALIZED))) {
+    return true;
+  }
+
+  // 2. Si no hay categoría, filtrar por nombre del producto
+  const productName = item.nombre || item.name || item.dishName || '';
+  if (containsAnyKeyword(productName, PRODUCT_NAME_KEYWORDS)) {
+    return true;
+  }
+
+  return false;
+};
+
+export function filterCookableItems(items = []) {
+  if (!Array.isArray(items)) return [];
+  return items.filter((item) => !shouldFilterItem(item));
+}

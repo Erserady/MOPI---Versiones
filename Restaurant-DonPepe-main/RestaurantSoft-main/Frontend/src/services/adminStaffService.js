@@ -1,11 +1,47 @@
 import { API_BASE_URL, apiFetch } from '../config/api';
 
-// Servicio completo para administración de personal
+const extractErrorMessage = (data) => {
+  if (!data) return null;
+  if (typeof data === 'string') return data;
+  if (data.error) return data.error;
+  if (data.detail) return data.detail;
+  if (data.message) return data.message;
+  if (Array.isArray(data.non_field_errors) && data.non_field_errors.length > 0) {
+    return data.non_field_errors[0];
+  }
+
+  const firstValue = Object.values(data).find(Boolean);
+  if (Array.isArray(firstValue) && firstValue.length > 0) {
+    return firstValue[0];
+  }
+  if (typeof firstValue === 'string') return firstValue;
+  return null;
+};
+
+const handleResponse = async (res, fallbackMessage) => {
+  let payload = null;
+  if (res.status !== 204) {
+    try {
+      payload = await res.json();
+    } catch (_err) {
+      payload = null;
+    }
+  }
+
+  if (!res.ok) {
+    const message = extractErrorMessage(payload) || fallbackMessage;
+    throw new Error(message);
+  }
+
+  return payload;
+};
+
+// Servicio completo para administraci��n de personal
 
 export async function listStaff() {
   const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/`);
-  if (!res.ok) throw new Error('Error obteniendo personal');
-  return res.json();
+  const data = await handleResponse(res, 'Error obteniendo personal');
+  return Array.isArray(data) ? data : [];
 }
 
 // Alias para compatibilidad
@@ -16,8 +52,7 @@ export async function createStaff(payload) {
     method: 'POST',
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('Error creando personal');
-  return res.json();
+  return handleResponse(res, 'Error creando personal');
 }
 
 export async function updateStaff(id, payload) {
@@ -25,29 +60,26 @@ export async function updateStaff(id, payload) {
     method: 'PUT',
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('Error actualizando personal');
-  return res.json();
+  return handleResponse(res, 'Error actualizando personal');
 }
 
 export async function deleteStaff(id) {
   const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/${id}/`, {
     method: 'DELETE',
   });
-  if (!res.ok) throw new Error('Error eliminando personal');
-  return res.status === 204;
+  await handleResponse(res, 'Error eliminando personal');
+  return true;
 }
 
 export async function getMeseros() {
   const res = await apiFetch(`${API_BASE_URL}/api/administrador/personal/meseros/`);
-  if (!res.ok) throw new Error('Error obteniendo meseros');
-  return res.json();
+  return handleResponse(res, 'Error obteniendo meseros');
 }
 
 // Facturas
 export async function getFacturas() {
   const res = await apiFetch(`${API_BASE_URL}/api/administrador/facturas/`);
-  if (!res.ok) throw new Error('Error obteniendo facturas');
-  return res.json();
+  return handleResponse(res, 'Error obteniendo facturas');
 }
 
 export async function anularFactura(id, motivo) {
@@ -55,6 +87,5 @@ export async function anularFactura(id, motivo) {
     method: 'POST',
     body: JSON.stringify({ motivo }),
   });
-  if (!res.ok) throw new Error('Error anulando factura');
-  return res.json();
+  return handleResponse(res, 'Error anulando factura');
 }

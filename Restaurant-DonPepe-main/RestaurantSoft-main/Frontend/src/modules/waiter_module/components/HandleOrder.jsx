@@ -43,7 +43,7 @@ const mapPedidoItemsToCartShape = (rawItems = []) => {
     return {
       dishId: item?.dishId || item?.id || `existing-${index}`,
       dishName: item?.dishName || item?.nombre || item?.name || "Platillo",
-      dishCategory: item?.dishCategory || item?.categoria || null,
+      dishCategory: item?.dishCategory || item?.categoria || item?.category || null,
       dishQuantity: quantity,
       unitPrice,
       subtotal: unitPrice * quantity,
@@ -58,6 +58,7 @@ const serializeCartItems = (items = []) =>
     cantidad: item.dishQuantity,
     precio: item.unitPrice,
     nota: item.description,
+    categoria: item.dishCategory || item.category || null,
   }));
 
 const sumSubtotals = (items = []) =>

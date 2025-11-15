@@ -21,7 +21,7 @@ const TableCard = ({ tables }) => {
     <>
       <article className="table-card shadow">
         <div className="table-card-header">
-          <h2>Mesa #{tables.tableNumber}</h2>
+          <h2>{tables.tableNumber}</h2>
           <span className={tables.tableStatus.toLowerCase()}>
             {tables.tableStatus.toUpperCase()}
           </span>

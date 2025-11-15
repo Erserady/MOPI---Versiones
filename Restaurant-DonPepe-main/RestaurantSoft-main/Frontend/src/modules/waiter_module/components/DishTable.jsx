@@ -125,7 +125,9 @@ const DishTable = ({
           ))}
         </tr>
       </thead>
-      <tbody>{data.map((dish, index) => renderRow(dish, index))}</tbody>
+      <tbody className="tbody-class">
+        {data.map((dish, index) => renderRow(dish, index))}
+      </tbody>
     </table>
   );
 };

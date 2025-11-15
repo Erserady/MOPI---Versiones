@@ -2,8 +2,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-
-  justify-content: center;
+  justify-content: flex-start;
 
   @media (max-width: 720px) {
     gap: 0.3rem;
@@ -59,4 +58,17 @@
   color: #666;
   font-style: italic;
   grid-column: 1 / -1;
+}
+
+.dish-section {
+  padding: 0.2rem;
+  h2 {
+    margin-top: 15px;
+  }
+}
+
+.custom-order-container {
+  h3 {
+    margin-top: 15px;
+  }
 }

@@ -91,6 +91,8 @@
   cursor: pointer;
   transition: background 0.2s ease;
   margin-top: 1rem;
+  width: 100%;
+  font-size: 20px;
 }
 
 .confirm-btn:hover {

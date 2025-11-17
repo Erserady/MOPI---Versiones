@@ -183,9 +183,13 @@ REST_FRAMEWORK = {
 }
 
 # CORS - Configuración para desarrollo y producción
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
+default_origins = 'http://localhost:5173,http://127.0.0.1:5173,https://mopi-frontend.onrender.com'
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', default_origins).split(',')
 
-# En desarrollo, permitir credenciales
+# Limpiar espacios en blanco de los orígenes
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS if origin.strip()]
+
+# Permitir credenciales (cookies, auth headers)
 CORS_ALLOW_CREDENTIALS = True
 
 # Métodos HTTP permitidos

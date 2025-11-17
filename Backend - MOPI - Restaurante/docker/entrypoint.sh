@@ -3,17 +3,9 @@
 # Script de inicio para el contenedor backend Django
 set -e
 
-# Verificar si estamos en producción (Render) o desarrollo (Docker Compose)
-# En Render, DATABASE_URL apunta a un servidor externo
-# En Docker Compose, usamos el host 'db'
-
-if [[ "$DATABASE_URL" == *"render.com"* ]] || [[ "$DATABASE_URL" == *"amazonaws.com"* ]]; then
-    # Estamos en producción (Render, AWS, etc.)
-    echo "[db] Entorno de producción detectado. Usando DATABASE_URL directamente."
-    echo "[db] Esperando conexión a base de datos remota..."
-    sleep 3
-    echo "[db] Continuando con inicialización..."
-else
+# Verificar si existe el host 'db' (Docker Compose local)
+# Si no existe, asumimos que estamos en producción
+if ping -c 1 -W 1 db &> /dev/null; then
     # Estamos en desarrollo local con Docker Compose
     echo "[db] Entorno de desarrollo detectado. Esperando a PostgreSQL local..."
     while ! pg_isready -h db -p 5432 -U mopi_user > /dev/null 2>&1; do
@@ -21,6 +13,10 @@ else
         sleep 2
     done
     echo "[db] Base de datos local disponible."
+else
+    # Estamos en producción (Render, AWS, etc.)
+    echo "[db] Entorno de producción detectado."
+    echo "[db] Usando DATABASE_URL para conexión remota."
 fi
 
 echo "[init] Ejecutando migraciones..."

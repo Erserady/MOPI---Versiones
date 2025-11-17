@@ -4,9 +4,8 @@ Solo carga datos si las tablas están vacías.
 """
 from django.core.management.base import BaseCommand
 from mesero.models import Table
-from cocina.models import Platillo
+from cocina.models import Order
 from administrador.models import Personal
-from caja.models import Caja
 
 
 class Command(BaseCommand):
@@ -15,8 +14,8 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write(self.style.WARNING('🔍 Verificando datos existentes...'))
         
-        # Verificar si ya hay datos
-        if Table.objects.exists() or Platillo.objects.exists():
+        # Verificar si ya hay datos (mesas o personal)
+        if Table.objects.exists() or Personal.objects.exists():
             self.stdout.write(
                 self.style.SUCCESS('✅ Ya existen datos en la base de datos. No se cargan datos de ejemplo.')
             )

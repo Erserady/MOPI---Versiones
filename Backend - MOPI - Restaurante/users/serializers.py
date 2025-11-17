@@ -130,17 +130,35 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True)
 
     def validate(self, data):
+        import logging
+        logger = logging.getLogger(__name__)
+        
         username = data.get("username")
         password = data.get("password")
+        
+        logger.warning(f"[LOGIN DEBUG] Intentando login con username: {username}")
+        logger.warning(f"[LOGIN DEBUG] Data recibida: {list(data.keys())}")
 
         if not username or not password:
+            logger.error("[LOGIN DEBUG] Faltan username o password")
             raise serializers.ValidationError("Se requieren 'username' y 'password'.")
 
         request = self.context.get("request")
         user = authenticate(request=request, username=username, password=password)
+        
         if not user:
+            logger.error(f"[LOGIN DEBUG] Autenticación fallida para username: {username}")
+            # Verificar si el usuario existe
+            try:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                user_exists = User.objects.filter(username=username).exists()
+                logger.warning(f"[LOGIN DEBUG] ¿Usuario existe en BD? {user_exists}")
+            except Exception as e:
+                logger.error(f"[LOGIN DEBUG] Error al verificar usuario: {e}")
             raise serializers.ValidationError("Credenciales incorrectas.")
 
+        logger.warning(f"[LOGIN DEBUG] Login exitoso para user: {user.username}")
         return {"user": user}
 
 

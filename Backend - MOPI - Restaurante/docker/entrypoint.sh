@@ -41,8 +41,8 @@ else:
     print("[superuser] ℹ️ Superusuario ya existe")
 END
 
-echo "[init] Verificando datos iniciales..."
-python manage.py setup_initial_data
+echo "[init] Cargando datos de producción..."
+python manage.py load_production_data
 
 echo "[gunicorn] Iniciando servidor..."
 exec gunicorn drfsimplecrud.wsgi:application \

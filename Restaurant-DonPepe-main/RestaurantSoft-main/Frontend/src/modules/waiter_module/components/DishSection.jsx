@@ -1,33 +1,45 @@
 import { useState, useEffect } from "react";
-import DishCard from "./DishTable";
 import "../styles/dish_section.css";
-import DishTable from "./DishTable";
 import { useDataSync } from "../../../hooks/useDataSync";
 import { getMenuDisponible } from "../../../services/waiterService";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ChefHat } from "lucide-react";
 
 // Emojis para categorías
 const categoryEmojis = {
+  "LICORES IMPORTADOS": "🍾",
+  "CERVEZA NACIONAL": "🍺",
+  "CERVEZA INTERNACIONAL": "🌍",
+  "COCTAILS Y VINOS": "🍷",
+  "RON NACIONAL": "🥃",
+  "ENLATADOS Y DESECHABLES": "🧃",
   "CARNE DE RES": "🥩",
   "CARNE BLANCA": "🍗",
   "CARNE DE CERDO": "🐖",
   "CARNE DE MONTE Y ENSALADAS": "🥗",
-  MARISCOS: "🦐",
-  COCTELES: "🍤",
-  SOPAS: "🍲",
-  VARIADOS: "🍽",
-  "COCTAILS Y VINOS": "🍷",
-  "LICORES IMPORTADOS": "🥃",
-  "CERVEZA NACIONAL": "🍺",
-  "CERVEZA INTERNACIONAL": "🍺",
-  "RON NACIONAL": "🥃",
-  ENLATADOS: "🧃",
-  CIGARROS: "🚬",
-  EXTRAS: "✨",
+  "MARISCOS": "🦐",
+  "COCTELES": "🍤",
+  "SOPAS": "🍲",
+  "VARIADOS": "🍽",
+  "CIGARROS": "🚬",
+  "EXTRAS": "✨",
 };
 
 // Estructura jerárquica de categorías
 const categoryHierarchy = [
+  {
+    main: "🍹 Bebidas Alcohólicas",
+    subcategories: [
+      "LICORES IMPORTADOS",
+      "CERVEZA NACIONAL",
+      "CERVEZA INTERNACIONAL",
+      "COCTAILS Y VINOS",
+      "RON NACIONAL",
+    ],
+  },
+  {
+    main: "🥤 Bebidas No Alcohólicas",
+    subcategories: ["ENLATADOS Y DESECHABLES"],
+  },
   {
     main: "🍖 Carnes",
     subcategories: [
@@ -35,25 +47,16 @@ const categoryHierarchy = [
       "CARNE BLANCA",
       "CARNE DE CERDO",
       "CARNE DE MONTE Y ENSALADAS",
-    ],
-  },
-  {
-    main: "🦐 Mariscos y Sopas",
-    subcategories: ["MARISCOS", "COCTELES", "SOPAS"],
-  },
-  {
-    main: "🍹 Bebidas Alcohólicas",
-    subcategories: [
-      "COCTAILS Y VINOS",
-      "LICORES IMPORTADOS",
-      "CERVEZA NACIONAL",
-      "CERVEZA INTERNACIONAL",
-      "RON NACIONAL",
+      "MARISCOS",
     ],
   },
   {
     main: "🍽 Comidas / Variados",
-    subcategories: ["VARIADOS", "ENLATADOS", "CIGARROS", "EXTRAS"],
+    subcategories: ["COCTELES", "SOPAS", "VARIADOS"],
+  },
+  {
+    main: "🍪 Otros",
+    subcategories: ["CIGARROS", "EXTRAS"],
   },
 ];
 
@@ -142,66 +145,80 @@ const DishSection = () => {
   }
 
   return (
-    <section className="dish-section">
-      <h1>Menú Disponible</h1>
-      <hr />
-      {/* Menú de categorías principales */}
-      <h2>Categorías Principales</h2>
-      <div className="categories-menu main-categories">
-        {categoryHierarchy.map((category) => (
-          <button
-            key={category.main}
-            className={`category-btn ${
-              activeMainCategory === category.main ? "active" : ""
-            }`}
-            onClick={() => {
-              setActiveMainCategory(category.main);
-              // Seleccionar la primera subcategoría disponible
-              const firstAvailableSub = category.subcategories.find((sub) =>
-                availableSubcategories.includes(sub)
-              );
-              if (firstAvailableSub) {
-                setActiveSubcategory(firstAvailableSub);
-              }
-            }}
-          >
-            {category.main}
-          </button>
-        ))}
-      </div>
-
-      {/* Menú de subcategorías */}
-      <h2>Subcategorías</h2>
-      {activeMainCategoryData && availableSubcategoriesForMain.length > 0 && (
-        <div className="categories-menu subcategories">
-          {availableSubcategoriesForMain.map((subcategory) => (
+    <section className="dish-section" style={{padding: '1.5rem'}}>
+      <h1 style={{textAlign: 'center', marginBottom: '2rem', color: '#6366f1', fontSize: '2rem', fontWeight: '700'}}>Menú Disponible</h1>
+      
+      <div style={{marginBottom: '2.5rem'}}>
+        {/* Menú de categorías principales */}
+        <h3 style={{textAlign: 'center', marginBottom: '1rem', fontWeight: '600', fontSize: '1rem'}}>Categorías principales</h3>
+        <div className="categories-menu" style={{justifyContent: 'center', gap: '1rem', marginBottom: '2rem'}}>
+          {categoryHierarchy.map((category) => (
             <button
-              key={subcategory}
+              key={category.main}
               className={`category-btn ${
-                activeSubcategory === subcategory ? "active" : ""
+                activeMainCategory === category.main ? "active" : ""
               }`}
-              onClick={() => setActiveSubcategory(subcategory)}
+              onClick={() => {
+                setActiveMainCategory(category.main);
+                // Seleccionar la primera subcategoría disponible
+                const firstAvailableSub = category.subcategories.find((sub) =>
+                  availableSubcategories.includes(sub)
+                );
+                if (firstAvailableSub) {
+                  setActiveSubcategory(firstAvailableSub);
+                }
+              }}
             >
-              {categoryEmojis[subcategory] || "🍽"} {subcategory}
+              {category.main}
             </button>
           ))}
         </div>
-      )}
 
-      <p className="category-tip">
-        {"← Desliza para seleccionar la categoria →"}
-      </p>
+        {/* Menú de subcategorías */}
+        <h3 style={{textAlign: 'center', marginBottom: '1rem', fontWeight: '600', fontSize: '1rem'}}>Subcategorías</h3>
+        {activeMainCategoryData && availableSubcategoriesForMain.length > 0 && (
+          <div className="categories-menu" style={{justifyContent: 'center', gap: '1rem', marginBottom: '1rem'}}>
+            {availableSubcategoriesForMain.map((subcategory) => (
+              <button
+                key={subcategory}
+                className={`category-btn ${
+                  activeSubcategory === subcategory ? "active" : ""
+                }`}
+                onClick={() => setActiveSubcategory(subcategory)}
+              >
+                {categoryEmojis[subcategory] || "🍽"} {subcategory}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <p className="category-tip" style={{textAlign: 'center', marginTop: '1.5rem'}}>
+          ← Desliza para seleccionar la categoria →
+        </p>
+      </div>
 
       {/* Sección de platos de la subcategoría seleccionada */}
       <section className="category-dishes">
-        <h2 className="category-title">
-          {activeSubcategory && categoryEmojis[activeSubcategory]}{" "}
-          {activeSubcategory}
+        <h2 className="category-title" style={{textAlign: 'center', color: '#6366f1', margin: '1.5rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+          <span>Categoria:</span>
+          <ChefHat size={28} style={{color: '#6366f1'}} />
+          <span style={{borderBottom: '3px solid #6366f1', paddingBottom: '2px'}}>{activeSubcategory}</span>
         </h2>
-        <div className="table-container">
-          {filteredMenu && <DishTable utility="menu" data={filteredMenu} />}
-          {filteredMenu.length === 0 && (
-            <p className="no-dishes">No hay platos en esta categoría.</p>
+        <div className="dishes-grid">
+          {filteredMenu.length > 0 ? (
+            filteredMenu.map((dish) => (
+              <article key={dish.id} className="dish-card-order dish-card-readonly">
+                <div className="dish-card-content">
+                  <h3 className="dish-card-name">{dish.name}</h3>
+                  <p className="dish-card-price">C${dish.price.toFixed(2)}</p>
+                </div>
+                <div className={`dish-card-status ${dish.available ? 'available' : 'unavailable'}`}>
+                  {dish.available ? '✓ Disponible' : '✗ Agotado'}
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="no-dishes" style={{gridColumn: '1 / -1'}}>No hay platos en esta categoría.</p>
           )}
         </div>
       </section>

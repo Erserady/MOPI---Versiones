@@ -1,12 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CajaViewSet, FacturaViewSet, PagoViewSet, CierreCajaViewSet, caja_view, facturas_view, mesas_con_ordenes_pendientes
+from .views import CajaViewSet, FacturaViewSet, PagoViewSet, CierreCajaViewSet, EgresoViewSet, caja_view, facturas_view, mesas_con_ordenes_pendientes
 
 router = DefaultRouter()
 router.register(r'cajas', CajaViewSet, basename='caja')
 router.register(r'facturas', FacturaViewSet, basename='factura')
 router.register(r'pagos', PagoViewSet, basename='pago')
 router.register(r'cierres', CierreCajaViewSet, basename='cierre')
+router.register(r'egresos', EgresoViewSet, basename='egreso')
 
 urlpatterns = [
     path('', include(router.urls)),

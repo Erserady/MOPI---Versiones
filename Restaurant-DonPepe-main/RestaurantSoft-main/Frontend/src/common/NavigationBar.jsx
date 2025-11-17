@@ -7,7 +7,18 @@ const NavigationBar = ({
   classView,
 }) => {
   const changeSection = (e) => {
-    setSectionState(e.target.value);
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const section = e.currentTarget.value;
+    const item = currentView.find(i => i.section === section);
+    
+    // No hacer nada si el botón está deshabilitado
+    if (item?.disabled) {
+      return;
+    }
+    
+    setSectionState(section);
   };
 
   return (
@@ -16,13 +27,19 @@ const NavigationBar = ({
         <button
           id={index}
           className={
-            SectionState == item.section ? "shadow button-selected" : ""
+            `${SectionState == item.section ? "shadow button-selected" : ""} ${item.disabled ? "button-disabled" : ""}`
           }
           key={index}
           value={item.section}
           onClick={(e) => changeSection(e)}
+          disabled={item.disabled}
+          title={item.disabled ? item.badge || "No disponible" : item.title}
+          type="button"
         >
           {item.title}
+          {item.badge && item.disabled && (
+            <span className="nav-badge">{item.badge}</span>
+          )}
         </button>
       ))}
     </nav>

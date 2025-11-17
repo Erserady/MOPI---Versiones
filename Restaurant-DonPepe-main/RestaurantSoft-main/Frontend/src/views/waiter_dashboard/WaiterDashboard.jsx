@@ -43,12 +43,8 @@ const WaiterDashboard = () => {
         currentView={currentView}
         welcomeTitle={welcomeTitle}
         userRole={<HandPlatter />}
-      ></Header>
-      <main>
-        <div className="waiter-dashboard-toolbar">
-          <span className={`waiter-sync ${ordersError ? "error" : ""}`}>
-            {syncMessage}
-          </span>
+      >
+        <div className="header-actions">
           <NotificationBell
             notifications={notifications}
             unreadCount={unreadCount}
@@ -57,6 +53,8 @@ const WaiterDashboard = () => {
             onDismiss={dismissNotification}
           />
         </div>
+      </Header>
+      <main>
         <NavigationBar
           SectionState={currentSection}
           setSectionState={setcurrentSection}

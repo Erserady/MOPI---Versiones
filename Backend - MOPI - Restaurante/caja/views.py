@@ -5,8 +5,8 @@ from django.shortcuts import render
 from django.db import transaction
 from django.utils import timezone
 from decimal import Decimal
-from .models import Caja, Factura, Pago, CierreCaja
-from .serializers import CajaSerializer, FacturaSerializer, PagoSerializer, CierreCajaSerializer
+from .models import Caja, Factura, Pago, CierreCaja, Egreso
+from .serializers import CajaSerializer, FacturaSerializer, PagoSerializer, CierreCajaSerializer, EgresoSerializer
 from mesero.models import WaiterOrder, Table
 
 class CajaViewSet(viewsets.ModelViewSet):
@@ -248,3 +248,12 @@ def mesas_con_ordenes_pendientes(request):
             ]
         })
     return Response(data)
+
+class EgresoViewSet(viewsets.ModelViewSet):
+    queryset = Egreso.objects.all().order_by('-created_at')
+    serializer_class = EgresoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        """Guardar el usuario que crea el egreso"""
+        serializer.save(creado_por=self.request.user)

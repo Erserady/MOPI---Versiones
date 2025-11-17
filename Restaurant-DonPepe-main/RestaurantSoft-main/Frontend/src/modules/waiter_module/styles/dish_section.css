@@ -27,12 +27,12 @@
 }
 
 .category-btn {
-  padding: 0.7rem 1.2rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 25px;
   border: 2px solid #e0e0e0;
   background: #f8f9fa;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
   transition: all 0.3s ease;
   white-space: nowrap;
@@ -86,13 +86,13 @@
 /* Estilos para las tarjetas de platillos */
 .dishes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1rem 0;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 0;
   
   @media (max-width: 720px) {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.2rem;
   }
 }
 
@@ -100,13 +100,14 @@
   background: white;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
-  padding: 1rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 1rem;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  min-height: 140px;
   
   &:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -155,5 +156,32 @@
   &:disabled {
     background: #d1d5db;
     cursor: not-allowed;
+  }
+}
+
+/* Tarjeta de solo lectura para vista de menú */
+.dish-card-readonly {
+  cursor: default;
+  
+  &:hover {
+    transform: none;
+  }
+}
+
+.dish-card-status {
+  padding: 0.5rem;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  
+  &.available {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  &.unavailable {
+    background: #fee2e2;
+    color: #991b1b;
   }
 }

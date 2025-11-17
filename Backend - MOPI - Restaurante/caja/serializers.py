@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Caja, Factura, Pago, CierreCaja
+from .models import Caja, Factura, Pago, CierreCaja, Egreso
 from mesero.serializers import WaiterOrderSerializer, TableSerializer
 
 class CajaSerializer(serializers.ModelSerializer):
@@ -71,3 +71,23 @@ class CierreCajaSerializer(serializers.ModelSerializer):
     def get_total_ventas(self, obj):
         """Calcular total de ventas (efectivo + tarjeta + transferencia)"""
         return float(obj.total_efectivo) + float(obj.total_tarjeta) + float(obj.total_transferencia)
+
+class EgresoSerializer(serializers.ModelSerializer):
+    creado_por = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = Egreso
+        fields = ['id', 'caja', 'monto', 'comentario', 'creado_por', 'created_at']
+        read_only_fields = ['id', 'creado_por', 'created_at']
+    
+    def validate_monto(self, value):
+        """Validar que el monto sea positivo"""
+        if value <= 0:
+            raise serializers.ValidationError("El monto debe ser mayor a 0")
+        return value
+    
+    def validate_comentario(self, value):
+        """Validar que el comentario no esté vacío"""
+        if not value or not value.strip():
+            raise serializers.ValidationError("El comentario es obligatorio")
+        return value.strip()

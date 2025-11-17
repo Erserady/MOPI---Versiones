@@ -3,7 +3,7 @@ import "../styles/header.css";
 import { LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const Header = ({ userRole, welcomeTitle, currentView, userName }) => {
+const Header = ({ userRole, welcomeTitle, currentView, userName, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -86,6 +86,7 @@ const Header = ({ userRole, welcomeTitle, currentView, userName }) => {
           {userDisplayName && <h2>Usuario: {userDisplayName}</h2>}
         </div>
       </section>
+      {children}
       <section className="header-logout">
         <button onClick={logOutFunction} className="shadow ">
           <LogOut />

@@ -133,3 +133,22 @@ class CierreCaja(models.Model):
         )['total'] or 0
         
         self.save()
+
+class Egreso(models.Model):
+    """Modelo para registrar egresos de efectivo de la caja"""
+    caja = models.ForeignKey(Caja, on_delete=models.PROTECT, related_name='egresos')
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    comentario = models.TextField()
+    creado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Egreso C${self.monto} - {self.caja.numero_caja} - {self.created_at.date()}"

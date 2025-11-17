@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
 from .models import Table, WaiterOrder
+import json
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -38,6 +39,7 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
     items = serializers.CharField(write_only=True, required=False)        # alias para pedido
     waiterName = serializers.CharField(write_only=True, required=False)   # opcional info extra
     elapsed_seconds = serializers.SerializerMethodField(read_only=True)
+    products = serializers.SerializerMethodField(read_only=True)  # productos parseados del pedido
 
     class Meta:
         model = WaiterOrder
@@ -45,9 +47,9 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'order_id', 'table', 'mesa', 'mesa_id', 'tableNumber',
             'pedido', 'items', 'cliente', 'cantidad', 'nota', 'preparacion_enlazada',
-            'estado', 'waiterName', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds'
+            'estado', 'waiterName', 'products', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds'
         ]
-        read_only_fields = ['id', 'table', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds']
+        read_only_fields = ['id', 'table', 'products', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds']
 
     def to_representation(self, instance):
         """Normalizar salida: mostrar mesa por su nombre/mesa_id y mapear campos"""
@@ -111,3 +113,25 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
             delta = timezone.now() - obj.en_cocina_since
             return max(int(delta.total_seconds()), 0)
         return None
+    
+    def get_products(self, obj):
+        """Parsear el campo pedido (JSON string) y retornar como lista de productos"""
+        if not obj.pedido:
+            return []
+        
+        try:
+            # Intentar parsear el pedido como JSON
+            pedido_data = json.loads(obj.pedido) if isinstance(obj.pedido, str) else obj.pedido
+            
+            # Si es una lista, es el formato esperado
+            if isinstance(pedido_data, list):
+                return pedido_data
+            
+            # Si es un diccionario con una clave 'products' o 'items'
+            if isinstance(pedido_data, dict):
+                return pedido_data.get('products', pedido_data.get('items', []))
+            
+            return []
+        except (json.JSONDecodeError, TypeError, ValueError):
+            # Si falla el parseo, retornar lista vacía
+            return []

@@ -9,6 +9,7 @@ import {
 } from "../../../services/waiterService";
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
+import CommentModal from "./CommentModal";
 import { RefreshCw, ChefHat } from "lucide-react";
 import { useLocation, useParams } from "react-router-dom";
 
@@ -16,26 +17,40 @@ const ACTIVE_ORDER_STATUSES = ["pendiente", "en_preparacion", "listo"];
 
 // 🎯 NUEVO: emojis para subcategorías
 const categoryEmojis = {
+  "LICORES IMPORTADOS": "🍾",
+  "CERVEZA NACIONAL": "🍺",
+  "CERVEZA INTERNACIONAL": "🌍",
+  "COCTAILS Y VINOS": "🍷",
+  "RON NACIONAL": "🥃",
+  "ENLATADOS Y DESECHABLES": "🧃",
   "CARNE DE RES": "🥩",
   "CARNE BLANCA": "🍗",
   "CARNE DE CERDO": "🐖",
   "CARNE DE MONTE Y ENSALADAS": "🥗",
-  MARISCOS: "🦐",
-  COCTELES: "🍤",
-  SOPAS: "🍲",
-  VARIADOS: "🍽",
-  "COCTAILS Y VINOS": "🍷",
-  "LICORES IMPORTADOS": "🥃",
-  "CERVEZA NACIONAL": "🍺",
-  "CERVEZA INTERNACIONAL": "🍺",
-  "RON NACIONAL": "🥃",
-  ENLATADOS: "🧃",
-  CIGARROS: "🚬",
-  EXTRAS: "✨",
+  "MARISCOS": "🦐",
+  "COCTELES": "🍤",
+  "SOPAS": "🍲",
+  "VARIADOS": "🍽",
+  "CIGARROS": "🚬",
+  "EXTRAS": "✨",
 };
 
 // 🎯 NUEVO: estructura jerárquica
 const categoryHierarchy = [
+  {
+    main: "🍹 Bebidas Alcohólicas",
+    subcategories: [
+      "LICORES IMPORTADOS",
+      "CERVEZA NACIONAL",
+      "CERVEZA INTERNACIONAL",
+      "COCTAILS Y VINOS",
+      "RON NACIONAL",
+    ],
+  },
+  {
+    main: "🥤 Bebidas No Alcohólicas",
+    subcategories: ["ENLATADOS Y DESECHABLES"],
+  },
   {
     main: "🍖 Carnes",
     subcategories: [
@@ -43,25 +58,16 @@ const categoryHierarchy = [
       "CARNE BLANCA",
       "CARNE DE CERDO",
       "CARNE DE MONTE Y ENSALADAS",
-    ],
-  },
-  {
-    main: "🦐 Mariscos y Sopas",
-    subcategories: ["MARISCOS", "COCTELES", "SOPAS"],
-  },
-  {
-    main: "🍹 Bebidas Alcohólicas",
-    subcategories: [
-      "COCTAILS Y VINOS",
-      "LICORES IMPORTADOS",
-      "CERVEZA NACIONAL",
-      "CERVEZA INTERNACIONAL",
-      "RON NACIONAL",
+      "MARISCOS",
     ],
   },
   {
     main: "🍽 Comidas / Variados",
-    subcategories: ["VARIADOS", "ENLATADOS", "CIGARROS", "EXTRAS"],
+    subcategories: ["COCTELES", "SOPAS", "VARIADOS"],
+  },
+  {
+    main: "🍪 Otros",
+    subcategories: ["CIGARROS", "EXTRAS"],
   },
 ];
 
@@ -113,7 +119,7 @@ const serializeCartItems = (items = []) =>
     nombre: item.dishName,
     cantidad: item.dishQuantity,
     precio: item.unitPrice,
-    nota: item.description,
+    nota: item.description?.trim() || "", // Solo envía comentario si existe
     categoria: item.dishCategory || item.category || null,
   }));
 
@@ -173,6 +179,8 @@ const HandleOrder = ({
   );
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderError, setOrderError] = useState(null);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [commentModalDish, setCommentModalDish] = useState(null);
   const { showNotification, hideNotification, notification } =
     useNotification();
 
@@ -335,11 +343,17 @@ const HandleOrder = ({
   };
 
   const handleComment = (dish) => {
-    const comment = prompt(`Agrega un comentario para "${dish.dishName}":`);
-    if (comment !== null) {
+    setCommentModalDish(dish);
+    setCommentModalOpen(true);
+  };
+
+  const handleSaveComment = (comment) => {
+    if (commentModalDish) {
       setCartItems((draft) => {
-        const item = draft.find((i) => i.dishId === dish.dishId);
-        if (item) item.description = comment;
+        const item = draft.find((i) => i.dishId === commentModalDish.dishId);
+        if (item) {
+          item.description = comment; // Solo guarda el comentario si hay texto, vacío si no hay
+        }
       });
     }
   };
@@ -618,6 +632,14 @@ const HandleOrder = ({
           onClose={hideNotification}
         />
       )}
+
+      <CommentModal
+        isOpen={commentModalOpen}
+        onClose={() => setCommentModalOpen(false)}
+        onSave={handleSaveComment}
+        dishName={commentModalDish?.dishName || ""}
+        initialComment={commentModalDish?.description || ""}
+      />
     </section>
   );
 };

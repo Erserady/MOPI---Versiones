@@ -197,3 +197,42 @@ export async function getPagosByMonth(year, month) {
   if (!res.ok) throw new Error('Error obteniendo pagos del mes');
   return res.json();
 }
+
+// Egresos
+export async function getEgresos() {
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/egresos/`);
+  if (!res.ok) throw new Error('Error obteniendo egresos');
+  return res.json();
+}
+
+export async function createEgreso(data) {
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/egresos/`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    let errorMessage = 'Error registrando egreso';
+    try {
+      const errorData = await res.json();
+      if (errorData.mensaje) {
+        errorMessage = errorData.mensaje;
+      } else if (errorData.error) {
+        errorMessage = errorData.error;
+      } else if (errorData.detail) {
+        errorMessage = errorData.detail;
+      }
+      if (typeof errorData === 'object' && !errorData.mensaje && !errorData.error) {
+        const errors = Object.entries(errorData)
+          .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+          .join('; ');
+        if (errors) errorMessage = errors;
+      }
+    } catch (e) {
+      errorMessage = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(errorMessage);
+  }
+  
+  return res.json();
+}

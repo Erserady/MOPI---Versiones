@@ -16,7 +16,7 @@ import AdminCards from "./AdminCards";
 import TransactionHistoryModal from "./TransactionHistoryModal";
 import { useMetadata } from "../../../hooks/useMetadata";
 import { getMesas, createMesa, deleteMesa } from "../../../services/waiterService";
-import { getCajas, getFacturas, getPagos } from "../../../services/cashierService";
+import { getCajas, getFacturas, getPagos, getEgresos } from "../../../services/cashierService";
 import { useDataSync } from "../../../hooks/useDataSync";
 
 const AdminOverview = () => {
@@ -37,6 +37,7 @@ const AdminOverview = () => {
   const { data: cajas, loading: loadingCajas, refetch: refetchCajas } = useDataSync(getCajas, 5000);
   const { data: facturas, loading: loadingFacturas } = useDataSync(getFacturas, 5000);
   const { data: pagos, loading: loadingPagos } = useDataSync(getPagos, 5000);
+  const { data: egresos } = useDataSync(getEgresos, 5000);
 
   // Calcular métricas de caja con validación defensiva
   const cajaAbierta = cajas?.find(c => c.estado === 'abierta');
@@ -57,6 +58,24 @@ const AdminOverview = () => {
       }) || [])
     : [];
   
+  // Filtrar egresos de la caja abierta actual
+  const egresosHoy = cajaAbierta
+    ? (egresos?.filter(e => {
+        if (e.caja !== cajaAbierta.id) return false;
+        
+        const fechaEgreso = new Date(e.created_at);
+        const fechaApertura = new Date(cajaAbierta.fecha_apertura);
+        
+        return fechaEgreso >= fechaApertura;
+      }) || [])
+    : [];
+  
+  // Combinar pagos y egresos para el modal de transacciones
+  const todasLasTransacciones = [
+    ...pagosHoy.map(p => ({ ...p, tipo: 'pago' })),
+    ...egresosHoy.map(e => ({ ...e, tipo: 'egreso' }))
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  
   // Calcular ingresos por método de pago (solo si hay caja abierta)
   const ingresosEfectivo = cajaAbierta
     ? pagosHoy
@@ -70,15 +89,23 @@ const AdminOverview = () => {
         .reduce((sum, p) => sum + parseFloat(p.monto || 0), 0)
     : 0;
   
-  const totalIngresos = ingresosEfectivo + ingresosTarjeta;
+  // Calcular total de egresos del día
+  const totalEgresos = cajaAbierta
+    ? egresosHoy.reduce((sum, e) => sum + parseFloat(e.monto || 0), 0)
+    : 0;
   
-  const totalEgresos = 0; // Aquí podrías agregar lógica de egresos si existe
+  // Efectivo neto (ventas en efectivo - egresos)
+  const efectivoNeto = ingresosEfectivo - totalEgresos;
+  
+  // Total de ingresos menos egresos
+  const totalIngresos = ingresosEfectivo + ingresosTarjeta - totalEgresos;
   
   // El saldo en caja solo incluye efectivo (tarjetas no están físicamente en caja)
   const saldoEnCaja = cajaAbierta
     ? parseFloat(saldoInicial) + parseFloat(ingresosEfectivo) - parseFloat(totalEgresos)
     : 0;
-  const gananciaTotal = parseFloat(totalIngresos) - parseFloat(totalEgresos);
+  // Ganancia total ya tiene los egresos restados en totalIngresos
+  const gananciaTotal = parseFloat(totalIngresos);
   
   // Función helper para formatear moneda de forma segura
   const formatCurrency = (value) => {
@@ -254,8 +281,11 @@ const AdminOverview = () => {
               <p className="cash-card-label">Ingresos Hoy</p>
               <h3 className="cash-card-value success">{currencySymbol}{formatCurrency(totalIngresos)}</h3>
               <p className="cash-card-detail">
-                💵 {currencySymbol}{formatCurrency(ingresosEfectivo)} | 
+                💵 {currencySymbol}{formatCurrency(efectivoNeto)} | 
                 💳 {currencySymbol}{formatCurrency(ingresosTarjeta)}
+                {totalEgresos > 0 && <span style={{color: '#dc2626', fontSize: '0.85rem', display: 'block', marginTop: '0.25rem'}}>
+                  (Ventas: {currencySymbol}{formatCurrency(ingresosEfectivo)} - Egresos: {currencySymbol}{formatCurrency(totalEgresos)})
+                </span>}
               </p>
             </div>
           </div>
@@ -410,7 +440,7 @@ const AdminOverview = () => {
       <TransactionHistoryModal
         isOpen={showHistoryModal}
         onClose={() => setShowHistoryModal(false)}
-        transactions={pagosHoy}
+        transactions={todasLasTransacciones}
         cajaInfo={cajaAbierta}
       />
     </section>

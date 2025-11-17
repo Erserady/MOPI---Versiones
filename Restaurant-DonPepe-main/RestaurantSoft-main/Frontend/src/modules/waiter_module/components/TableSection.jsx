@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import "../styles/table_section.css";
 import TableCard from "./TableCard";
 import { useDataSync } from "../../../hooks/useDataSync";
@@ -8,29 +8,6 @@ import { RefreshCw } from "lucide-react";
 const TableSection = ({ ordenes = [] }) => {
   // Sincronizar mesas desde el backend (actualiza cada 3 segundos)
   const { data: mesasData, loading, error } = useDataSync(getMesas, 3000);
-
-  if (loading && !mesasData) {
-    return (
-      <div>
-        <h1>Mesas Registradas</h1>
-        <div style={{ textAlign: "center", padding: "2rem" }}>
-          <RefreshCw className="spin" size={32} />
-          <p>Cargando mesas...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div>
-        <h1>Mesas Registradas</h1>
-        <div style={{ textAlign: "center", padding: "2rem", color: "red" }}>
-          <p>Error al cargar mesas: {error}</p>
-        </div>
-      </div>
-    );
-  }
 
   // Transformar datos del backend al formato esperado por TableCard
   const tablesFormatted =
@@ -88,20 +65,84 @@ const TableSection = ({ ordenes = [] }) => {
       return formatted;
     }) || [];
 
-  return (
-    <div>
-      <h1>Mesas Registradas</h1>
+  // Sin filtros - mostrar todas las mesas
 
-      <section className="table-card-section">
+  // Estadísticas
+  const stats = useMemo(() => {
+    return {
+      total: tablesFormatted.length,
+      ocupadas: tablesFormatted.filter(t => t.tableStatus === "ocupada").length,
+      libres: tablesFormatted.filter(t => t.tableStatus === "libre").length,
+      reservadas: tablesFormatted.filter(t => t.tableStatus === "reservada").length
+    };
+  }, [tablesFormatted]);
+
+  // Renders condicionales DESPUÉS de todos los hooks
+  if (loading && !mesasData) {
+    return (
+      <div>
+        <h1>Mesas Registradas</h1>
+        <div style={{ textAlign: "center", padding: "2rem" }}>
+          <RefreshCw className="spin" size={32} />
+          <p>Cargando mesas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h1>Mesas Registradas</h1>
+        <div style={{ textAlign: "center", padding: "2rem", color: "red" }}>
+          <p>Error al cargar mesas: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tables-container">
+      {/* Header con estadísticas */}
+      <div className="tables-header">
+        <div className="tables-title">
+          <h1>Mesas del Restaurante</h1>
+          <p className="tables-subtitle">Gestiona y visualiza el estado de todas las mesas</p>
+        </div>
+        
+        <div className="tables-stats">
+          <div className="stat-card">
+            <span className="stat-label">Total</span>
+            <span className="stat-value">{stats.total}</span>
+          </div>
+          <div className="stat-card libre">
+            <span className="stat-label">Libres</span>
+            <span className="stat-value">{stats.libres}</span>
+          </div>
+          <div className="stat-card ocupada">
+            <span className="stat-label">Ocupadas</span>
+            <span className="stat-value">{stats.ocupadas}</span>
+          </div>
+          {stats.reservadas > 0 && (
+            <div className="stat-card reservada">
+              <span className="stat-label">Reservadas</span>
+              <span className="stat-value">{stats.reservadas}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Grid de mesas */}
+      <section className="tables-grid">
         {tablesFormatted.map((table) => (
           <TableCard key={table.mesa_id || table.tableNumber} tables={table} />
         ))}
       </section>
 
       {tablesFormatted.length === 0 && (
-        <p style={{ textAlign: "center", padding: "2rem" }}>
-          No hay mesas registradas
-        </p>
+        <div className="tables-empty">
+          <p>No hay mesas registradas</p>
+        </div>
       )}
     </div>
   );

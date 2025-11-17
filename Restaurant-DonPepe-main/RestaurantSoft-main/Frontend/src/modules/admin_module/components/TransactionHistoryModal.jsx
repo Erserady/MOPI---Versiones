@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { X, Receipt, CreditCard, Banknote, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import { X, Receipt, CreditCard, Banknote, Calendar, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import '../styles/transaction_history_modal.css';
 
 const TransactionHistoryModal = ({ isOpen, onClose, transactions, cajaInfo }) => {
@@ -38,20 +38,25 @@ const TransactionHistoryModal = ({ isOpen, onClose, transactions, cajaInfo }) =>
 
   // Calcular totales
   const totales = useMemo(() => {
-    if (!transactions) return { efectivo: 0, tarjeta: 0, total: 0 };
+    if (!transactions) return { efectivo: 0, tarjeta: 0, egresos: 0, total: 0 };
     
     const efectivo = transactions
-      .filter(t => t.metodo_pago === 'efectivo')
+      .filter(t => t.tipo !== 'egreso' && t.metodo_pago === 'efectivo')
       .reduce((sum, t) => sum + parseFloat(t.monto || 0), 0);
     
     const tarjeta = transactions
-      .filter(t => t.metodo_pago === 'tarjeta')
+      .filter(t => t.tipo !== 'egreso' && t.metodo_pago === 'tarjeta')
+      .reduce((sum, t) => sum + parseFloat(t.monto || 0), 0);
+    
+    const egresos = transactions
+      .filter(t => t.tipo === 'egreso')
       .reduce((sum, t) => sum + parseFloat(t.monto || 0), 0);
     
     return {
       efectivo,
       tarjeta,
-      total: efectivo + tarjeta
+      egresos,
+      total: efectivo + tarjeta - egresos
     };
   }, [transactions]);
 
@@ -98,12 +103,23 @@ const TransactionHistoryModal = ({ isOpen, onClose, transactions, cajaInfo }) =>
               <p className="summary-value">{formatCurrency(totales.tarjeta)}</p>
             </div>
           </div>
+          {totales.egresos > 0 && (
+            <div className="summary-card">
+              <div className="summary-icon egreso">
+                <TrendingDown size={20} />
+              </div>
+              <div>
+                <p className="summary-label">Egresos</p>
+                <p className="summary-value egreso">- {formatCurrency(totales.egresos)}</p>
+              </div>
+            </div>
+          )}
           <div className="summary-card highlight">
             <div className="summary-icon total">
               <TrendingUp size={20} />
             </div>
             <div>
-              <p className="summary-label">Total</p>
+              <p className="summary-label">Total Neto</p>
               <p className="summary-value total">{formatCurrency(totales.total)}</p>
             </div>
           </div>
@@ -122,8 +138,10 @@ const TransactionHistoryModal = ({ isOpen, onClose, transactions, cajaInfo }) =>
                 <div className="transactions-list">
                   {dayTransactions.map((transaction, index) => (
                     <div key={transaction.id || index} className="transaction-item">
-                      <div className="transaction-icon">
-                        {transaction.metodo_pago === 'efectivo' ? (
+                      <div className={`transaction-icon ${transaction.tipo === 'egreso' ? 'egreso' : ''}`}>
+                        {transaction.tipo === 'egreso' ? (
+                          <TrendingDown size={20} />
+                        ) : transaction.metodo_pago === 'efectivo' ? (
                           <Banknote size={20} />
                         ) : (
                           <CreditCard size={20} />
@@ -132,11 +150,18 @@ const TransactionHistoryModal = ({ isOpen, onClose, transactions, cajaInfo }) =>
                       <div className="transaction-info">
                         <div className="transaction-main">
                           <span className="transaction-method">
-                            {transaction.metodo_pago === 'efectivo' ? '💵 Efectivo' : '💳 Tarjeta'}
+                            {transaction.tipo === 'egreso' 
+                              ? '📉 Egreso'
+                              : (transaction.metodo_pago === 'efectivo' ? '💵 Efectivo' : '💳 Tarjeta')}
                           </span>
                           <span className="transaction-time">{formatTime(transaction.created_at)}</span>
                         </div>
-                        {transaction.factura_detalle && (
+                        {transaction.tipo === 'egreso' && transaction.comentario ? (
+                          <div className="transaction-details">
+                            <span className="detail-label">Concepto:</span>
+                            <span className="detail-value">{transaction.comentario}</span>
+                          </div>
+                        ) : transaction.factura_detalle && (
                           <div className="transaction-details">
                             <span className="detail-label">Factura:</span>
                             <span className="detail-value">#{transaction.factura_detalle.numero_factura || transaction.factura}</span>
@@ -149,8 +174,8 @@ const TransactionHistoryModal = ({ isOpen, onClose, transactions, cajaInfo }) =>
                           </div>
                         )}
                       </div>
-                      <div className="transaction-amount">
-                        {formatCurrency(transaction.monto)}
+                      <div className={`transaction-amount ${transaction.tipo === 'egreso' ? 'egreso' : ''}`}>
+                        {transaction.tipo === 'egreso' ? '- ' : ''}{formatCurrency(transaction.monto)}
                       </div>
                     </div>
                   ))}

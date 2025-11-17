@@ -300,6 +300,25 @@
   white-space: nowrap;
 }
 
+.transaction-amount.egreso {
+  color: #dc2626;
+}
+
+.transaction-icon.egreso {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.summary-icon.egreso {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #dc2626;
+}
+
+.summary-value.egreso {
+  color: #dc2626;
+}
+
 /* Empty State */
 .empty-state {
   display: flex;

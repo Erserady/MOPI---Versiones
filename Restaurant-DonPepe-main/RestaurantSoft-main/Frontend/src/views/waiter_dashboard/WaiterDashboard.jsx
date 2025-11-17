@@ -11,6 +11,7 @@ import { useDataSync } from "../../hooks/useDataSync";
 import { getOrdenes } from "../../services/waiterService";
 import NotificationBell from "../../modules/waiter_module/components/NotificationBell";
 import { useReadyNotifications } from "../../modules/waiter_module/hooks/useReadyNotifications";
+import ActiveOrdersSection from "../../modules/waiter_module/components/ActiveOrdersSection";
 
 const WaiterDashboard = () => {
   const welcomeTitle = "Panel de Mesero";
@@ -67,6 +68,9 @@ const WaiterDashboard = () => {
             <TableSection ordenes={ordenesData}></TableSection>
           )}
           {currentSection === "menu" && <DishSection></DishSection>}
+          {currentSection === "orders" && (
+            <ActiveOrdersSection></ActiveOrdersSection>
+          )}
         </section>
 
         <Outlet></Outlet>

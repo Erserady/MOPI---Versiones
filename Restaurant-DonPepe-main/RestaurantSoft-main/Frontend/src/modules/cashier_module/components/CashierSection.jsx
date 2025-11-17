@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import "../styles/cashier_section.css";
 import { CreditCard, Receipt, DollarSign, Banknote, RefreshCw, AlertCircle } from "lucide-react";
 import CashierModal from "./Cashier.Modal";
 import TransactionDetailModal from "./TransactionDetailModal";
-import { getCajas, getPagos, abrirCaja, cerrarCaja } from "../../../services/cashierService";
+import ReportDateModal from "./ReportDateModal";
+import { getCajas, getPagos, abrirCaja, cerrarCaja, getPagosByDate, getPagosByMonth } from "../../../services/cashierService";
+import { generateDetailedCashReport } from "../utils/reportGenerator";
 import { useDataSync } from "../../../hooks/useDataSync";
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
@@ -16,6 +19,8 @@ const CashierSection = () => {
   const { notification, showNotification, hideNotification } = useNotification();
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   
   // Sincronizar datos de cajas y pagos cada 5 segundos
   const { data: cajas, refetch: refetchCajas } = useDataSync(getCajas, 5000);
@@ -101,6 +106,88 @@ const CashierSection = () => {
   const handleCloseDetailModal = () => {
     setIsDetailModalOpen(false);
     setSelectedTransaction(null);
+  };
+
+  const handleOpenReportModal = () => {
+    if (!pagos || pagos.length === 0) {
+      showNotification({
+        type: 'info',
+        title: 'Sin datos',
+        message: 'No hay transacciones registradas en el sistema.',
+        duration: 4000
+      });
+      return;
+    }
+    setIsReportModalOpen(true);
+  };
+
+  const handleGenerateReport = async ({ type, date, month, year }) => {
+    try {
+      setIsGeneratingReport(true);
+      setIsReportModalOpen(false);
+
+      let transactions = [];
+      let dateInfo = '';
+
+      // Obtener transacciones según el tipo de reporte
+      if (type === 'day') {
+        transactions = await getPagosByDate(date);
+        dateInfo = new Date(date).toLocaleDateString('es-NI', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        });
+      } else if (type === 'month') {
+        transactions = await getPagosByMonth(year, month);
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        dateInfo = `${monthNames[month - 1]} ${year}`;
+      }
+
+      if (transactions.length === 0) {
+        showNotification({
+          type: 'warning',
+          title: 'Sin transacciones',
+          message: `No hay transacciones para ${dateInfo}`,
+          duration: 4000
+        });
+        return;
+      }
+
+      const cajeroActual =
+        cajaActual?.responsable ||
+        cajaActual?.usuario?.nombre ||
+        cajaActual?.usuario?.username ||
+        cajaActual?.encargado ||
+        cajaActual?.creado_por ||
+        'N/D';
+
+      // Generar reporte detallado
+      const result = generateDetailedCashReport({
+        transactions,
+        cajaInfo: cajaActual,
+        reportType: type,
+        dateInfo,
+        cajeroName: cajeroActual
+      });
+
+      showNotification({
+        type: 'success',
+        title: 'Reporte generado',
+        message: `Se descargó ${result.fileName}`,
+        duration: 4000
+      });
+    } catch (err) {
+      console.error('Error generando reporte:', err);
+      showNotification({
+        type: 'error',
+        title: 'Error al generar reporte',
+        message: err.message || 'Intenta nuevamente o contacta al administrador.',
+        duration: 5000
+      });
+    } finally {
+      setIsGeneratingReport(false);
+    }
   };
 
   const handleSaveCashier = async (data) => {
@@ -308,9 +395,13 @@ const CashierSection = () => {
             <DollarSign size={20} />
             <span>Cerrar Caja</span>
           </button>
-          <button className="cashier-btn report shadow" disabled={loading}>
+          <button
+            className="cashier-btn report shadow"
+            onClick={handleOpenReportModal}
+            disabled={loading || isGeneratingReport}
+          >
             <Banknote size={20} />
-            <span>Reporte de Caja</span>
+            <span>{isGeneratingReport ? 'Generando...' : 'Reporte de Caja'}</span>
           </button>
         </CashierCard>
 
@@ -396,6 +487,13 @@ const CashierSection = () => {
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
         transaction={selectedTransaction}
+      />
+
+      <ReportDateModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onGenerate={handleGenerateReport}
+        availableData={pagos || []}
       />
     </section>
   );

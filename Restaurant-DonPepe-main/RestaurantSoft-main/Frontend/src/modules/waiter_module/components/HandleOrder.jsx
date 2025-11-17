@@ -1,14 +1,69 @@
 import { useImmer } from "use-immer";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import DishTable from "./DishTable";
-import { getPlatos, getCategorias } from "../../../services/adminMenuService";
-import { createOrden, getOrdenes, updateOrden } from "../../../services/waiterService";
+import { getPlatos } from "../../../services/adminMenuService";
+import {
+  createOrden,
+  getOrdenes,
+  updateOrden,
+} from "../../../services/waiterService";
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ChefHat } from "lucide-react";
 import { useLocation, useParams } from "react-router-dom";
 
 const ACTIVE_ORDER_STATUSES = ["pendiente", "en_preparacion", "listo"];
+
+// 🎯 NUEVO: emojis para subcategorías
+const categoryEmojis = {
+  "CARNE DE RES": "🥩",
+  "CARNE BLANCA": "🍗",
+  "CARNE DE CERDO": "🐖",
+  "CARNE DE MONTE Y ENSALADAS": "🥗",
+  MARISCOS: "🦐",
+  COCTELES: "🍤",
+  SOPAS: "🍲",
+  VARIADOS: "🍽",
+  "COCTAILS Y VINOS": "🍷",
+  "LICORES IMPORTADOS": "🥃",
+  "CERVEZA NACIONAL": "🍺",
+  "CERVEZA INTERNACIONAL": "🍺",
+  "RON NACIONAL": "🥃",
+  ENLATADOS: "🧃",
+  CIGARROS: "🚬",
+  EXTRAS: "✨",
+};
+
+// 🎯 NUEVO: estructura jerárquica
+const categoryHierarchy = [
+  {
+    main: "🍖 Carnes",
+    subcategories: [
+      "CARNE DE RES",
+      "CARNE BLANCA",
+      "CARNE DE CERDO",
+      "CARNE DE MONTE Y ENSALADAS",
+    ],
+  },
+  {
+    main: "🦐 Mariscos y Sopas",
+    subcategories: ["MARISCOS", "COCTELES", "SOPAS"],
+  },
+  {
+    main: "🍹 Bebidas Alcohólicas",
+    subcategories: [
+      "COCTAILS Y VINOS",
+      "LICORES IMPORTADOS",
+      "CERVEZA NACIONAL",
+      "CERVEZA INTERNACIONAL",
+      "RON NACIONAL",
+    ],
+  },
+  {
+    main: "🍽 Comidas / Variados",
+    subcategories: ["VARIADOS", "ENLATADOS", "CIGARROS", "EXTRAS"],
+  },
+];
 
 const buildIdentifierList = (values = []) =>
   Array.from(
@@ -43,7 +98,8 @@ const mapPedidoItemsToCartShape = (rawItems = []) => {
     return {
       dishId: item?.dishId || item?.id || `existing-${index}`,
       dishName: item?.dishName || item?.nombre || item?.name || "Platillo",
-      dishCategory: item?.dishCategory || item?.categoria || item?.category || null,
+      dishCategory:
+        item?.dishCategory || item?.categoria || item?.category || null,
       dishQuantity: quantity,
       unitPrice,
       subtotal: unitPrice * quantity,
@@ -101,8 +157,11 @@ const HandleOrder = ({
     "?";
 
   const [menu, setMenu] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [activeCategory, setActiveCategory] = useState(null);
+
+  // 🎯 NUEVO: estados de categoría principal y subcategoría
+  const [activeMainCategory, setActiveMainCategory] = useState(null);
+  const [activeSubcategory, setActiveSubcategory] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useImmer([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,7 +173,8 @@ const HandleOrder = ({
   );
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderError, setOrderError] = useState(null);
-  const { showNotification, notification } = useNotification();
+  const { showNotification, hideNotification, notification } =
+    useNotification();
 
   const mesaIdentifierList = useMemo(
     () =>
@@ -191,17 +251,12 @@ const HandleOrder = ({
     fetchExistingOrder();
   }, [fetchExistingOrder]);
 
+  // 🎯 NUEVO: cargar platos SIN categorías del backend
   useEffect(() => {
     const loadMenuData = async () => {
       try {
         setLoading(true);
-        const [catData, platosData] = await Promise.all([
-          getCategorias(),
-          getPlatos(),
-        ]);
-
-        setCategories(catData.map((c) => c.nombre));
-        setActiveCategory(catData[0]?.nombre || null);
+        const platosData = await getPlatos();
 
         const menuFormateado = platosData.map((plato) => ({
           id: plato.id,
@@ -213,6 +268,15 @@ const HandleOrder = ({
         }));
 
         setMenu(menuFormateado);
+
+        const firstCategory = menuFormateado[0]?.category;
+        if (firstCategory) {
+          const main = categoryHierarchy.find((x) =>
+            x.subcategories.includes(firstCategory)
+          );
+          setActiveMainCategory(main?.main || categoryHierarchy[0].main);
+          setActiveSubcategory(firstCategory);
+        }
       } catch (error) {
         console.error("Error cargando menu:", error);
       } finally {
@@ -223,7 +287,22 @@ const HandleOrder = ({
     loadMenuData();
   }, []);
 
-  const filteredMenu = menu.filter((dish) => dish.category === activeCategory);
+  const availableSubcategories =
+    menu?.map((item) => item.category).filter(Boolean) || [];
+
+  const activeMainCategoryData = categoryHierarchy.find(
+    (x) => x.main === activeMainCategory
+  );
+
+  const availableSubcategoriesForMain = activeMainCategoryData
+    ? activeMainCategoryData.subcategories.filter((sub) =>
+        availableSubcategories.includes(sub)
+      )
+    : [];
+
+  const filteredMenu = menu.filter(
+    (dish) => dish.category === activeSubcategory
+  );
 
   const handleAddToCart = (dish) => {
     setCartItems((draft) => {
@@ -306,7 +385,9 @@ const HandleOrder = ({
         const recordId = existingOrder.id || existingOrder.order_id;
 
         if (!recordId) {
-          throw new Error("No se encontro el identificador de la orden actual.");
+          throw new Error(
+            "No se encontro el identificador de la orden actual."
+          );
         }
 
         const updatePayload = {
@@ -323,7 +404,11 @@ const HandleOrder = ({
         showNotification({
           type: "success",
           title: "Pedido actualizado",
-          message: `Se agregaron ${newItemsPayload.length} platillos para la mesa ${displayNumber}. Total proyectado: C$${mergedTotal.toFixed(2)}`,
+          message: `Se agregaron ${
+            newItemsPayload.length
+          } platillos para la mesa ${displayNumber}. Total proyectado: C$${mergedTotal.toFixed(
+            2
+          )}`,
           duration: 5000,
         });
       } else {
@@ -344,7 +429,11 @@ const HandleOrder = ({
         showNotification({
           type: "success",
           title: "Orden confirmada",
-          message: `Orden #${response.order_id} creada para Mesa ${displayNumber}. Total: C$${newOrderTotal.toFixed(2)}`,
+          message: `Orden #${
+            response.order_id
+          } creada para Mesa ${displayNumber}. Total: C$${newOrderTotal.toFixed(
+            2
+          )}`,
           duration: 5000,
         });
       }
@@ -355,8 +444,11 @@ const HandleOrder = ({
       console.error("Error al confirmar orden:", error);
       showNotification({
         type: "error",
-        title: existingOrder ? "Error al actualizar orden" : "Error al crear orden",
-        message: error.message || "No se pudo procesar la orden. Intenta nuevamente.",
+        title: existingOrder
+          ? "Error al actualizar orden"
+          : "Error al crear orden",
+        message:
+          error.message || "No se pudo procesar la orden. Intenta nuevamente.",
         duration: 5000,
       });
     } finally {
@@ -378,7 +470,7 @@ const HandleOrder = ({
     : "Confirmar orden";
 
   return (
-    <>
+    <section style={{ padding: "1rem" }}>
       <h3>
         Mesa {displayNumber || "?"} | Pedido actual: C$
         {existingTotal.toFixed(2)}
@@ -410,41 +502,82 @@ const HandleOrder = ({
             </p>
           )}
           {orderError && (
-            <p style={{ color: "#b91c1c", marginTop: "0.5rem" }}>{orderError}</p>
+            <p style={{ color: "#b91c1c", marginTop: "0.5rem" }}>
+              {orderError}
+            </p>
           )}
         </div>
       </section>
 
       <div className="custom-order-container">
         <h3>Selecciona la categoria</h3>
+
+        {/* 🎯 BOTONES DE CATEGORÍAS PRINCIPALES */}
+        <h3>Categorías Principales</h3>
         <div className="categories-menu">
-          {categories.map((category) => (
+          {categoryHierarchy.map((cat) => (
             <button
-              key={category}
+              key={cat.main}
               className={`category-btn ${
-                activeCategory === category ? "active" : ""
+                activeMainCategory === cat.main ? "active" : ""
               }`}
-              onClick={() => setActiveCategory(category)}
+              onClick={() => {
+                setActiveMainCategory(cat.main);
+                const first = cat.subcategories.find((sub) =>
+                  availableSubcategories.includes(sub)
+                );
+                if (first) setActiveSubcategory(first);
+              }}
             >
-              {category}
+              {cat.main}
             </button>
           ))}
         </div>
+
+        {/* 🎯 BOTONES DE SUBCATEGORÍAS */}
+        <h3>Subcategorías</h3>
+        <div className="categories-menu">
+          {availableSubcategoriesForMain.map((sub) => (
+            <button
+              key={sub}
+              className={`category-btn ${
+                activeSubcategory === sub ? "active" : ""
+              }`}
+              onClick={() => setActiveSubcategory(sub)}
+            >
+              {categoryEmojis[sub] || "🍽"} {sub}
+            </button>
+          ))}
+        </div>
+
         <p className="category-tip">Tip: Desliza para cambiar de categoria.</p>
       </div>
 
       <section className="category-dishes">
-        <h3 className="category-title">Categoria: {activeCategory}</h3>
-        <div className="table-container">
+        <h2 className="category-title" style={{textAlign: 'center', color: '#6366f1', margin: '1.5rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+          <span>Categoria:</span>
+          <ChefHat size={28} style={{color: '#6366f1'}} />
+          <span style={{borderBottom: '3px solid #6366f1', paddingBottom: '2px'}}>{activeSubcategory}</span>
+        </h2>
+        <div className="dishes-grid">
           {filteredMenu.length > 0 ? (
-            <DishTable
-              utility="addorder"
-              data={filteredMenu}
-              onAdd={handleAddToCart}
-              headers={["Nombre", "Precio", "Agregar"]}
-            />
+            filteredMenu.map((dish) => (
+              <article key={dish.id} className="dish-card-order">
+                <div className="dish-card-content">
+                  <h3 className="dish-card-name">{dish.name}</h3>
+                  <p className="dish-card-price">C${dish.price.toFixed(2)}</p>
+                </div>
+                <button
+                  className="dish-card-btn"
+                  onClick={() => handleAddToCart(dish)}
+                  disabled={!dish.available}
+                >
+                  Agregar
+                </button>
+              </article>
+            ))
           ) : (
-            <p className="no-dishes">No hay platos en esta categoria.</p>
+            <p className="no-dishes" style={{gridColumn: '1 / -1'}}>No hay platos en esta categoria.</p>
           )}
         </div>
       </section>
@@ -482,10 +615,10 @@ const HandleOrder = ({
           type={notification.type}
           title={notification.title}
           message={notification.message}
-          onClose={notification.onClose}
+          onClose={hideNotification}
         />
       )}
-    </>
+    </section>
   );
 };
 

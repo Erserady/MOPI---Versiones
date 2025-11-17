@@ -172,3 +172,28 @@ export async function getPlatos() {
   if (!res.ok) throw new Error('Error obteniendo platos');
   return res.json();
 }
+
+// Obtener pagos por rango de fechas
+export async function getPagosByDateRange(startDate, endDate) {
+  const params = new URLSearchParams();
+  if (startDate) params.append('fecha_inicio', startDate);
+  if (endDate) params.append('fecha_fin', endDate);
+  
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/pagos/?${params.toString()}`);
+  if (!res.ok) throw new Error('Error obteniendo pagos por fecha');
+  return res.json();
+}
+
+// Obtener pagos de un día específico
+export async function getPagosByDate(date) {
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/pagos/?fecha=${date}`);
+  if (!res.ok) throw new Error('Error obteniendo pagos del día');
+  return res.json();
+}
+
+// Obtener pagos de un mes específico
+export async function getPagosByMonth(year, month) {
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/pagos/?year=${year}&month=${month}`);
+  if (!res.ok) throw new Error('Error obteniendo pagos del mes');
+  return res.json();
+}

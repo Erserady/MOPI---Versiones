@@ -6,6 +6,7 @@ export const cookNavigationBar = [
 export const waiterNavigationBar = [
   { title: "Mesas", section: "tables" },
   { title: "Menú Diario", section: "menu" },
+  { title: "Pedidos Activos", section: "orders" },
 ];
 
 export const cashierNavigationBar = [

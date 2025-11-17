@@ -1,12 +1,13 @@
 .dish-table {
-  width: 100%;
-
+  width: 100% !important;
   background: white;
   border-radius: 5px;
-  overflow: hidden;
+  max-height: 400px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid #000000;
+  table-layout: fixed;
 }
+
 .dish-table th,
 .dish-table td {
   padding: 0.8rem 1rem;
@@ -100,4 +101,23 @@
   display: flex;
   gap: 0.5rem;
   justify-content: center;
+}
+
+.dish-table thead,
+.dish-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.dish-table tbody {
+  display: block;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.dish-table th,
+.dish-table td {
+  white-space: normal;
 }

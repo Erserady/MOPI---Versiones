@@ -74,6 +74,37 @@ Deberías ver 3 contenedores en estado "Up":
 
 ---
 
+## 🌐 Acceso desde Otros Dispositivos en la Red
+
+Por defecto, la aplicación solo es accesible desde tu propia máquina. Si quieres que otros dispositivos en tu misma red (WiFi/LAN) puedan acceder:
+
+### Opción Rápida: Script Automático
+
+```bash
+# Ejecuta como Administrador
+.\configurar-red-local.ps1
+```
+
+Este script:
+- ✅ Detecta automáticamente tu IP local
+- ✅ Actualiza `docker-compose.yml` con tu IP
+- ✅ Configura el firewall de Windows
+- ✅ Te muestra las URLs para acceder desde otros dispositivos
+
+### Opción Manual
+
+1. Encuentra tu IP local: `ipconfig` (busca la "Dirección IPv4")
+2. Edita `docker-compose.yml` línea 55:
+   ```yaml
+   VITE_API_URL: http://TU_IP:8000  # Ejemplo: http://192.168.1.100:8000
+   ```
+3. Reconstruye: `docker compose up --build -d`
+4. Configura el firewall (ver `GUIA_ACCESO_RED_LOCAL.md`)
+
+📖 **Para instrucciones detalladas y solución de problemas, consulta:** `GUIA_ACCESO_RED_LOCAL.md`
+
+---
+
 ## 📝 Comandos Útiles
 
 ### Ver logs en tiempo real

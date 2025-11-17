@@ -1,0 +1,274 @@
+[
+  {
+    "model": "mesero.table",
+    "pk": 1,
+    "fields": {
+      "mesa_id": "1",
+      "mesa": "Mesa 1",
+      "ubicacion": null,
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": 4
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 2,
+    "fields": {
+      "mesa_id": "2",
+      "mesa": "Mesa 2",
+      "ubicacion": null,
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 3,
+    "fields": {
+      "mesa_id": "3",
+      "mesa": "Mesa 3",
+      "ubicacion": null,
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 4,
+    "fields": {
+      "mesa_id": "4",
+      "mesa": "Mesa 4",
+      "ubicacion": null,
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 5,
+    "fields": {
+      "mesa_id": "5",
+      "mesa": "Mesa 5",
+      "ubicacion": null,
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 9,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$Jpndrkm7QW5nyxEKu9d7ym$tq9Z+vCQm6FhJ70h0a4DKbWuinqIC+h9amqt5MaixrA=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "administrador",
+      "first_name": "Administrador",
+      "last_name": "",
+      "email": "admin@donpepe.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:16.329Z",
+      "usuario": "administrador",
+      "remember_me": false,
+      "role": "admin",
+      "pin": "0000",
+      "color": "#c0392b",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$XRmMzwCostFlSK2asJltEG$to5EaM2tk9oOOM4Q+K+LXIjJevqpbZt6xDj1d9WMxGs=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "Restaurante",
+      "first_name": "Sistema",
+      "last_name": "Restaurante",
+      "email": "sistema@donpepe.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:12.853Z",
+      "usuario": "Restaurante",
+      "remember_me": false,
+      "role": "admin",
+      "pin": "",
+      "color": "#1b7b3f",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 8,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$QznNjxYSD0Ox9BicnRxUMB$xg+N1b0p053TKQPCvhixWORTvIWTn5rdbwxGVoo8Mqs=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "roberto.diaz",
+      "first_name": "Roberto",
+      "last_name": "Díaz",
+      "email": "roberto.diaz@donpepe.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:15.903Z",
+      "usuario": "roberto.diaz",
+      "remember_me": false,
+      "role": "cashier",
+      "pin": "9999",
+      "color": "#34495e",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$60xsaKJfYekR8faKVzlXWd$zlgLb6SRUioJK77Ab71E2P1bQIOuAMZLBQRKmYuBQ74=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "ana.torres",
+      "first_name": "Ana",
+      "last_name": "Torres",
+      "email": "ana.torres@donpepe.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:13.711Z",
+      "usuario": "ana.torres",
+      "remember_me": false,
+      "role": "cook",
+      "pin": "5678",
+      "color": "#9b59b6",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$aHsS1ocYtPT65KxZ0zfl5o$uqp/m5tK19GFL6A/8g5N6AJjJIZTOYAfFcSfsUIY4rQ=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "carlos.mendez",
+      "first_name": "Carlos",
+      "last_name": "Méndez",
+      "email": "carlos.mendez@donpepe.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:13.285Z",
+      "usuario": "carlos.mendez",
+      "remember_me": false,
+      "role": "cook",
+      "pin": "1234",
+      "color": "#e74c3c",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 4,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$7gGicwxslcjJSeddvYfQUo$RFXVADcr7fMjqLS6NfebI78Ux83LyEn0tcfVwPhI5Bs=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "juan.perez",
+      "first_name": "Juan",
+      "last_name": "Pérez",
+      "email": "juan.perez@donpepe.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:14.146Z",
+      "usuario": "juan.perez",
+      "remember_me": false,
+      "role": "waiter",
+      "pin": "1111",
+      "color": "#3498db",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 6,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$kqku3lKnF7T25Z9JzNDI4E$sKGkkSrgdX4a8j2lMr5DfYXrG/sTzRKXW6F0iT5CrZ0=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "luis.ramirez",
+      "first_name": "Luis",
+      "last_name": "Ramírez",
+      "email": "luis.ramirez@donpepe.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:15.049Z",
+      "usuario": "luis.ramirez",
+      "remember_me": false,
+      "role": "waiter",
+      "pin": "3333",
+      "color": "#f39c12",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 5,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$pUxa01dmu5CxsdXFs9Ri7p$f2Gv/jJc9lRl9blI5xO5qNadhGT7U5SZINJMtRmfN3w=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "maria.garcia",
+      "first_name": "María",
+      "last_name": "García",
+      "email": "maria.garcia@donpepe.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:14.618Z",
+      "usuario": "maria.garcia",
+      "remember_me": false,
+      "role": "waiter",
+      "pin": "2222",
+      "color": "#2ecc71",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 7,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$bdZGQIMT1IXSextoy6BQZm$XGdzcYrznIpRhfEpdlQyfJSn8xpsDSbW5x5m9pl85M8=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "sofia.lopez",
+      "first_name": "Sofía",
+      "last_name": "López",
+      "email": "sofia.lopez@donpepe.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-11-14T20:03:15.478Z",
+      "usuario": "sofia.lopez",
+      "remember_me": false,
+      "role": "waiter",
+      "pin": "4444",
+      "color": "#1abc9c",
+      "groups": [],
+      "user_permissions": []
+    }
+  }
+]

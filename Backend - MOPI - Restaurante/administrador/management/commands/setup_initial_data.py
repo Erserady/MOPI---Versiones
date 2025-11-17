@@ -3,7 +3,7 @@ Comando para cargar datos iniciales de forma segura.
 Solo carga datos si las tablas están vacías.
 """
 from django.core.management.base import BaseCommand
-from mesero.models import Mesa
+from mesero.models import Table
 from cocina.models import Platillo
 from administrador.models import Personal
 from caja.models import Caja
@@ -16,7 +16,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING('🔍 Verificando datos existentes...'))
         
         # Verificar si ya hay datos
-        if Mesa.objects.exists() or Platillo.objects.exists():
+        if Table.objects.exists() or Platillo.objects.exists():
             self.stdout.write(
                 self.style.SUCCESS('✅ Ya existen datos en la base de datos. No se cargan datos de ejemplo.')
             )

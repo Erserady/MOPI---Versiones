@@ -1,5 +1,3701 @@
 [
   {
+    "model": "administrador.categoriamenu",
+    "pk": 1,
+    "fields": {
+      "nombre": "CARNE DE RES",
+      "descripcion": "Platos de carne de res",
+      "orden": 1,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 2,
+    "fields": {
+      "nombre": "CARNE BLANCA",
+      "descripcion": "Platos de pollo y aves",
+      "orden": 2,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 3,
+    "fields": {
+      "nombre": "CARNE DE CERDO",
+      "descripcion": "Platos de cerdo",
+      "orden": 3,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 4,
+    "fields": {
+      "nombre": "VARIADOS",
+      "descripcion": "Entradas y antojitos",
+      "orden": 4,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 5,
+    "fields": {
+      "nombre": "MARISCOS",
+      "descripcion": "Platos del mar",
+      "orden": 5,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 6,
+    "fields": {
+      "nombre": "CARNE DE MONTE Y ENSALADAS",
+      "descripcion": "Carne de monte y ensaladas (según ocasión)",
+      "orden": 6,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 7,
+    "fields": {
+      "nombre": "COCTELES",
+      "descripcion": "Cocteles y ceviches",
+      "orden": 7,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 8,
+    "fields": {
+      "nombre": "SOPAS",
+      "descripcion": "Sopas y consomés",
+      "orden": 8,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 9,
+    "fields": {
+      "nombre": "ENLATADOS Y DESECHABLES",
+      "descripcion": "Bebidas enlatadas y desechables",
+      "orden": 9,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 10,
+    "fields": {
+      "nombre": "LICORES IMPORTADOS",
+      "descripcion": "Licores importados",
+      "orden": 10,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 11,
+    "fields": {
+      "nombre": "CERVEZA NACIONAL",
+      "descripcion": "Cervezas nacionales",
+      "orden": 11,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 12,
+    "fields": {
+      "nombre": "CERVEZA INTERNACIONAL",
+      "descripcion": "Cervezas internacionales",
+      "orden": 12,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 13,
+    "fields": {
+      "nombre": "CIGARROS",
+      "descripcion": "Selecciones de cigarros nacionales e importados",
+      "orden": 13,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 14,
+    "fields": {
+      "nombre": "RON NACIONAL",
+      "descripcion": "Variedad de rones nacionales y Flor de Caña",
+      "orden": 14,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 15,
+    "fields": {
+      "nombre": "COCTAILS Y VINOS",
+      "descripcion": "Cocteles clásicos y selección de vinos",
+      "orden": 15,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.categoriamenu",
+    "pk": 16,
+    "fields": {
+      "nombre": "EXTRAS",
+      "descripcion": "Acompañamientos y adicionales para tus platos",
+      "orden": 16,
+      "activa": true
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 1,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Lomo de costilla asada",
+      "descripcion": "Delicioso Lomo de costilla asada",
+      "precio": "410.00",
+      "precio_con_impuesto": "483.80",
+      "disponible": true,
+      "ingredientes": "Lomo de costilla, especias",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 1
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 2,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Lomo de costilla a la plancha",
+      "descripcion": "Delicioso Lomo de costilla a la plancha",
+      "precio": "440.00",
+      "precio_con_impuesto": "519.20",
+      "disponible": true,
+      "ingredientes": "Lomo de costilla",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 2
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 3,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Carne a la plancha",
+      "descripcion": "Delicioso Carne a la plancha",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Carne de res",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 3
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 4,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Filete de tacón alto",
+      "descripcion": "Delicioso Filete de tacón alto",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Filete de res",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 4
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 5,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Filete miñón",
+      "descripcion": "Delicioso Filete miñón",
+      "precio": "440.00",
+      "precio_con_impuesto": "519.20",
+      "disponible": true,
+      "ingredientes": "Filete miñón",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 5
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 6,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Filete criollo",
+      "descripcion": "Delicioso Filete criollo",
+      "precio": "370.00",
+      "precio_con_impuesto": "436.60",
+      "disponible": true,
+      "ingredientes": "Filete de res, salsa criolla",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 6
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 7,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Filete jalapeño",
+      "descripcion": "Delicioso Filete jalapeño",
+      "precio": "390.00",
+      "precio_con_impuesto": "460.20",
+      "disponible": true,
+      "ingredientes": "Filete de res, jalapeños",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 7
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 8,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Filete vaquero",
+      "descripcion": "Delicioso Filete vaquero",
+      "precio": "390.00",
+      "precio_con_impuesto": "460.20",
+      "disponible": true,
+      "ingredientes": "Filete de res estilo vaquero",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 8
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 9,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Churrasco",
+      "descripcion": "Delicioso Churrasco",
+      "precio": "390.00",
+      "precio_con_impuesto": "460.20",
+      "disponible": true,
+      "ingredientes": "Churrasco de res",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 9
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 10,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Filete Mi Rancho",
+      "descripcion": "Delicioso Filete Mi Rancho",
+      "precio": "390.00",
+      "precio_con_impuesto": "460.20",
+      "disponible": true,
+      "ingredientes": "Filete especial de la casa",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 10
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 11,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Puyaso a la parrilla",
+      "descripcion": "Delicioso Puyaso a la parrilla",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Puyaso a la parrilla",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 11
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 12,
+    "fields": {
+      "categoria": 1,
+      "nombre": "New York asado",
+      "descripcion": "Delicioso New York asado",
+      "precio": "420.00",
+      "precio_con_impuesto": "495.60",
+      "disponible": true,
+      "ingredientes": "Corte New York",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 12
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 13,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Filete de res a la pimienta",
+      "descripcion": "Delicioso Filete de res a la pimienta",
+      "precio": "380.00",
+      "precio_con_impuesto": "448.40",
+      "disponible": true,
+      "ingredientes": "Filete de res, pimienta",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 13
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 14,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Bistec mixto",
+      "descripcion": "Delicioso Bistec mixto",
+      "precio": "370.00",
+      "precio_con_impuesto": "436.60",
+      "disponible": true,
+      "ingredientes": "Bistec mixto",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 14
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 15,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Bistec encebollado",
+      "descripcion": "Delicioso Bistec encebollado",
+      "precio": "370.00",
+      "precio_con_impuesto": "436.60",
+      "disponible": true,
+      "ingredientes": "Bistec con cebolla",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 15
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 16,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Bistec entomatado",
+      "descripcion": "Delicioso Bistec entomatado",
+      "precio": "370.00",
+      "precio_con_impuesto": "436.60",
+      "disponible": true,
+      "ingredientes": "Bistec con tomate",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 16
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 17,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Corazón asado",
+      "descripcion": "Delicioso Corazón asado",
+      "precio": "300.00",
+      "precio_con_impuesto": "354.00",
+      "disponible": true,
+      "ingredientes": "Corazón de res asado",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 17
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 18,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Gonce asado",
+      "descripcion": "Delicioso Gonce asado",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Gonce asado",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 18
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 19,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Lengua en salsa",
+      "descripcion": "Delicioso Lengua en salsa",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Lengua de res en salsa",
+      "tiempo_preparacion": 40,
+      "imagen": "",
+      "orden": 19
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 20,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Lengua empanizada",
+      "descripcion": "Delicioso Lengua empanizada",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Lengua empanizada",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 20
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 21,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Brocheta de res",
+      "descripcion": "Delicioso Brocheta de res",
+      "precio": "370.00",
+      "precio_con_impuesto": "436.60",
+      "disponible": true,
+      "ingredientes": "Brocheta de res",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 21
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 22,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Brocheta mixta",
+      "descripcion": "Delicioso Brocheta mixta",
+      "precio": "370.00",
+      "precio_con_impuesto": "436.60",
+      "disponible": true,
+      "ingredientes": "Brocheta mixta",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 22
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 23,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Huevo de toro a la plancha",
+      "descripcion": "Delicioso Huevo de toro a la plancha",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Huevo de toro",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 23
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 24,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Huevo de toro en salsa",
+      "descripcion": "Delicioso Huevo de toro en salsa",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Huevo de toro en salsa",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 24
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 25,
+    "fields": {
+      "categoria": 1,
+      "nombre": "Huevo de toro asado",
+      "descripcion": "Delicioso Huevo de toro asado",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Huevo de toro asado",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 25
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 26,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Filete de pollo jalapeño",
+      "descripcion": "Delicioso Filete de pollo jalapeño",
+      "precio": "380.00",
+      "precio_con_impuesto": "448.40",
+      "disponible": true,
+      "ingredientes": "Filete de pollo, jalapeños",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 26
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 27,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Filete de pollo a la plancha",
+      "descripcion": "Delicioso Filete de pollo a la plancha",
+      "precio": "380.00",
+      "precio_con_impuesto": "448.40",
+      "disponible": true,
+      "ingredientes": "Filete de pollo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 27
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 28,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Filete de pollo en salsa de hongos",
+      "descripcion": "Delicioso Filete de pollo en salsa de hongos",
+      "precio": "380.00",
+      "precio_con_impuesto": "448.40",
+      "disponible": true,
+      "ingredientes": "Filete de pollo, hongos",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 28
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 29,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Filete de pollo a la antigua",
+      "descripcion": "Delicioso Filete de pollo a la antigua",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Filete de pollo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 29
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 30,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Filete de pollo parmesano",
+      "descripcion": "Delicioso Filete de pollo parmesano",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Filete de pollo, queso parmesano",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 30
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 31,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Filete de pollo al ajillo",
+      "descripcion": "Delicioso Filete de pollo al ajillo",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Filete de pollo, ajo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 31
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 32,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Filete de pollo a la naranja",
+      "descripcion": "Delicioso Filete de pollo a la naranja",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Filete de pollo, naranja",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 32
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 33,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Filete de pollo empanizado",
+      "descripcion": "Delicioso Filete de pollo empanizado",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Filete de pollo empanizado",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 33
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 34,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Cordon bleu de pollo",
+      "descripcion": "Delicioso Cordon bleu de pollo",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Pollo, jamón, queso",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 34
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 35,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Ensalada de pollo",
+      "descripcion": "Delicioso Ensalada de pollo",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Pollo, lechuga, vegetales",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 35
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 36,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Brocheta de pollo",
+      "descripcion": "Delicioso Brocheta de pollo",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Brocheta de pollo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 36
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 37,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Pollo al vino",
+      "descripcion": "Delicioso Pollo al vino",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Pollo, vino",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 37
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 38,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Pollo a la plancha",
+      "descripcion": "Delicioso Pollo a la plancha",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Pollo a la plancha",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 38
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 39,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Pollo empanizado",
+      "descripcion": "Delicioso Pollo empanizado",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Pollo empanizado",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 39
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 40,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Medio pollo asado",
+      "descripcion": "Delicioso Medio pollo asado",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Medio pollo asado",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 40
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 41,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Cuarto de pollo asado",
+      "descripcion": "Delicioso Cuarto de pollo asado",
+      "precio": "260.00",
+      "precio_con_impuesto": "306.80",
+      "disponible": true,
+      "ingredientes": "Cuarto de pollo asado",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 41
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 42,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Fajita de pollo empanizado",
+      "descripcion": "Delicioso Fajita de pollo empanizado",
+      "precio": "300.00",
+      "precio_con_impuesto": "354.00",
+      "disponible": true,
+      "ingredientes": "Fajita de pollo empanizado",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 42
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 43,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Fajita de pollo a la mexicana",
+      "descripcion": "Delicioso Fajita de pollo a la mexicana",
+      "precio": "300.00",
+      "precio_con_impuesto": "354.00",
+      "disponible": true,
+      "ingredientes": "Fajita de pollo, vegetales",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 43
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 44,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Bombones de pollo",
+      "descripcion": "Delicioso Bombones de pollo",
+      "precio": "280.00",
+      "precio_con_impuesto": "330.40",
+      "disponible": true,
+      "ingredientes": "Bombones de pollo",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 44
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 45,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Pechuga rellena",
+      "descripcion": "Delicioso Pechuga rellena",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Pechuga de pollo rellena",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 45
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 46,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Canasta de pollo",
+      "descripcion": "Delicioso Canasta de pollo",
+      "precio": "300.00",
+      "precio_con_impuesto": "354.00",
+      "disponible": true,
+      "ingredientes": "Canasta de pollo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 46
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 47,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Alitas picantes",
+      "descripcion": "Delicioso Alitas picantes",
+      "precio": "290.00",
+      "precio_con_impuesto": "342.20",
+      "disponible": true,
+      "ingredientes": "Alitas picantes",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 47
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 48,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Alitas a la barbacoa",
+      "descripcion": "Delicioso Alitas a la barbacoa",
+      "precio": "300.00",
+      "precio_con_impuesto": "354.00",
+      "disponible": true,
+      "ingredientes": "Alitas con salsa barbacoa",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 48
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 49,
+    "fields": {
+      "categoria": 2,
+      "nombre": "Pasta Alfredo de pollo",
+      "descripcion": "Delicioso Pasta Alfredo de pollo",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Pasta, pollo, salsa Alfredo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 49
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 50,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Cerdo a la plancha",
+      "descripcion": "Delicioso Cerdo a la plancha",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Cerdo a la plancha",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 50
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 51,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Filete de cerdo al ajillo",
+      "descripcion": "Delicioso Filete de cerdo al ajillo",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Filete de cerdo, ajo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 51
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 52,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Filete de cerdo empanizado",
+      "descripcion": "Delicioso Filete de cerdo empanizado",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Filete de cerdo empanizado",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 52
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 53,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Filete de cerdo agridulce",
+      "descripcion": "Delicioso Filete de cerdo agridulce",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Filete de cerdo, salsa agridulce",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 53
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 54,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Filete de cerdo jalapeño",
+      "descripcion": "Delicioso Filete de cerdo jalapeño",
+      "precio": "360.00",
+      "precio_con_impuesto": "424.80",
+      "disponible": true,
+      "ingredientes": "Filete de cerdo, jalapeños",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 54
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 55,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Filete de cerdo criollo",
+      "descripcion": "Delicioso Filete de cerdo criollo",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Filete de cerdo, salsa criolla",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 55
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 56,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Filete de cerdo asado",
+      "descripcion": "Delicioso Filete de cerdo asado",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Filete de cerdo asado",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 56
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 57,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Brocheta de cerdo",
+      "descripcion": "Delicioso Brocheta de cerdo",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Brocheta de cerdo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 57
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 58,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Medallones de cerdo",
+      "descripcion": "Delicioso Medallones de cerdo",
+      "precio": "380.00",
+      "precio_con_impuesto": "448.40",
+      "disponible": true,
+      "ingredientes": "Medallones de cerdo",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 58
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 59,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Costilla de cerdo asada",
+      "descripcion": "Delicioso Costilla de cerdo asada",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Costilla de cerdo asada",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 59
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 60,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Costilla de cerdo frita",
+      "descripcion": "Delicioso Costilla de cerdo frita",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Costilla de cerdo frita",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 60
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 61,
+    "fields": {
+      "categoria": 3,
+      "nombre": "Costilla de cerdo a la barbacoa",
+      "descripcion": "Delicioso Costilla de cerdo a la barbacoa",
+      "precio": "350.00",
+      "precio_con_impuesto": "413.00",
+      "disponible": true,
+      "ingredientes": "Costilla de cerdo, salsa barbacoa",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 61
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 91,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Variado especial Mi Rancho",
+      "descripcion": "Delicioso Variado especial Mi Rancho",
+      "precio": "1200.00",
+      "precio_con_impuesto": "1416.00",
+      "disponible": true,
+      "ingredientes": "Variado especial de la casa",
+      "tiempo_preparacion": 45,
+      "imagen": "",
+      "orden": 91
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 92,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Variado especial Don Pepe",
+      "descripcion": "Delicioso Variado especial Don Pepe",
+      "precio": "850.00",
+      "precio_con_impuesto": "1003.00",
+      "disponible": true,
+      "ingredientes": "Variado especial",
+      "tiempo_preparacion": 40,
+      "imagen": "",
+      "orden": 92
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 93,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Variado grande",
+      "descripcion": "Delicioso Variado grande",
+      "precio": "600.00",
+      "precio_con_impuesto": "708.00",
+      "disponible": true,
+      "ingredientes": "Variado grande",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 93
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 94,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Variado pequeño",
+      "descripcion": "Delicioso Variado pequeño",
+      "precio": "520.00",
+      "precio_con_impuesto": "613.60",
+      "disponible": true,
+      "ingredientes": "Variado pequeño",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 94
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 95,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Tostones con queso",
+      "descripcion": "Delicioso Tostones con queso",
+      "precio": "200.00",
+      "precio_con_impuesto": "236.00",
+      "disponible": true,
+      "ingredientes": "Tostones, queso",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 95
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 96,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Tostones con bolitas de carne",
+      "descripcion": "Delicioso Tostones con bolitas de carne",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Tostones, bolitas de carne",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 96
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 97,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Tostones con salchichón",
+      "descripcion": "Delicioso Tostones con salchichón",
+      "precio": "200.00",
+      "precio_con_impuesto": "236.00",
+      "disponible": true,
+      "ingredientes": "Tostones, salchichón",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 97
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 98,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Tostones mixtos",
+      "descripcion": "Delicioso Tostones mixtos",
+      "precio": "240.00",
+      "precio_con_impuesto": "283.20",
+      "disponible": true,
+      "ingredientes": "Tostones mixtos",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 98
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 99,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Aros de cebolla",
+      "descripcion": "Delicioso Aros de cebolla",
+      "precio": "95.00",
+      "precio_con_impuesto": "112.10",
+      "disponible": true,
+      "ingredientes": "Aros de cebolla",
+      "tiempo_preparacion": 10,
+      "imagen": "",
+      "orden": 99
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 100,
+    "fields": {
+      "categoria": 4,
+      "nombre": "Papas fritas",
+      "descripcion": "Delicioso Papas fritas",
+      "precio": "80.00",
+      "precio_con_impuesto": "94.40",
+      "disponible": true,
+      "ingredientes": "Papas fritas",
+      "tiempo_preparacion": 10,
+      "imagen": "",
+      "orden": 100
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 62,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pescado frito",
+      "descripcion": "Delicioso Pescado frito",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Pescado frito",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 62
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 63,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pescado a la diabla",
+      "descripcion": "Delicioso Pescado a la diabla",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Pescado, salsa diabla",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 63
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 64,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pescado a lo macho con espinas",
+      "descripcion": "Delicioso Pescado a lo macho con espinas",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Pescado a lo macho",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 64
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 65,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pescado a lo macho deshuesado",
+      "descripcion": "Delicioso Pescado a lo macho deshuesado",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Pescado deshuesado",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 65
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 66,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pargo rojo",
+      "descripcion": "Delicioso Pargo rojo",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Pargo rojo por libra",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 66
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 67,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pescado al vapor",
+      "descripcion": "Delicioso Pescado al vapor",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Pescado al vapor",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 67
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 68,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pescado a la Tipitapa",
+      "descripcion": "Delicioso Pescado a la Tipitapa",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Pescado estilo Tipitapa",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 68
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 69,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pescado relleno",
+      "descripcion": "Delicioso Pescado relleno",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Pescado relleno",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 69
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 70,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pescado asado",
+      "descripcion": "Delicioso Pescado asado",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Pescado asado",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 70
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 71,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Filete de pescado al vapor",
+      "descripcion": "Delicioso Filete de pescado al vapor",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Filete de pescado al vapor",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 71
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 72,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Filete de pescado a la plancha",
+      "descripcion": "Delicioso Filete de pescado a la plancha",
+      "precio": "350.00",
+      "precio_con_impuesto": "413.00",
+      "disponible": true,
+      "ingredientes": "Filete de pescado a la plancha",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 72
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 73,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Filete de pescado al ajillo",
+      "descripcion": "Delicioso Filete de pescado al ajillo",
+      "precio": "350.00",
+      "precio_con_impuesto": "413.00",
+      "disponible": true,
+      "ingredientes": "Filete de pescado, ajo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 73
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 74,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Filete de pescado empanizado",
+      "descripcion": "Delicioso Filete de pescado empanizado",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Filete de pescado empanizado",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 74
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 75,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Fajitas de pescado",
+      "descripcion": "Delicioso Fajitas de pescado",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Fajitas de pescado",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 75
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 76,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones empanizados",
+      "descripcion": "Delicioso Camarones empanizados",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones empanizados",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 76
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 77,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones rellenos",
+      "descripcion": "Delicioso Camarones rellenos",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones rellenos",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 77
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 78,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones al ajillo",
+      "descripcion": "Delicioso Camarones al ajillo",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones, ajo",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 78
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 79,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones al vino",
+      "descripcion": "Delicioso Camarones al vino",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones, vino",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 79
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 80,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones a la plancha",
+      "descripcion": "Delicioso Camarones a la plancha",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones a la plancha",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 80
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 81,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones termidor",
+      "descripcion": "Delicioso Camarones termidor",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones termidor",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 81
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 82,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones a la diabla",
+      "descripcion": "Delicioso Camarones a la diabla",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones, salsa diabla",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 82
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 83,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones Singapur",
+      "descripcion": "Delicioso Camarones Singapur",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones estilo Singapur",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 83
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 84,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones a la mantequilla",
+      "descripcion": "Delicioso Camarones a la mantequilla",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones, mantequilla",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 84
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 85,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones en salsa jalapeña",
+      "descripcion": "Delicioso Camarones en salsa jalapeña",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones, salsa jalapeña",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 85
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 86,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Camarones rancheros",
+      "descripcion": "Delicioso Camarones rancheros",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Camarones rancheros",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 86
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 87,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Ensalada de camarones",
+      "descripcion": "Delicioso Ensalada de camarones",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Ensalada de camarones",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 87
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 88,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Arroz con camarón",
+      "descripcion": "Delicioso Arroz con camarón",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Arroz con camarón",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 88
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 89,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Langosta rellena",
+      "descripcion": "Delicioso Langosta rellena",
+      "precio": "620.00",
+      "precio_con_impuesto": "731.60",
+      "disponible": true,
+      "ingredientes": "Langosta rellena",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 89
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 90,
+    "fields": {
+      "categoria": 5,
+      "nombre": "Pasta Alfredo de camarón",
+      "descripcion": "Delicioso Pasta Alfredo de camarón",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Pasta, camarón, salsa Alfredo",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 90
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 101,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Garrobo asado",
+      "descripcion": "Delicioso Garrobo asado",
+      "precio": "300.00",
+      "precio_con_impuesto": "354.00",
+      "disponible": true,
+      "ingredientes": "Garrobo asado",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 101
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 102,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Garrobo a la plancha",
+      "descripcion": "Delicioso Garrobo a la plancha",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Garrobo a la plancha",
+      "tiempo_preparacion": 25,
+      "imagen": "",
+      "orden": 102
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 103,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Garrobo desmenuzado",
+      "descripcion": "Delicioso Garrobo desmenuzado",
+      "precio": "310.00",
+      "precio_con_impuesto": "365.80",
+      "disponible": true,
+      "ingredientes": "Garrobo desmenuzado",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 103
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 104,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Medio conejo asado",
+      "descripcion": "Delicioso Medio conejo asado",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Medio conejo asado",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 104
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 105,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Medio conejo desmenuzado",
+      "descripcion": "Delicioso Medio conejo desmenuzado",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Medio conejo desmenuzado",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 105
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 106,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Conejo entero asado",
+      "descripcion": "Delicioso Conejo entero asado",
+      "precio": "570.00",
+      "precio_con_impuesto": "672.60",
+      "disponible": true,
+      "ingredientes": "Conejo entero asado",
+      "tiempo_preparacion": 50,
+      "imagen": "",
+      "orden": 106
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 107,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Conejo entero desmenuzado",
+      "descripcion": "Delicioso Conejo entero desmenuzado",
+      "precio": "570.00",
+      "precio_con_impuesto": "672.60",
+      "disponible": true,
+      "ingredientes": "Conejo entero desmenuzado",
+      "tiempo_preparacion": 50,
+      "imagen": "",
+      "orden": 107
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 108,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Cuzuco asado",
+      "descripcion": "Delicioso Cuzuco asado",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Cuzuco asado",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 108
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 109,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Cuzuco desmenuzado",
+      "descripcion": "Delicioso Cuzuco desmenuzado",
+      "precio": "330.00",
+      "precio_con_impuesto": "389.40",
+      "disponible": true,
+      "ingredientes": "Cuzuco desmenuzado",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 109
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 110,
+    "fields": {
+      "categoria": 6,
+      "nombre": "Ensalada de aguacate",
+      "descripcion": "Delicioso Ensalada de aguacate",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Aguacate, vegetales frescos",
+      "tiempo_preparacion": 10,
+      "imagen": "",
+      "orden": 110
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 111,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Coctel de camarón Don Pepe",
+      "descripcion": "Delicioso Coctel de camarón Don Pepe",
+      "precio": "230.00",
+      "precio_con_impuesto": "271.40",
+      "disponible": true,
+      "ingredientes": "Camarón, salsa especial",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 111
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 112,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Coctel de camarón",
+      "descripcion": "Delicioso Coctel de camarón",
+      "precio": "200.00",
+      "precio_con_impuesto": "236.00",
+      "disponible": true,
+      "ingredientes": "Camarón, salsa coctel",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 112
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 113,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Coctel de conchas negras",
+      "descripcion": "Delicioso Coctel de conchas negras",
+      "precio": "190.00",
+      "precio_con_impuesto": "224.20",
+      "disponible": true,
+      "ingredientes": "Conchas negras",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 113
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 114,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Ceviche mixto Don Pepe",
+      "descripcion": "Delicioso Ceviche mixto Don Pepe",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Mariscos mixtos, limón",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 114
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 115,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Ceviche de camarón",
+      "descripcion": "Delicioso Ceviche de camarón",
+      "precio": "200.00",
+      "precio_con_impuesto": "236.00",
+      "disponible": true,
+      "ingredientes": "Camarón, limón, cebolla",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 115
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 116,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Ceviche de pescado",
+      "descripcion": "Delicioso Ceviche de pescado",
+      "precio": "200.00",
+      "precio_con_impuesto": "236.00",
+      "disponible": true,
+      "ingredientes": "Pescado, limón, cebolla",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 116
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 117,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Ceviche de huevo de toro",
+      "descripcion": "Delicioso Ceviche de huevo de toro",
+      "precio": "200.00",
+      "precio_con_impuesto": "236.00",
+      "disponible": true,
+      "ingredientes": "Huevo de toro, limón",
+      "tiempo_preparacion": 15,
+      "imagen": "",
+      "orden": 117
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 118,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Huevo de paslama a la ostra (3 unidades)",
+      "descripcion": "Delicioso Huevo de paslama a la ostra (3 unidades)",
+      "precio": "160.00",
+      "precio_con_impuesto": "188.80",
+      "disponible": true,
+      "ingredientes": "Huevo de paslama",
+      "tiempo_preparacion": 10,
+      "imagen": "",
+      "orden": 118
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 119,
+    "fields": {
+      "categoria": 7,
+      "nombre": "Huevo de paslama con yuca (6 unidades)",
+      "descripcion": "Delicioso Huevo de paslama con yuca (6 unidades)",
+      "precio": "320.00",
+      "precio_con_impuesto": "377.60",
+      "disponible": true,
+      "ingredientes": "Huevo de paslama, yuca",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 119
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 120,
+    "fields": {
+      "categoria": 8,
+      "nombre": "Sopa de marisco sin langosta",
+      "descripcion": "Delicioso Sopa de marisco sin langosta",
+      "precio": "310.00",
+      "precio_con_impuesto": "365.80",
+      "disponible": true,
+      "ingredientes": "Mariscos variados",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 120
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 121,
+    "fields": {
+      "categoria": 8,
+      "nombre": "Sopa de marisco con langosta",
+      "descripcion": "Delicioso Sopa de marisco con langosta",
+      "precio": "420.00",
+      "precio_con_impuesto": "495.60",
+      "disponible": true,
+      "ingredientes": "Mariscos, langosta",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 121
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 122,
+    "fields": {
+      "categoria": 8,
+      "nombre": "Sopa de huevo de toro con médula",
+      "descripcion": "Delicioso Sopa de huevo de toro con médula",
+      "precio": "310.00",
+      "precio_con_impuesto": "365.80",
+      "disponible": true,
+      "ingredientes": "Huevo de toro, médula",
+      "tiempo_preparacion": 35,
+      "imagen": "",
+      "orden": 122
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 123,
+    "fields": {
+      "categoria": 8,
+      "nombre": "Sopa de garrobo",
+      "descripcion": "Delicioso Sopa de garrobo",
+      "precio": "310.00",
+      "precio_con_impuesto": "365.80",
+      "disponible": true,
+      "ingredientes": "Garrobo",
+      "tiempo_preparacion": 40,
+      "imagen": "",
+      "orden": 123
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 124,
+    "fields": {
+      "categoria": 8,
+      "nombre": "Sopa de garrobo con punche",
+      "descripcion": "Delicioso Sopa de garrobo con punche",
+      "precio": "350.00",
+      "precio_con_impuesto": "413.00",
+      "disponible": true,
+      "ingredientes": "Garrobo, punche",
+      "tiempo_preparacion": 45,
+      "imagen": "",
+      "orden": 124
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 125,
+    "fields": {
+      "categoria": 8,
+      "nombre": "Sopa de pollo",
+      "descripcion": "Delicioso Sopa de pollo",
+      "precio": "290.00",
+      "precio_con_impuesto": "342.20",
+      "disponible": true,
+      "ingredientes": "Pollo, vegetales",
+      "tiempo_preparacion": 30,
+      "imagen": "",
+      "orden": 125
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 126,
+    "fields": {
+      "categoria": 8,
+      "nombre": "Consomé de camarón",
+      "descripcion": "Delicioso Consomé de camarón",
+      "precio": "190.00",
+      "precio_con_impuesto": "224.20",
+      "disponible": true,
+      "ingredientes": "Camarón, consomé",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 126
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 127,
+    "fields": {
+      "categoria": 8,
+      "nombre": "Consomé de pollo",
+      "descripcion": "Delicioso Consomé de pollo",
+      "precio": "190.00",
+      "precio_con_impuesto": "224.20",
+      "disponible": true,
+      "ingredientes": "Pollo, consomé",
+      "tiempo_preparacion": 20,
+      "imagen": "",
+      "orden": 127
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 128,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Gaseosa 12 oz",
+      "descripcion": "Delicioso Gaseosa 12 oz",
+      "precio": "45.00",
+      "precio_con_impuesto": "53.10",
+      "disponible": true,
+      "ingredientes": "Gaseosa",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 128
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 129,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Gaseosa desechable 500ml",
+      "descripcion": "Delicioso Gaseosa desechable 500ml",
+      "precio": "55.00",
+      "precio_con_impuesto": "64.90",
+      "disponible": true,
+      "ingredientes": "Gaseosa",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 129
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 130,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Jugo de naranja",
+      "descripcion": "Delicioso Jugo de naranja",
+      "precio": "48.00",
+      "precio_con_impuesto": "56.64",
+      "disponible": true,
+      "ingredientes": "Jugo de naranja",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 130
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 131,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Jugo de lata",
+      "descripcion": "Delicioso Jugo de lata",
+      "precio": "42.00",
+      "precio_con_impuesto": "49.56",
+      "disponible": true,
+      "ingredientes": "Jugo enlatado",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 131
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 132,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Hidratantes/energizantes",
+      "descripcion": "Delicioso Hidratantes/energizantes",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Bebida energizante",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 132
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 133,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Hi-C",
+      "descripcion": "Delicioso Hi-C",
+      "precio": "38.00",
+      "precio_con_impuesto": "44.84",
+      "disponible": true,
+      "ingredientes": "Hi-C",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 133
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 134,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Hi-C-T",
+      "descripcion": "Delicioso Hi-C-T",
+      "precio": "45.00",
+      "precio_con_impuesto": "53.10",
+      "disponible": true,
+      "ingredientes": "Hi-C-T",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 134
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 135,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Té frío",
+      "descripcion": "Delicioso Té frío",
+      "precio": "42.00",
+      "precio_con_impuesto": "49.56",
+      "disponible": true,
+      "ingredientes": "Té frío",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 135
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 136,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Té Lipton",
+      "descripcion": "Delicioso Té Lipton",
+      "precio": "48.00",
+      "precio_con_impuesto": "56.64",
+      "disponible": true,
+      "ingredientes": "Té Lipton",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 136
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 137,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Agua embotellada 500ml",
+      "descripcion": "Delicioso Agua embotellada 500ml",
+      "precio": "45.00",
+      "precio_con_impuesto": "53.10",
+      "disponible": true,
+      "ingredientes": "Agua purificada",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 137
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 138,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Limonada",
+      "descripcion": "Delicioso Limonada",
+      "precio": "55.00",
+      "precio_con_impuesto": "64.90",
+      "disponible": true,
+      "ingredientes": "Limonada natural",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 138
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 139,
+    "fields": {
+      "categoria": 9,
+      "nombre": "Refresco natural",
+      "descripcion": "Delicioso Refresco natural",
+      "precio": "50.00",
+      "precio_con_impuesto": "59.00",
+      "disponible": true,
+      "ingredientes": "Refresco natural",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 139
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 140,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Johnny Walker/Botella",
+      "descripcion": "Delicioso Johnny Walker/Botella",
+      "precio": "1450.00",
+      "precio_con_impuesto": "1711.00",
+      "disponible": true,
+      "ingredientes": "Johnny Walker",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 140
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 141,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Johnny Walker/Media",
+      "descripcion": "Delicioso Johnny Walker/Media",
+      "precio": "750.00",
+      "precio_con_impuesto": "885.00",
+      "disponible": true,
+      "ingredientes": "Johnny Walker",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 141
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 142,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Finlandia/Botella",
+      "descripcion": "Delicioso Finlandia/Botella",
+      "precio": "820.00",
+      "precio_con_impuesto": "967.60",
+      "disponible": true,
+      "ingredientes": "Vodka Finlandia",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 142
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 143,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Finlandia Cuarto",
+      "descripcion": "Delicioso Finlandia Cuarto",
+      "precio": "250.00",
+      "precio_con_impuesto": "295.00",
+      "disponible": true,
+      "ingredientes": "Vodka Finlandia",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 143
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 144,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Finlandia Media",
+      "descripcion": "Delicioso Finlandia Media",
+      "precio": "430.00",
+      "precio_con_impuesto": "507.40",
+      "disponible": true,
+      "ingredientes": "Vodka Finlandia",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 144
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 145,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Stolichnaya/Botella",
+      "descripcion": "Delicioso Stolichnaya/Botella",
+      "precio": "1400.00",
+      "precio_con_impuesto": "1652.00",
+      "disponible": true,
+      "ingredientes": "Vodka Stolichnaya",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 145
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 146,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Stolichnaya/Cuarto",
+      "descripcion": "Delicioso Stolichnaya/Cuarto",
+      "precio": "375.00",
+      "precio_con_impuesto": "442.50",
+      "disponible": true,
+      "ingredientes": "Vodka Stolichnaya",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 146
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 147,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Stolichnaya/Media",
+      "descripcion": "Delicioso Stolichnaya/Media",
+      "precio": "725.00",
+      "precio_con_impuesto": "855.50",
+      "disponible": true,
+      "ingredientes": "Vodka Stolichnaya",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 147
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 148,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Jose Cuervo/Botella",
+      "descripcion": "Delicioso Jose Cuervo/Botella",
+      "precio": "1480.00",
+      "precio_con_impuesto": "1746.40",
+      "disponible": true,
+      "ingredientes": "Tequila Jose Cuervo",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 148
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 149,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Jose Cuervo/Media",
+      "descripcion": "Delicioso Jose Cuervo/Media",
+      "precio": "780.00",
+      "precio_con_impuesto": "920.40",
+      "disponible": true,
+      "ingredientes": "Tequila Jose Cuervo",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 149
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 150,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Petrov/Botella",
+      "descripcion": "Delicioso Petrov/Botella",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Vodka Petrov",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 150
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 151,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Petrov/Media",
+      "descripcion": "Delicioso Petrov/Media",
+      "precio": "250.00",
+      "precio_con_impuesto": "295.00",
+      "disponible": true,
+      "ingredientes": "Vodka Petrov",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 151
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 152,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Wisky John Barr (N) 1/2",
+      "descripcion": "Delicioso Wisky John Barr (N) 1/2",
+      "precio": "400.00",
+      "precio_con_impuesto": "472.00",
+      "disponible": true,
+      "ingredientes": "Whisky John Barr",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 152
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 153,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Wisky John Barr (N) Botella",
+      "descripcion": "Delicioso Wisky John Barr (N) Botella",
+      "precio": "750.00",
+      "precio_con_impuesto": "885.00",
+      "disponible": true,
+      "ingredientes": "Whisky John Barr",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 153
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 154,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Wisky John Barr (D) 1/2",
+      "descripcion": "Delicioso Wisky John Barr (D) 1/2",
+      "precio": "350.00",
+      "precio_con_impuesto": "413.00",
+      "disponible": true,
+      "ingredientes": "Whisky John Barr",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 154
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 155,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Wisky John Barr (D) Botella",
+      "descripcion": "Delicioso Wisky John Barr (D) Botella",
+      "precio": "650.00",
+      "precio_con_impuesto": "767.00",
+      "disponible": true,
+      "ingredientes": "Whisky John Barr",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 155
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 156,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Tequila Jimador 1/2",
+      "descripcion": "Delicioso Tequila Jimador 1/2",
+      "precio": "500.00",
+      "precio_con_impuesto": "590.00",
+      "disponible": true,
+      "ingredientes": "Tequila Jimador",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 156
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 157,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Tequila Jimador Botella",
+      "descripcion": "Delicioso Tequila Jimador Botella",
+      "precio": "1000.00",
+      "precio_con_impuesto": "1180.00",
+      "disponible": true,
+      "ingredientes": "Tequila Jimador",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 157
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 158,
+    "fields": {
+      "categoria": 10,
+      "nombre": "Tragos individuales",
+      "descripcion": "Delicioso Tragos individuales",
+      "precio": "80.00",
+      "precio_con_impuesto": "94.40",
+      "disponible": true,
+      "ingredientes": "Licor individual",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 158
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 159,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Victoria Frost 12 oz",
+      "descripcion": "Delicioso Victoria Frost 12 oz",
+      "precio": "52.00",
+      "precio_con_impuesto": "61.36",
+      "disponible": true,
+      "ingredientes": "Cerveza Victoria Frost",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 159
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 160,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Victoria Frost Litro",
+      "descripcion": "Delicioso Victoria Frost Litro",
+      "precio": "85.00",
+      "precio_con_impuesto": "100.30",
+      "disponible": true,
+      "ingredientes": "Cerveza Victoria Frost",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 160
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 161,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Victoria Clásica 12 oz",
+      "descripcion": "Delicioso Victoria Clásica 12 oz",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Cerveza Victoria Clásica",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 161
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 162,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Victoria Clásica Litro",
+      "descripcion": "Delicioso Victoria Clásica Litro",
+      "precio": "100.00",
+      "precio_con_impuesto": "118.00",
+      "disponible": true,
+      "ingredientes": "Cerveza Victoria Clásica",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 162
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 163,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Toña 12 oz",
+      "descripcion": "Delicioso Toña 12 oz",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Cerveza Toña",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 163
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 164,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Toña Litro",
+      "descripcion": "Delicioso Toña Litro",
+      "precio": "100.00",
+      "precio_con_impuesto": "118.00",
+      "disponible": true,
+      "ingredientes": "Cerveza Toña",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 164
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 165,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Toña Lata",
+      "descripcion": "Delicioso Toña Lata",
+      "precio": "65.00",
+      "precio_con_impuesto": "76.70",
+      "disponible": true,
+      "ingredientes": "Cerveza Toña",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 165
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 166,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Toña Ultra 12 oz",
+      "descripcion": "Delicioso Toña Ultra 12 oz",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Cerveza Toña Ultra",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 166
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 167,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Toña Light 12 oz",
+      "descripcion": "Delicioso Toña Light 12 oz",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Cerveza Toña Light",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 167
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 168,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Hard Seltzer Spark",
+      "descripcion": "Delicioso Hard Seltzer Spark",
+      "precio": "64.00",
+      "precio_con_impuesto": "75.52",
+      "disponible": true,
+      "ingredientes": "Hard Seltzer",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 168
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 169,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Adan y Eva",
+      "descripcion": "Delicioso Adan y Eva",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Cerveza Adan y Eva",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 169
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 170,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Chelada",
+      "descripcion": "Delicioso Chelada",
+      "precio": "45.00",
+      "precio_con_impuesto": "53.10",
+      "disponible": true,
+      "ingredientes": "Chelada preparada",
+      "tiempo_preparacion": 3,
+      "imagen": "",
+      "orden": 170
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 171,
+    "fields": {
+      "categoria": 11,
+      "nombre": "Michelada",
+      "descripcion": "Delicioso Michelada",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Michelada preparada",
+      "tiempo_preparacion": 3,
+      "imagen": "",
+      "orden": 171
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 172,
+    "fields": {
+      "categoria": 12,
+      "nombre": "Miller lite",
+      "descripcion": "Delicioso Miller lite",
+      "precio": "65.00",
+      "precio_con_impuesto": "76.70",
+      "disponible": true,
+      "ingredientes": "Cerveza Miller lite",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 172
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 173,
+    "fields": {
+      "categoria": 12,
+      "nombre": "Sol",
+      "descripcion": "Delicioso Sol",
+      "precio": "84.00",
+      "precio_con_impuesto": "99.12",
+      "disponible": true,
+      "ingredientes": "Cerveza Sol",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 173
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 174,
+    "fields": {
+      "categoria": 12,
+      "nombre": "Heineken",
+      "descripcion": "Delicioso Heineken",
+      "precio": "89.00",
+      "precio_con_impuesto": "105.02",
+      "disponible": true,
+      "ingredientes": "Cerveza Heineken",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 174
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 175,
+    "fields": {
+      "categoria": 12,
+      "nombre": "Corona",
+      "descripcion": "Delicioso Corona",
+      "precio": "90.00",
+      "precio_con_impuesto": "106.20",
+      "disponible": true,
+      "ingredientes": "Cerveza Corona",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 175
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 176,
+    "fields": {
+      "categoria": 12,
+      "nombre": "Smirnoft",
+      "descripcion": "Delicioso Smirnoft",
+      "precio": "90.00",
+      "precio_con_impuesto": "106.20",
+      "disponible": true,
+      "ingredientes": "Smirnoft",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 176
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 177,
+    "fields": {
+      "categoria": 12,
+      "nombre": "Bliss",
+      "descripcion": "Delicioso Bliss",
+      "precio": "83.00",
+      "precio_con_impuesto": "97.94",
+      "disponible": true,
+      "ingredientes": "Bliss",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 177
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 178,
+    "fields": {
+      "categoria": 12,
+      "nombre": "Bamboo",
+      "descripcion": "Delicioso Bamboo",
+      "precio": "69.00",
+      "precio_con_impuesto": "81.42",
+      "disponible": true,
+      "ingredientes": "Bamboo",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 178
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 179,
+    "fields": {
+      "categoria": 12,
+      "nombre": "Fusion",
+      "descripcion": "Delicioso Fusion",
+      "precio": "74.00",
+      "precio_con_impuesto": "87.32",
+      "disponible": true,
+      "ingredientes": "Fusion",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 179
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 180,
+    "fields": {
+      "categoria": 13,
+      "nombre": "Belmont 1/2",
+      "descripcion": "Delicioso Belmont 1/2",
+      "precio": "80.00",
+      "precio_con_impuesto": "94.40",
+      "disponible": true,
+      "ingredientes": "Medio paquete de cigarros Belmont",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 180
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 181,
+    "fields": {
+      "categoria": 13,
+      "nombre": "Belmont doble click 1/2",
+      "descripcion": "Delicioso Belmont doble click 1/2",
+      "precio": "85.00",
+      "precio_con_impuesto": "100.30",
+      "disponible": true,
+      "ingredientes": "Medio paquete de Belmont Double Click",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 181
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 182,
+    "fields": {
+      "categoria": 13,
+      "nombre": "Dunhill 1/2",
+      "descripcion": "Delicioso Dunhill 1/2",
+      "precio": "80.00",
+      "precio_con_impuesto": "94.40",
+      "disponible": true,
+      "ingredientes": "Medio paquete de cigarros Dunhill",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 182
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 183,
+    "fields": {
+      "categoria": 13,
+      "nombre": "PallMall 1/2",
+      "descripcion": "Delicioso PallMall 1/2",
+      "precio": "80.00",
+      "precio_con_impuesto": "94.40",
+      "disponible": true,
+      "ingredientes": "Medio paquete de cigarros PallMall",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 183
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 184,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Centenario 12 años 1/2",
+      "descripcion": "Delicioso Centenario 12 años 1/2",
+      "precio": "730.00",
+      "precio_con_impuesto": "861.40",
+      "disponible": true,
+      "ingredientes": "Ron Centenario 12 años",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 184
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 185,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Centenario 18 años 1/2",
+      "descripcion": "Delicioso Centenario 18 años 1/2",
+      "precio": "870.00",
+      "precio_con_impuesto": "1026.60",
+      "disponible": true,
+      "ingredientes": "Ron Centenario 18 años",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 185
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 186,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Gran Reserva FC 1/2",
+      "descripcion": "Delicioso Gran Reserva FC 1/2",
+      "precio": "340.00",
+      "precio_con_impuesto": "401.20",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Gran Reserva",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 186
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 187,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Gran Reserva FC 1/4",
+      "descripcion": "Delicioso Gran Reserva FC 1/4",
+      "precio": "180.00",
+      "precio_con_impuesto": "212.40",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Gran Reserva",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 187
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 188,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Extra Lite FC 1/2",
+      "descripcion": "Delicioso Extra Lite FC 1/2",
+      "precio": "250.00",
+      "precio_con_impuesto": "295.00",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Extra Lite",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 188
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 189,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Extra Lite FC 1/4",
+      "descripcion": "Delicioso Extra Lite FC 1/4",
+      "precio": "135.00",
+      "precio_con_impuesto": "159.30",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Extra Lite",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 189
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 190,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Ultra Lite FC 1/2",
+      "descripcion": "Delicioso Ultra Lite FC 1/2",
+      "precio": "230.00",
+      "precio_con_impuesto": "271.40",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Ultra Lite",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 190
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 191,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Ultra Lite FC 1/4",
+      "descripcion": "Delicioso Ultra Lite FC 1/4",
+      "precio": "125.00",
+      "precio_con_impuesto": "147.50",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Ultra Lite",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 191
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 192,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Trago FC (selección variable)",
+      "descripcion": "Delicioso Trago FC (selección variable)",
+      "precio": "0.00",
+      "precio_con_impuesto": "0.00",
+      "disponible": true,
+      "ingredientes": "Trago Flor de Caña según selección del cliente",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 192
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 193,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Cristalino FC 1/2",
+      "descripcion": "Delicioso Cristalino FC 1/2",
+      "precio": "575.00",
+      "precio_con_impuesto": "678.50",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Cristalino",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 193
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 194,
+    "fields": {
+      "categoria": 14,
+      "nombre": "Cristalino FC Botella",
+      "descripcion": "Delicioso Cristalino FC Botella",
+      "precio": "1050.00",
+      "precio_con_impuesto": "1239.00",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Cristalino",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 194
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 195,
+    "fields": {
+      "categoria": 14,
+      "nombre": "FC Expresso 1/2",
+      "descripcion": "Delicioso FC Expresso 1/2",
+      "precio": "270.00",
+      "precio_con_impuesto": "318.60",
+      "disponible": true,
+      "ingredientes": "Flor de Caña Expresso",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 195
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 196,
+    "fields": {
+      "categoria": 15,
+      "nombre": "Margarita",
+      "descripcion": "Delicioso Margarita",
+      "precio": "120.00",
+      "precio_con_impuesto": "141.60",
+      "disponible": true,
+      "ingredientes": "Coctel Margarita preparado al instante",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 196
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 197,
+    "fields": {
+      "categoria": 15,
+      "nombre": "Piña colada",
+      "descripcion": "Delicioso Piña colada",
+      "precio": "130.00",
+      "precio_con_impuesto": "153.40",
+      "disponible": true,
+      "ingredientes": "Piña colada cremosa",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 197
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 198,
+    "fields": {
+      "categoria": 15,
+      "nombre": "Mojito",
+      "descripcion": "Delicioso Mojito",
+      "precio": "100.00",
+      "precio_con_impuesto": "118.00",
+      "disponible": true,
+      "ingredientes": "Mojito tradicional con hierbabuena",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 198
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 199,
+    "fields": {
+      "categoria": 15,
+      "nombre": "Strawberry",
+      "descripcion": "Delicioso Strawberry",
+      "precio": "120.00",
+      "precio_con_impuesto": "141.60",
+      "disponible": true,
+      "ingredientes": "Coctel de fresa estilo daiquiri",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 199
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 200,
+    "fields": {
+      "categoria": 15,
+      "nombre": "Vino tinto/blanco Botella",
+      "descripcion": "Delicioso Vino tinto/blanco Botella",
+      "precio": "650.00",
+      "precio_con_impuesto": "767.00",
+      "disponible": true,
+      "ingredientes": "Botella de vino tinto o blanco",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 200
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 201,
+    "fields": {
+      "categoria": 15,
+      "nombre": "Copa de vino tinto/blanco",
+      "descripcion": "Delicioso Copa de vino tinto/blanco",
+      "precio": "100.00",
+      "precio_con_impuesto": "118.00",
+      "disponible": true,
+      "ingredientes": "Copa de vino tinto o blanco",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 201
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 202,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Empaque",
+      "descripcion": "Delicioso Empaque",
+      "precio": "35.00",
+      "precio_con_impuesto": "41.30",
+      "disponible": true,
+      "ingredientes": "Empaque para llevar",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 202
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 203,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Tostones",
+      "descripcion": "Delicioso Tostones",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Porción de tostones fritos",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 203
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 204,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Tajadas",
+      "descripcion": "Delicioso Tajadas",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Porción de tajadas maduras",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 204
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 205,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Extra Salsa",
+      "descripcion": "Delicioso Extra Salsa",
+      "precio": "85.00",
+      "precio_con_impuesto": "100.30",
+      "disponible": true,
+      "ingredientes": "Porción adicional de salsa de la casa",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 205
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 206,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Ensalada Grande",
+      "descripcion": "Delicioso Ensalada Grande",
+      "precio": "65.00",
+      "precio_con_impuesto": "76.70",
+      "disponible": true,
+      "ingredientes": "Ensalada fresca grande",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 206
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 207,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Tortilla",
+      "descripcion": "Delicioso Tortilla",
+      "precio": "7.00",
+      "precio_con_impuesto": "8.26",
+      "disponible": true,
+      "ingredientes": "Tortilla de maíz casera",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 207
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 208,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Tortilla/Queso Sopa",
+      "descripcion": "Delicioso Tortilla/Queso Sopa",
+      "precio": "25.00",
+      "precio_con_impuesto": "29.50",
+      "disponible": true,
+      "ingredientes": "Tortilla con queso para sopa",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 208
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 209,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Tortilla/Queso G",
+      "descripcion": "Delicioso Tortilla/Queso G",
+      "precio": "75.00",
+      "precio_con_impuesto": "88.50",
+      "disponible": true,
+      "ingredientes": "Tortilla con queso grande",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 209
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 210,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Queso grande",
+      "descripcion": "Delicioso Queso grande",
+      "precio": "70.00",
+      "precio_con_impuesto": "82.60",
+      "disponible": true,
+      "ingredientes": "Porción de queso grande",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 210
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 211,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Queso Sopero",
+      "descripcion": "Delicioso Queso Sopero",
+      "precio": "20.00",
+      "precio_con_impuesto": "23.60",
+      "disponible": true,
+      "ingredientes": "Porción de queso para sopa",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 211
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 212,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Arroz",
+      "descripcion": "Delicioso Arroz",
+      "precio": "40.00",
+      "precio_con_impuesto": "47.20",
+      "disponible": true,
+      "ingredientes": "Porción de arroz blanco",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 212
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 213,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Frijoles/Nachos",
+      "descripcion": "Delicioso Frijoles/Nachos",
+      "precio": "85.00",
+      "precio_con_impuesto": "100.30",
+      "disponible": true,
+      "ingredientes": "Frijoles con nachos",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 213
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 214,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Pure de papa",
+      "descripcion": "Delicioso Pure de papa",
+      "precio": "70.00",
+      "precio_con_impuesto": "82.60",
+      "disponible": true,
+      "ingredientes": "Pure de papa cremoso",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 214
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 215,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Papa campesina",
+      "descripcion": "Delicioso Papa campesina",
+      "precio": "55.00",
+      "precio_con_impuesto": "64.90",
+      "disponible": true,
+      "ingredientes": "Papas campesinas",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 215
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 216,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Papa asada",
+      "descripcion": "Delicioso Papa asada",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Papa asada al horno",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 216
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 217,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Papa francesa",
+      "descripcion": "Delicioso Papa francesa",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Papas fritas estilo francés",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 217
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 218,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Papa/Horno",
+      "descripcion": "Delicioso Papa/Horno",
+      "precio": "60.00",
+      "precio_con_impuesto": "70.80",
+      "disponible": true,
+      "ingredientes": "Papa horneada con mantequilla",
+      "tiempo_preparacion": 5,
+      "imagen": "",
+      "orden": 218
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 219,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Cafe",
+      "descripcion": "Delicioso Cafe",
+      "precio": "50.00",
+      "precio_con_impuesto": "59.00",
+      "disponible": true,
+      "ingredientes": "Cafe recien preparado",
+      "tiempo_preparacion": 4,
+      "imagen": "",
+      "orden": 219
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 220,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Limon",
+      "descripcion": "Delicioso Limon",
+      "precio": "7.00",
+      "precio_con_impuesto": "8.26",
+      "disponible": true,
+      "ingredientes": "Porción de limón fresco",
+      "tiempo_preparacion": 1,
+      "imagen": "",
+      "orden": 220
+    }
+  },
+  {
+    "model": "administrador.plato",
+    "pk": 221,
+    "fields": {
+      "categoria": 16,
+      "nombre": "Valde",
+      "descripcion": "Delicioso Valde",
+      "precio": "25.00",
+      "precio_con_impuesto": "29.50",
+      "disponible": true,
+      "ingredientes": "Valde con hielo o bebida",
+      "tiempo_preparacion": 2,
+      "imagen": "",
+      "orden": 221
+    }
+  },
+  {
     "model": "mesero.table",
     "pk": 1,
     "fields": {
@@ -58,6 +3754,266 @@
       "mesa_id": "5",
       "mesa": "Mesa 5",
       "ubicacion": null,
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 6,
+    "fields": {
+      "mesa_id": "MESA-01",
+      "mesa": "Mesa 1",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 7,
+    "fields": {
+      "mesa_id": "MESA-02",
+      "mesa": "Mesa 2",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 8,
+    "fields": {
+      "mesa_id": "MESA-03",
+      "mesa": "Mesa 3",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 9,
+    "fields": {
+      "mesa_id": "MESA-04",
+      "mesa": "Mesa 4",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 10,
+    "fields": {
+      "mesa_id": "MESA-05",
+      "mesa": "Mesa 5",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 11,
+    "fields": {
+      "mesa_id": "MESA-06",
+      "mesa": "Mesa 6",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 12,
+    "fields": {
+      "mesa_id": "MESA-07",
+      "mesa": "Mesa 7",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 13,
+    "fields": {
+      "mesa_id": "MESA-08",
+      "mesa": "Mesa 8",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 14,
+    "fields": {
+      "mesa_id": "MESA-09",
+      "mesa": "Mesa 9",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 15,
+    "fields": {
+      "mesa_id": "MESA-10",
+      "mesa": "Mesa 10",
+      "ubicacion": "Interior",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 16,
+    "fields": {
+      "mesa_id": "MESA-11",
+      "mesa": "Mesa 11",
+      "ubicacion": "Ventana",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 17,
+    "fields": {
+      "mesa_id": "MESA-12",
+      "mesa": "Mesa 12",
+      "ubicacion": "Ventana",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 18,
+    "fields": {
+      "mesa_id": "MESA-13",
+      "mesa": "Mesa 13",
+      "ubicacion": "Ventana",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 19,
+    "fields": {
+      "mesa_id": "MESA-14",
+      "mesa": "Mesa 14",
+      "ubicacion": "Ventana",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 20,
+    "fields": {
+      "mesa_id": "MESA-15",
+      "mesa": "Mesa 15",
+      "ubicacion": "Ventana",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 21,
+    "fields": {
+      "mesa_id": "MESA-16",
+      "mesa": "Mesa 16",
+      "ubicacion": "Terraza",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 22,
+    "fields": {
+      "mesa_id": "MESA-17",
+      "mesa": "Mesa 17",
+      "ubicacion": "Terraza",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 23,
+    "fields": {
+      "mesa_id": "MESA-18",
+      "mesa": "Mesa 18",
+      "ubicacion": "Terraza",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 24,
+    "fields": {
+      "mesa_id": "MESA-19",
+      "mesa": "Mesa 19",
+      "ubicacion": "Terraza",
+      "number": null,
+      "capacity": 4,
+      "status": "available",
+      "assigned_waiter": null
+    }
+  },
+  {
+    "model": "mesero.table",
+    "pk": 25,
+    "fields": {
+      "mesa_id": "MESA-20",
+      "mesa": "Mesa 20",
+      "ubicacion": "Terraza",
       "number": null,
       "capacity": 4,
       "status": "available",

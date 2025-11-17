@@ -55,6 +55,10 @@ class Command(BaseCommand):
             self.stdout.write(f'   🪑 Mesas: {Table.objects.count()}')
             self.stdout.write(f'   👥 Usuarios: {User.objects.count()}')
             
+            # Resetear contraseñas a valores conocidos
+            self.stdout.write(self.style.WARNING('\n🔐 Configurando contraseñas conocidas...'))
+            self._reset_user_passwords()
+            
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'❌ Error al cargar datos: {str(e)}'))
             self.stdout.write(self.style.WARNING('   Intentando cargar datos de ejemplo...'))
@@ -63,3 +67,30 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS('✅ Datos de ejemplo cargados como respaldo'))
             except Exception as e2:
                 self.stdout.write(self.style.ERROR(f'❌ Error al cargar datos de ejemplo: {str(e2)}'))
+    
+    def _reset_user_passwords(self):
+        """Resetea las contraseñas de los usuarios a valores conocidos."""
+        
+        # Mapeo de usuarios y contraseñas predeterminadas
+        user_passwords = {
+            'Restaurante': 'Contraseña123',
+            'administrador': 'admin123',
+            'carlos.mendez': 'carlos123',
+            'ana.torres': 'ana123',
+            'juan.perez': 'juan123',
+            'maria.garcia': 'maria123',
+            'luis.ramirez': 'luis123',
+            'sofia.lopez': 'sofia123',
+            'roberto.diaz': 'roberto123',
+        }
+        
+        for username, password in user_passwords.items():
+            try:
+                user = User.objects.get(username=username)
+                user.set_password(password)
+                user.save()
+                self.stdout.write(f'   ✅ {username} → {password}')
+            except User.DoesNotExist:
+                self.stdout.write(self.style.WARNING(f'   ⚠️ Usuario {username} no encontrado'))
+        
+        self.stdout.write(self.style.SUCCESS('\n✅ Contraseñas actualizadas correctamente'))

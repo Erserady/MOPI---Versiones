@@ -3,11 +3,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import health_check, debug_request
+from .views import health_check, debug_request, check_database
 
 urlpatterns = [
     path('health/', health_check, name='health_check'),
     path('debug/', debug_request, name='debug_request'),
+    path('check-db/', check_database, name='check_database'),
     path('admin/', admin.site.urls),
 
     # Rutas principales por app, con prefijos claros — evita includes colisionantes

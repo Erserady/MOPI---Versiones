@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'caja',
     'administrador',
     'corsheaders',
+    'import_export',  # Para exportar datos a Excel/CSV
 ]
 
 AUTH_USER_MODEL = 'users.User'

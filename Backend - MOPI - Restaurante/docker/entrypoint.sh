@@ -17,11 +17,24 @@ python manage.py migrate --noinput
 echo "[init] Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput
 
-cat <<'EOF'
-[info] populate_all_data ya no se ejecuta automáticamente.
-[info] Si necesitas datos de demostración, corre:
-[info]     docker compose exec backend python manage.py populate_all_data
-EOF
+echo "[init] Verificando superusuario..."
+python manage.py shell << END
+from django.contrib.auth import get_user_model
+import os
+User = get_user_model()
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser(
+        username='admin',
+        email=os.environ.get('ADMIN_EMAIL', 'admin@mopi.com'),
+        password=os.environ.get('ADMIN_PASSWORD', 'mopi2024')
+    )
+    print("[superuser] ✅ Superusuario creado (admin/mopi2024)")
+else:
+    print("[superuser] ℹ️ Superusuario ya existe")
+END
+
+echo "[init] Verificando datos iniciales..."
+python manage.py setup_initial_data
 
 echo "[gunicorn] Iniciando servidor..."
 exec gunicorn drfsimplecrud.wsgi:application \

@@ -16,12 +16,11 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write(self.style.WARNING('🔍 Verificando si hay datos en la base de datos...'))
         
-        # Verificar si ya hay datos
+        # Verificar si ya hay datos de aplicación (no usuarios admin)
         has_data = (
             Table.objects.exists() or 
             Plato.objects.exists() or 
-            CategoriaMenu.objects.exists() or
-            User.objects.filter(username='admin').exists()
+            CategoriaMenu.objects.exists()
         )
         
         if has_data:

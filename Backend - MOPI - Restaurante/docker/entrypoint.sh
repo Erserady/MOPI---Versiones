@@ -25,7 +25,10 @@ python manage.py migrate --noinput
 echo "[init] Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput
 
-echo "[init] Verificando superusuario..."
+echo "[init] Cargando datos de producción..."
+python manage.py load_production_data
+
+echo "[init] Verificando superusuario (fallback)..."
 python manage.py shell << END
 from django.contrib.auth import get_user_model
 import os
@@ -40,9 +43,6 @@ if not User.objects.filter(username='admin').exists():
 else:
     print("[superuser] ℹ️ Superusuario ya existe")
 END
-
-echo "[init] Cargando datos de producción..."
-python manage.py load_production_data
 
 echo "[gunicorn] Iniciando servidor..."
 exec gunicorn drfsimplecrud.wsgi:application \

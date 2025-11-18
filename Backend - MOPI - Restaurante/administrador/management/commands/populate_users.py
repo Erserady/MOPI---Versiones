@@ -7,12 +7,29 @@ User = get_user_model()
 class Command(BaseCommand):
     help = 'Crea usuarios de ejemplo para el sistema de restaurante'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Forzar la creación sin preguntar (para producción)',
+        )
+
     def handle(self, *args, **kwargs):
+        force = kwargs.get('force', False)
+        
         self.stdout.write("🚀 Creando usuarios de ejemplo...")
         
         # Verificar si ya existen usuarios
         if User.objects.exists():
             self.stdout.write(self.style.WARNING('⚠️ Ya existen usuarios en la base de datos'))
+            
+            # En modo no interactivo (stdin no es TTY) o con --force, no preguntar
+            import sys
+            if force or not sys.stdin.isatty():
+                self.stdout.write(self.style.WARNING('⚠️ Modo automático detectado - manteniendo usuarios existentes'))
+                self.stdout.write(self.style.SUCCESS('✅ Usuarios ya existen, continuando...'))
+                return
+            
             respuesta = input('¿Desea eliminar todos los usuarios y crear nuevos? (s/n): ')
             if respuesta.lower() != 's':
                 self.stdout.write(self.style.WARNING('❌ Operación cancelada'))

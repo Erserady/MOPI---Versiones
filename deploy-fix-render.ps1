@@ -13,9 +13,12 @@ if (!(Test-Path ".git")) {
     exit 1
 }
 
-Write-Host "📋 Archivos modificados:" -ForegroundColor Yellow
-Write-Host "  1. Backend - MOPI - Restaurante/docker/entrypoint.sh" -ForegroundColor White
-Write-Host "  2. Backend - MOPI - Restaurante/administrador/management/commands/load_production_data.py" -ForegroundColor White
+Write-Host "📋 Archivos modificados/nuevos:" -ForegroundColor Yellow
+Write-Host "  1. Backend - MOPI - Restaurante/administrador/management/commands/reset_and_populate.py (NUEVO)" -ForegroundColor White
+Write-Host "  2. Backend - MOPI - Restaurante/build.sh" -ForegroundColor White
+Write-Host "  3. render.yaml" -ForegroundColor White
+Write-Host "  4. Backend - MOPI - Restaurante/docker/entrypoint.sh" -ForegroundColor White
+Write-Host "  5. Backend - MOPI - Restaurante/administrador/management/commands/load_production_data.py" -ForegroundColor White
 Write-Host ""
 
 # Mostrar el estado actual de git
@@ -35,7 +38,10 @@ if ($confirmation -ne "S" -and $confirmation -ne "s") {
 Write-Host ""
 Write-Host "➜ Agregando archivos al staging..." -ForegroundColor Cyan
 
-# Agregar los archivos modificados
+# Agregar los archivos modificados y nuevos
+git add "Backend - MOPI - Restaurante/administrador/management/commands/reset_and_populate.py"
+git add "Backend - MOPI - Restaurante/build.sh"
+git add render.yaml
 git add "Backend - MOPI - Restaurante/docker/entrypoint.sh"
 git add "Backend - MOPI - Restaurante/administrador/management/commands/load_production_data.py"
 
@@ -49,12 +55,13 @@ Write-Host ""
 
 # Hacer commit
 Write-Host "➜ Creando commit..." -ForegroundColor Cyan
-$commitMessage = "Fix: Corregir orden de carga de datos en producción
+$commitMessage = "Fix: Implementar reseteo automático de BD en cada deploy
 
-- Cambiar orden en entrypoint.sh: cargar production_data.json antes de crear admin
-- Remover verificación de usuario admin en load_production_data.py
-- Esto permite que los datos se carguen correctamente en el primer deploy
-- Soluciona: No se cargaban usuarios (Restaurante) ni datos del menú"
+- Nuevo comando: reset_and_populate.py que borra y recrea todos los datos
+- Actualizar build.sh para ejecutar reset_and_populate en cada deploy
+- Actualizar render.yaml para usar build.sh en buildCommand
+- Usar populate_all_data.py para cargar menú completo con todos los platos
+- Soluciona: Datos no se cargaban correctamente en producción"
 
 git commit -m $commitMessage
 
@@ -99,17 +106,16 @@ Write-Host ""
 Write-Host "1️⃣  Ir a Render Dashboard:" -ForegroundColor White
 Write-Host "   https://dashboard.render.com/" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "2️⃣  OPCIÓN A - Borrar y recrear BD (Recomendado):" -ForegroundColor White
-Write-Host "   a. Ve a Databases → mopi-database" -ForegroundColor Gray
-Write-Host "   b. Settings → Delete Database" -ForegroundColor Gray
-Write-Host "   c. Confirma la eliminación" -ForegroundColor Gray
-Write-Host "   d. Espera a que se recree automáticamente" -ForegroundColor Gray
-Write-Host "   e. Ve a Web Services → mopi-backend" -ForegroundColor Gray
-Write-Host "   f. Manual Deploy → Deploy latest commit" -ForegroundColor Gray
-Write-Host ""
-Write-Host "   OPCIÓN B - Solo redeploy (si la BD ya está vacía):" -ForegroundColor White
+Write-Host "2️⃣  Redeploy del Backend:" -ForegroundColor White
 Write-Host "   a. Ve a Web Services → mopi-backend" -ForegroundColor Gray
 Write-Host "   b. Manual Deploy → Deploy latest commit" -ForegroundColor Gray
+Write-Host ""
+Write-Host "   ℹ️  El build.sh se encargará automáticamente de:" -ForegroundColor Cyan
+Write-Host "      • Instalar dependencias" -ForegroundColor Gray
+Write-Host "      • Ejecutar migraciones" -ForegroundColor Gray
+Write-Host "      • Borrar TODOS los datos existentes" -ForegroundColor Gray
+Write-Host "      • Crear usuarios frescos (Restaurante, admin, meseros, etc.)" -ForegroundColor Gray
+Write-Host "      • Cargar el menú completo con populate_all_data" -ForegroundColor Gray
 Write-Host ""
 Write-Host "3️⃣  Esperar 5-10 minutos a que termine el deploy" -ForegroundColor White
 Write-Host ""
@@ -117,9 +123,11 @@ Write-Host "4️⃣  Ejecutar script de pruebas:" -ForegroundColor White
 Write-Host "   .\test-render-backend.ps1" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "5️⃣  Revisar los logs en Render para confirmar que aparece:" -ForegroundColor White
-Write-Host "   '[init] Cargando datos de producción...'" -ForegroundColor Gray
-Write-Host "   '📦 Cargando datos desde production_data.json...'" -ForegroundColor Gray
-Write-Host "   '✅ Datos de producción cargados correctamente'" -ForegroundColor Gray
+Write-Host "   '🗑️ Reseteando y poblando base de datos...'" -ForegroundColor Gray
+Write-Host "   '🗑️  PASO 1: Eliminando datos existentes...'" -ForegroundColor Gray
+Write-Host "   '👥 PASO 2: Creando usuarios...'" -ForegroundColor Gray
+Write-Host "   '🍽️  PASO 3: Creando menú y datos del sistema...'" -ForegroundColor Gray
+Write-Host "   '✅ BASE DE DATOS RESETEADA Y POBLADA EXITOSAMENTE'" -ForegroundColor Gray
 Write-Host ""
 
 Write-Host "📖 Para más detalles, consulta: SOLUCION_RENDER.md" -ForegroundColor Yellow

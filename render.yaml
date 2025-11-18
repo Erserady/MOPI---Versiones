@@ -7,11 +7,11 @@ services:
     region: oregon
     buildCommand: |
       cd "Backend - MOPI - Restaurante"
-      pip install -r requirements_updated.txt
+      chmod +x build.sh
+      ./build.sh
     startCommand: |
       cd "Backend - MOPI - Restaurante"
-      chmod +x docker/entrypoint.sh
-      ./docker/entrypoint.sh
+      gunicorn drfsimplecrud.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 2 --timeout 60 --access-logfile - --error-logfile - --log-level info
     envVars:
       - key: SECRET_KEY
         generateValue: true

@@ -2,7 +2,16 @@
 # exit on error
 set -o errexit
 
-pip install -r requirements.txt
+echo "📦 Instalando dependencias..."
+pip install -r requirements_updated.txt
 
-python manage.py collectstatic --no-input
-python manage.py migrate
+echo "🔄 Ejecutando migraciones..."
+python manage.py migrate --noinput
+
+echo "📁 Recolectando archivos estáticos..."
+python manage.py collectstatic --noinput
+
+echo "🗑️ Reseteando y poblando base de datos..."
+python manage.py reset_and_populate --force
+
+echo "✅ Build completado!"

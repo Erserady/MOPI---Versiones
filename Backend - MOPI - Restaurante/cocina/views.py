@@ -12,6 +12,7 @@ ACTIVE_KITCHEN_STATES = ['pendiente', 'en_preparacion', 'listo']
 class OrderViewSet(mixins.ListModelMixin,
                    mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
                    viewsets.GenericViewSet):
     queryset = (
         WaiterOrder.objects
@@ -34,6 +35,28 @@ class OrderViewSet(mixins.ListModelMixin,
             table.save(update_fields=['assigned_waiter'])
 
         sync_cocina_timestamp(instance, previous_state=previous_state)
+    
+    def perform_destroy(self, instance):
+        """
+        Al eliminar una orden, liberar la mesa asociada
+        """
+        table = instance.table
+        if table:
+            # Verificar si la mesa tiene otras órdenes activas
+            other_orders = WaiterOrder.objects.filter(
+                table=table
+            ).exclude(id=instance.id).exclude(
+                estado__in=['pagado', 'facturado', 'cancelado']
+            ).exists()
+            
+            # Si no hay otras órdenes activas, liberar la mesa
+            if not other_orders:
+                table.status = 'libre'
+                table.assigned_waiter = None
+                table.save(update_fields=['status', 'assigned_waiter'])
+        
+        # Eliminar la orden
+        instance.delete()
 
     @action(
         detail=False,

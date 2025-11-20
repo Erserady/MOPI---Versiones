@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import "../styles/cashier_section.css";
-import { CreditCard, Receipt, DollarSign, Banknote, RefreshCw, AlertCircle, TrendingDown } from "lucide-react";
+import { CreditCard, Receipt, DollarSign, Banknote, RefreshCw, AlertCircle, TrendingDown, Filter, X } from "lucide-react";
 import CashierModal from "./Cashier.Modal";
 import TransactionDetailModal from "./TransactionDetailModal";
 import ReportDateModal from "./ReportDateModal";
@@ -23,6 +23,10 @@ const CashierSection = () => {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  
+  // Filtros para transacciones
+  const [filtroMesa, setFiltroMesa] = useState('');
+  const [filtroMesero, setFiltroMesero] = useState('');
   
   // Sincronizar datos de cajas, pagos y egresos cada 5 segundos
   const { data: cajas, refetch: refetchCajas } = useDataSync(getCajas, 5000);
@@ -528,50 +532,244 @@ const CashierSection = () => {
           title="Últimas Transacciones"
           customClass="cashier-history"
         >
+          {/* Filtros mejorados */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '0.75rem', 
+            marginBottom: '1.25rem', 
+            padding: '1rem',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b', fontWeight: '600', fontSize: '0.875rem' }}>
+              <Filter size={18} />
+              <span>Filtrar por:</span>
+            </div>
+            
+            <div style={{ position: 'relative', flex: '1', minWidth: '160px' }}>
+              <select 
+                value={filtroMesa}
+                onChange={(e) => setFiltroMesa(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.625rem 0.75rem',
+                  paddingLeft: '2.5rem',
+                  borderRadius: '10px',
+                  border: '2px solid #e2e8f0',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  background: 'white',
+                  color: '#334155',
+                  transition: 'all 0.2s',
+                  appearance: 'none',
+                  backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23334155\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              >
+                <option value="">🪑 Todas las mesas</option>
+                {[...new Set(pagosHoy.map(p => p.factura_detalle?.table?.number).filter(Boolean))]
+                  .sort((a, b) => a - b)
+                  .map(mesa => (
+                    <option key={mesa} value={mesa}>Mesa {mesa}</option>
+                  ))}
+              </select>
+              <div style={{ 
+                position: 'absolute', 
+                left: '0.75rem', 
+                top: '50%', 
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: '#64748b'
+              }}>
+                🪑
+              </div>
+            </div>
+            
+            <div style={{ position: 'relative', flex: '1', minWidth: '160px' }}>
+              <select
+                value={filtroMesero}
+                onChange={(e) => setFiltroMesero(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.625rem 0.75rem',
+                  paddingLeft: '2.5rem',
+                  borderRadius: '10px',
+                  border: '2px solid #e2e8f0',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  background: 'white',
+                  color: '#334155',
+                  transition: 'all 0.2s',
+                  appearance: 'none',
+                  backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23334155\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              >
+                <option value="">👤 Todos los meseros</option>
+                {[...new Set(pagosHoy.map(p => p.factura_detalle?.mesero_asignado).filter(Boolean))]
+                  .sort()
+                  .map(mesero => (
+                    <option key={mesero} value={mesero}>{mesero}</option>
+                  ))}
+              </select>
+              <div style={{ 
+                position: 'absolute', 
+                left: '0.75rem', 
+                top: '50%', 
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: '#64748b'
+              }}>
+                👤
+              </div>
+            </div>
+            
+            {(filtroMesa || filtroMesero) && (
+              <button
+                onClick={() => {
+                  setFiltroMesa('');
+                  setFiltroMesero('');
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.625rem 1rem',
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
+                }}
+              >
+                <X size={16} />
+                Limpiar
+              </button>
+            )}
+          </div>
+
           {(() => {
             // Combinar pagos y egresos en una sola lista
-            const transacciones = [
+            let transacciones = [
               ...pagosHoy.map(p => ({ ...p, tipo: 'pago' })),
               ...egresosHoy.map(e => ({ ...e, tipo: 'egreso' }))
-            ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            ];
+            
+            // Aplicar filtros
+            if (filtroMesa) {
+              transacciones = transacciones.filter(t => 
+                t.tipo === 'pago' && String(t.factura_detalle?.table?.number) === String(filtroMesa)
+              );
+            }
+            
+            if (filtroMesero) {
+              transacciones = transacciones.filter(t => 
+                t.tipo === 'pago' && t.factura_detalle?.mesero_asignado === filtroMesero
+              );
+            }
+            
+            transacciones = transacciones
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
               .slice(0, 10);
 
             return transacciones.length > 0 ? (
               transacciones.map((transaccion, idx) => (
                 <div 
                   key={`${transaccion.tipo}-${transaccion.id}` || idx} 
-                  className="cashier-transaction"
                   onClick={() => transaccion.tipo === 'pago' ? handleTransactionClick(transaccion) : null}
-                  style={{ cursor: transaccion.tipo === 'pago' ? 'pointer' : 'default' }}
+                  style={{ 
+                    cursor: transaccion.tipo === 'pago' ? 'pointer' : 'default',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem',
+                    background: '#f9fafb',
+                    borderRadius: '8px',
+                    marginBottom: '0.5rem',
+                    transition: 'background 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (transaccion.tipo === 'pago') {
+                      e.currentTarget.style.background = '#e5e7eb';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f9fafb';
+                  }}
                 >
-                  <div className="title-transaction">
-                    {transaccion.tipo === 'pago' ? <Receipt /> : <TrendingDown style={{ color: '#dc2626' }} />}
-                    <div>
-                      <p>
-                        <strong>
-                          {transaccion.tipo === 'pago' 
-                            ? (transaccion.metodo_pago === 'efectivo' ? '💵 Efectivo' : '💳 Tarjeta')
-                            : '📉 Egreso'}
-                        </strong>
-                      </p>
-                      <small>
-                        {new Date(transaccion.created_at).toLocaleTimeString('es-ES', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                    {transaccion.tipo === 'pago' ? <Receipt size={20} /> : <TrendingDown size={20} style={{ color: '#dc2626' }} />}
+                    
+                    <strong style={{ margin: 0, whiteSpace: 'nowrap' }}>
+                      {transaccion.tipo === 'pago' 
+                        ? (transaccion.metodo_pago === 'efectivo' ? '💵 Efectivo' : '💳 Tarjeta')
+                        : '📉 Egreso'}
+                    </strong>
+                    
+                    <small style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>
+                      {new Date(transaccion.created_at).toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </small>
+                    
+                    {/* Información adicional en línea para pagos */}
+                    {transaccion.tipo === 'pago' && (
+                      <>
+                        {transaccion.factura_detalle?.table?.number && (
+                          <small style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>Mesa N° {transaccion.factura_detalle.table.number}</small>
+                        )}
+                        {transaccion.factura_detalle?.mesero_asignado && (
+                          <small style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>{transaccion.factura_detalle.mesero_asignado}</small>
+                        )}
+                        {transaccion.factura_detalle?.numero_factura && (
+                          <small style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>N° {transaccion.factura_detalle.numero_factura} Factura</small>
+                        )}
+                      </>
+                    )}
+                    
+                    {/* Comentario para egresos */}
+                    {transaccion.tipo === 'egreso' && transaccion.comentario && (
+                      <small style={{ color: '#6b7280', fontSize: '0.8rem' }}>
+                        {transaccion.comentario.length > 30 
+                          ? transaccion.comentario.substring(0, 30) + '...' 
+                          : transaccion.comentario}
                       </small>
-                      {transaccion.tipo === 'egreso' && transaccion.comentario && (
-                        <small style={{ display: 'block', color: '#6b7280', fontSize: '0.8rem' }}>
-                          {transaccion.comentario.length > 30 
-                            ? transaccion.comentario.substring(0, 30) + '...' 
-                            : transaccion.comentario}
-                        </small>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  <span className={`cashier-amount ${transaccion.tipo === 'egreso' ? 'egreso' : ''}`}>
+                  
+                  <strong style={{ 
+                    color: transaccion.tipo === 'egreso' ? '#dc2626' : '#10b981',
+                    fontSize: '1rem',
+                    whiteSpace: 'nowrap'
+                  }}>
                     {transaccion.tipo === 'egreso' ? '- ' : ''}C$ {parseFloat(transaccion.monto || 0).toFixed(2)}
-                  </span>
+                  </strong>
                 </div>
               ))
             ) : (

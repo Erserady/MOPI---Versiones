@@ -4,10 +4,16 @@ import PayDialog from "./PayDialog";
 import OrderDetailsModal from "./OrderDetailsModal";
 import ReceiptPrinter from "./ReceiptPrinter";
 
-const PayCard = ({ order }) => {
+const PayCard = ({ order, onOrderUpdate }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
+  
+  const handleOrderCancelled = () => {
+    // Cerrar modal y refrescar la lista
+    setDetailsModalOpen(false);
+    if (onOrderUpdate) onOrderUpdate();
+  };
   const kitchenBlocked = order.kitchenHold;
   const kitchenBlockedText =
     "Hay platillos en cocina. Espera a que cocina termine antes de cobrar.";
@@ -131,6 +137,7 @@ const PayCard = ({ order }) => {
         order={order}
         isOpen={isDetailsModalOpen}
         onClose={() => setDetailsModalOpen(false)}
+        onOrderCancelled={handleOrderCancelled}
       />
       <ReceiptPrinter
         isOpen={showReceipt}

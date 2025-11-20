@@ -8,7 +8,7 @@ const KITCHEN_BLOCK_STATES = ["pendiente", "en_preparacion"];
 
 const PaySection = () => {
   // Sincronizar mesas desde el backend (actualiza cada 3 segundos)
-  const { data: mesasData, loading, error } = useDataSync(
+  const { data: mesasData, loading, error, refetch } = useDataSync(
     getMesasConOrdenesPendientes,
     3000
   );
@@ -84,11 +84,18 @@ const PaySection = () => {
         }
       });
 
+      // Determinar el estado general - priorizar payment_requested
+      const orderStatus = mesaOrders.find(o => o.estado === 'payment_requested')?.estado || 
+                         mesaOrders.find(o => o.estado === 'prefactura_enviada')?.estado ||
+                         mesaOrders[0]?.estado || 
+                         'completed';
+
       return {
         id: `MESA-${mesa.mesa_id}`,
         mesaId: mesa.mesa_id,
         tableId: mesa.mesa_id,
         orderIds: mesaOrders.map((orden) => orden.id),
+        orderId: mesaOrders[0]?.id, // ID de la primera orden para enviar pre-factura
         tableNumber: mesa.mesa_nombre,
         waiter: mesaOrders[0]?.waiter_name || 
                 mesaOrders[0]?.mesero || 
@@ -101,7 +108,7 @@ const PaySection = () => {
           estado: orden.estado,
         })),
         createdAt: new Date().toISOString(),
-        status: "completed",
+        status: orderStatus, // Estado real de la orden
         accounts: [
           {
             accountId: `ACC-${mesa.mesa_id}`,
@@ -123,7 +130,7 @@ const PaySection = () => {
 
       <section className="pay-card-section">
         {ordersFormatted.map((order) => (
-          <PayCard key={order.id} order={order} />
+          <PayCard key={order.id} order={order} onOrderUpdate={refetch} />
         ))}
       </section>
 

@@ -147,26 +147,49 @@ const AdminProducts = () => {
     
     setSaving(true);
     try {
-      // Guardar cambios en el backend
+      // Identificar platos modificados comparando con los originales
+      const platosOriginales = platosFiltrados;
+      
       for (const plato of editingProducts) {
         if (plato._isNew) {
+          // Validar campos requeridos
+          if (!plato.nombre || plato.nombre.trim() === '' || plato.nombre === 'Nuevo producto') {
+            alert('Por favor, ingresa un nombre válido para el nuevo producto.');
+            setSaving(false);
+            return;
+          }
+          
           // Crear nuevo plato
           await createPlato({
-            nombre: plato.nombre,
+            nombre: plato.nombre.trim(),
             categoria: categoriaActual.id,
-            precio: parseFloat(plato.precio),
-            descripcion: plato.descripcion || '',
-            ingredientes: plato.ingredientes || '',
-            tiempo_preparacion: plato.tiempo_preparacion || 15,
+            precio: parseFloat(plato.precio) || 0,
+            descripcion: plato.descripcion || 'Sin descripción',
+            ingredientes: plato.ingredientes || 'Sin ingredientes especificados',
+            tiempo_preparacion: parseInt(plato.tiempo_preparacion) || 15,
             disponible: plato.disponible !== false,
           });
         } else {
-          // Actualizar plato existente
-          await updatePlato(plato.id, {
-            nombre: plato.nombre,
-            precio: parseFloat(plato.precio),
-            disponible: plato.disponible !== false,
-          });
+          // Verificar si el plato fue realmente modificado
+          const platoOriginal = platosOriginales.find(p => p.id === plato.id);
+          if (!platoOriginal) continue;
+          
+          const fueModificado = 
+            platoOriginal.nombre !== plato.nombre ||
+            parseFloat(platoOriginal.precio) !== parseFloat(plato.precio) ||
+            platoOriginal.disponible !== plato.disponible;
+          
+          if (fueModificado) {
+            // Actualizar solo si hay cambios - usar PATCH con solo los campos modificados
+            const cambios = {};
+            if (platoOriginal.nombre !== plato.nombre) cambios.nombre = plato.nombre.trim();
+            if (parseFloat(platoOriginal.precio) !== parseFloat(plato.precio)) cambios.precio = parseFloat(plato.precio);
+            if (platoOriginal.disponible !== plato.disponible) cambios.disponible = plato.disponible;
+            
+            if (Object.keys(cambios).length > 0) {
+              await updatePlato(plato.id, cambios);
+            }
+          }
         }
       }
 
@@ -174,9 +197,11 @@ const AdminProducts = () => {
       await refetchPlatos();
       setIsEditing(false);
       updateEditingProducts(null);
+      alert('Cambios guardados exitosamente');
     } catch (error) {
       console.error('Error guardando cambios:', error);
-      alert('Error al guardar cambios. Por favor, intenta nuevamente.');
+      const errorMsg = error.message || 'Error al guardar cambios';
+      alert(`Error: ${errorMsg}\n\nPor favor verifica:\n- El nombre del producto no esté duplicado en esta categoría\n- Todos los campos estén completos`);
     } finally {
       setSaving(false);
     }
@@ -189,10 +214,13 @@ const AdminProducts = () => {
 
   const handleAdd = () => {
     if (!isEditing) return;
+    
+    const newId = `temp-${Date.now()}`;
+    
     updateEditingProducts((draft) => {
       draft.push({ 
         _isNew: true,
-        id: `temp-${Date.now()}`,
+        id: newId,
         nombre: "Nuevo producto", 
         precio: 0, 
         disponible: true,
@@ -201,6 +229,21 @@ const AdminProducts = () => {
         tiempo_preparacion: 15,
       });
     });
+    
+    // Scroll automático al final de la tabla después de agregar
+    setTimeout(() => {
+      if (tableWrapperRef.current) {
+        tableWrapperRef.current.scrollTop = tableWrapperRef.current.scrollHeight;
+      }
+      
+      // Focus en el input del nuevo producto
+      const inputs = document.querySelectorAll('input[type="text"]');
+      const lastInput = inputs[inputs.length - 1];
+      if (lastInput) {
+        lastInput.focus();
+        lastInput.select();
+      }
+    }, 100);
   };
 
   const handleChange = (id, key, value) => {
@@ -348,13 +391,24 @@ const AdminProducts = () => {
               </thead>
               <tbody>
                 {listByCategory.map((p) => (
-                  <tr key={p.id}>
+                  <tr 
+                    key={p.id}
+                    style={{
+                      backgroundColor: p._isNew ? '#e8f5e9' : 'transparent',
+                      transition: 'background-color 0.3s ease'
+                    }}
+                  >
                     <td className="name-cell">
                       {isEditing ? (
                         <input
                           type="text"
                           value={p.nombre}
                           onChange={(e) => handleChange(p.id, "nombre", e.target.value)}
+                          placeholder="Ingrese el nombre del producto"
+                          style={{
+                            border: p._isNew ? '2px solid #4caf50' : undefined,
+                            fontWeight: p._isNew ? 'bold' : 'normal'
+                          }}
                         />
                       ) : (
                         p.nombre
@@ -368,6 +422,10 @@ const AdminProducts = () => {
                           min="0"
                           value={p.precio}
                           onChange={(e) => handleChange(p.id, "precio", e.target.value)}
+                          placeholder="0.00"
+                          style={{
+                            border: p._isNew ? '2px solid #4caf50' : undefined
+                          }}
                         />
                       ) : (
                         `${currencySymbol}${parseFloat(p.precio || 0).toFixed(2)}`

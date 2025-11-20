@@ -17,25 +17,44 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
   }, [isOpen, receiptData]);
 
   const handlePrint = () => {
-    if (!printRef.current) return;
+    if (!receiptData) return;
 
-    // Crear una ventana de impresión
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', '_blank', 'width=302,height=600');
     if (!printWindow) {
-      alert('Por favor, permite las ventanas emergentes para imprimir el ticket');
+      alert('Por favor, habilita las ventanas emergentes para imprimir.');
       return;
     }
 
-    // Obtener el contenido HTML del ticket
     const printContent = printRef.current.innerHTML;
 
-    // Escribir el contenido en la nueva ventana con estilos
+    // Escribir el contenido en la nueva ventana con estilos optimizados para EPSON TM-U220
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
           <title>Ticket - Mesa ${receiptData?.tableNumber || ''}</title>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
+            /* Optimizado para EPSON TM-U220 - 76mm roll paper @ 160x144 DPI */
+            @page {
+              size: 76mm auto; /* Alto dinámico según contenido */
+              margin: 0;
+            }
+            
+            @media print {
+              @page {
+                size: 76mm auto;
+                margin: 0;
+              }
+              
+              html, body {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+                image-rendering: pixelated;
+              }
+            }
+            
             * {
               margin: 0;
               padding: 0;
@@ -44,9 +63,17 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             
             body {
               font-family: 'Courier New', Courier, monospace;
-              padding: 10px;
-              width: 80mm;
-              font-size: 12px;
+              padding: 3mm 2mm;
+              width: 76mm;
+              font-size: 10pt; /* Aumentado para mejor legibilidad en 160DPI */
+              line-height: 1.3;
+              color: #000;
+              background: #fff;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              font-weight: 500; /* Texto más grueso */
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
             }
             
             .receipt-container {
@@ -55,68 +82,80 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             
             .receipt-header {
               text-align: center;
-              margin-bottom: 10px;
+              margin-bottom: 2mm;
             }
             
             .restaurant-name {
-              font-weight: bold;
-              font-size: 14px;
-              margin-bottom: 5px;
+              font-weight: 900;
+              font-size: 13pt;
+              margin-bottom: 1mm;
+              letter-spacing: 0.5px;
             }
             
             .restaurant-info {
-              font-size: 11px;
+              font-size: 9pt;
               line-height: 1.4;
+              font-weight: 500;
             }
             
             .divider {
-              border-bottom: 1px dashed #333;
-              margin: 10px 0;
+              border-bottom: 2px dashed #000;
+              margin: 2mm 0;
+              height: 2px;
             }
             
             .ticket-info {
-              font-size: 11px;
-              margin-bottom: 10px;
+              font-size: 9pt;
+              margin-bottom: 2mm;
+              line-height: 1.4;
+              font-weight: 500;
             }
             
             .info-row {
               display: flex;
               justify-content: space-between;
-              margin-bottom: 3px;
+              margin-bottom: 1mm;
             }
             
             .section-title {
-              font-weight: bold;
-              margin-bottom: 5px;
+              font-weight: 900;
+              margin-bottom: 2mm;
               text-align: center;
+              font-size: 10pt;
             }
             
             .items-table {
               width: 100%;
-              margin: 10px 0;
-              font-size: 11px;
+              margin: 2mm 0;
+              font-size: 9pt;
+              font-weight: 500;
             }
             
             .items-table-header {
-              font-weight: bold;
-              border-bottom: 1px solid #333;
-              padding-bottom: 3px;
-              margin-bottom: 5px;
+              font-weight: 900;
+              border-bottom: 2px solid #000;
+              padding-bottom: 1mm;
+              margin-bottom: 1mm;
               display: grid;
-              grid-template-columns: 30px 1fr 60px 60px;
-              gap: 5px;
+              grid-template-columns: 18mm 1fr 16mm 18mm;
+              gap: 2mm;
+              font-size: 9pt;
             }
             
             .item-row {
               display: grid;
-              grid-template-columns: 30px 1fr 60px 60px;
-              gap: 5px;
-              margin-bottom: 5px;
+              grid-template-columns: 18mm 1fr 16mm 18mm;
+              gap: 2mm;
+              margin-bottom: 1mm;
               align-items: start;
+              page-break-inside: avoid;
             }
             
             .item-description {
               word-wrap: break-word;
+              overflow-wrap: break-word;
+              font-size: 9pt;
+              font-weight: 500;
             }
             
             .text-right {
@@ -124,54 +163,92 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             }
             
             .payment-section {
-              margin-top: 10px;
-              font-size: 11px;
+              margin-top: 2mm;
+              font-size: 9pt;
+              font-weight: 500;
             }
             
             .total-section {
-              font-weight: bold;
-              font-size: 13px;
-              margin-top: 10px;
+              font-weight: 900;
+              font-size: 11pt;
+              margin-top: 2mm;
               text-align: center;
+              page-break-inside: avoid;
             }
             
             .total-amount {
-              font-size: 16px;
-              margin: 5px 0;
+              font-size: 14pt;
+              margin: 1mm 0;
+              letter-spacing: 1px;
+              font-weight: 900;
             }
             
             .footer-section {
               text-align: center;
-              margin-top: 15px;
-              font-size: 12px;
+              margin-top: 3mm;
+              font-size: 9pt;
+              line-height: 1.5;
+              font-weight: 500;
             }
             
             .tip-message {
-              font-weight: bold;
-              margin: 10px 0;
+              font-weight: 900;
+              margin: 2mm 0;
             }
             
             .thank-you {
-              margin: 10px 0;
+              margin: 2mm 0;
+              font-weight: 600;
             }
             
             .attendant {
-              margin-top: 10px;
-              font-size: 11px;
+              margin-top: 2mm;
+              font-size: 9pt;
+              font-weight: 500;
             }
             
             @media print {
               body {
-                padding: 0;
+                padding: 2mm;
               }
               
               .no-print {
-                display: none;
+                display: none !important;
+              }
+              
+              /* Forzar calidad de impresión */
+              * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
               }
             }
           </style>
+          <script>
+            // Configurar máxima calidad de impresión
+            window.addEventListener('beforeprint', function() {
+              // Intentar forzar alta calidad
+              if (window.matchMedia) {
+                var mediaQueryList = window.matchMedia('print');
+                mediaQueryList.addListener(function(mql) {
+                  if (mql.matches) {
+                    console.log('Imprimiendo con máxima calidad: 160x144 DPI');
+                  }
+                });
+              }
+            });
+          </script>
         </head>
-        <body onload="window.print(); window.onafterprint = function() { window.close(); }">
+        <body onload="setTimeout(function() { window.print(); window.onafterprint = function() { window.close(); }; }, 300);">
+          <!-- Instrucciones para máxima calidad (solo visibles antes de imprimir) -->
+          <div class="no-print" style="padding: 10px; background: #fffbeb; border: 2px solid #f59e0b; border-radius: 8px; margin-bottom: 10px; font-family: Arial, sans-serif;">
+            <strong style="color: #92400e; display: block; margin-bottom: 5px;">⚠️ Configuración de Impresión Recomendada:</strong>
+            <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 12px; line-height: 1.6;">
+              <li>Calidad: <strong>Alta/Máxima (160x144 DPI)</strong></li>
+              <li>Tamaño de papel: <strong>76mm (ancho de rollo)</strong></li>
+              <li>Márgenes: <strong>0mm</strong></li>
+              <li>Escala: <strong>100%</strong></li>
+            </ul>
+          </div>
           ${printContent}
         </body>
       </html>

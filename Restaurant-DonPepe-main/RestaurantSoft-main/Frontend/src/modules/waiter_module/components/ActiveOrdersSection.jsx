@@ -3,6 +3,8 @@ import { getOrdenes } from "../../../services/waiterService";
 import { getCurrentUserId } from "../../../utils/auth";
 import { cambiarEstadoOrden } from "../../../services/cookService";
 import { Receipt, DollarSign, Eye } from "lucide-react";
+import AlertModal from "../../../components/AlertModal";
+import PreFacturaModal from "./PreFacturaModal";
 
 const estadoColors = {
   pendiente: "#CD5C5C",
@@ -32,7 +34,27 @@ const ActiveOrdersSection = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [preFacturas, setPreFacturas] = useState({});
+  const [alert, setAlert] = useState({ isOpen: false, type: 'info', title: '', message: '' });
+  const [preFacturaModal, setPreFacturaModal] = useState({ isOpen: false, data: null });
   const currentWaiterId = getCurrentUserId();
+
+  // Función para cerrar alert
+  const closeAlert = () => setAlert({ ...alert, isOpen: false });
+
+  // Función para mostrar alert
+  const showAlert = (type, title, message) => {
+    setAlert({ isOpen: true, type, title, message });
+  };
+
+  // Función para parsear pedido - DEBE estar antes del useEffect
+  const parsePedido = (pedidoRaw) => {
+    try {
+      if (Array.isArray(pedidoRaw)) return pedidoRaw;
+      return JSON.parse(pedidoRaw || "[]");
+    } catch {
+      return [];
+    }
+  };
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -48,6 +70,29 @@ const ActiveOrdersSection = () => {
           }
           // Mostrar solo las órdenes del mesero actual
           return order.waiter_id === currentWaiterId;
+        });
+        
+        // Cuando una orden cambia a prefactura_enviada, guardar los datos
+        filteredOrders.forEach(order => {
+          if (order.estado === 'prefactura_enviada' && !preFacturas[order.id]) {
+            const items = parsePedido(order.pedido).map(item => ({
+              nombre: item.nombre,
+              cantidad: item.cantidad || 0,
+              precio: item.precio || 0,
+              subtotal: (item.cantidad || 0) * (item.precio || 0)
+            }));
+            const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+            
+            setPreFacturas(prev => ({
+              ...prev,
+              [order.id]: {
+                mesa: order.mesa,
+                mesero: order.waiterName,
+                items,
+                total
+              }
+            }));
+          }
         });
         
         setOrders(filteredOrders);
@@ -67,15 +112,6 @@ const ActiveOrdersSection = () => {
   }, [currentWaiterId]);
 
   if (loading) return <p>Cargando órdenes…</p>;
-
-  const parsePedido = (pedidoRaw) => {
-    try {
-      if (Array.isArray(pedidoRaw)) return pedidoRaw;
-      return JSON.parse(pedidoRaw || "[]");
-    } catch {
-      return [];
-    }
-  };
 
   function capitalizeFirstLetter(str) {
     if (!str) return "";
@@ -193,7 +229,28 @@ const ActiveOrdersSection = () => {
                     <button
                       onClick={async () => {
                         try {
+                          // Guardar datos de la orden antes de cambiar estado
+                          const items = parsePedido(order.pedido).map(item => ({
+                            nombre: item.nombre,
+                            cantidad: item.cantidad || 0,
+                            precio: item.precio || 0,
+                            subtotal: (item.cantidad || 0) * (item.precio || 0)
+                          }));
+                          const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+                          
+                          // Guardar pre-factura
+                          setPreFacturas(prev => ({
+                            ...prev,
+                            [order.id]: {
+                              mesa: order.mesa,
+                              mesero: order.waiterName,
+                              items,
+                              total
+                            }
+                          }));
+                          
                           await cambiarEstadoOrden(order.id, 'payment_requested');
+                          
                           // Recargar órdenes
                           const response = await getOrdenes();
                           const arr = Array.isArray(response) ? response : [];
@@ -202,10 +259,11 @@ const ActiveOrdersSection = () => {
                             return o.waiter_id === currentWaiterId;
                           });
                           setOrders(filteredOrders);
-                          alert('Cuenta solicitada correctamente');
+                          
+                          showAlert('success', '¡Cuenta Solicitada!', 'La cuenta ha sido solicitada a caja correctamente. Espera a que el cajero envíe la pre-factura.');
                         } catch (e) {
                           console.error('Error solicitando cuenta:', e);
-                          alert('Error al solicitar cuenta');
+                          showAlert('error', 'Error', 'No se pudo solicitar la cuenta. Por favor, inténtalo de nuevo.');
                         }
                       }}
                       style={{
@@ -237,10 +295,9 @@ const ActiveOrdersSection = () => {
                     <button
                       onClick={() => {
                         if (preFacturas[order.id]) {
-                          // Mostrar pre-factura
-                          alert(`Pre-factura de Mesa ${order.mesa}:\n\nTotal: C$ ${preFacturas[order.id].total}\n\nProductos:\n${preFacturas[order.id].items.map(item => `- ${item.nombre} x${item.cantidad} - C$ ${item.subtotal}`).join('\n')}`);
+                          setPreFacturaModal({ isOpen: true, data: preFacturas[order.id] });
                         } else {
-                          alert('Pre-factura no disponible');
+                          showAlert('warning', 'Pre-factura no disponible', 'Aún no se ha recibido la pre-factura de caja. Por favor, espera unos momentos.');
                         }
                       }}
                       style={{
@@ -271,6 +328,21 @@ const ActiveOrdersSection = () => {
             );
           })
       )}
+      
+      {/* Modales */}
+      <AlertModal
+        isOpen={alert.isOpen}
+        onClose={closeAlert}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+      />
+      
+      <PreFacturaModal
+        isOpen={preFacturaModal.isOpen}
+        onClose={() => setPreFacturaModal({ isOpen: false, data: null })}
+        preFactura={preFacturaModal.data}
+      />
     </div>
   );
 };

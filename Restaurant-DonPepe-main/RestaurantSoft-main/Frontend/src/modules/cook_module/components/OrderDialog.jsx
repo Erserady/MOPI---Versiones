@@ -122,60 +122,57 @@ const OrderDialog = ({
         {/* Contenido scrollable */}
         <div className="order-detail-content">
 
-        {/* Comentarios del platillo (ahora incluye nombre y cantidad) - Movido arriba */}
+        {/* Platillos del pedido con comentarios integrados */}
+        <div className="order-detail-section dishes-section">
+          <div className="section-header">
+            <UtensilsCrossed size={20} />
+            <h3>Platillos a preparar</h3>
+          </div>
+          <div className="dishes-list">
+            {cookableItems.map((item, index) => {
+              // Obtener la nota del platillo
+              let noteText = '';
+              if (item.nota && typeof item.nota === 'string') {
+                noteText = item.nota.trim();
+              } else if (item.note && typeof item.note === 'string') {
+                noteText = item.note.trim();
+              } else if (item.notas && typeof item.notas === 'string') {
+                noteText = item.notas.trim();
+              } else if (item.description && typeof item.description === 'string') {
+                noteText = item.description.trim();
+              } else if (item.comentarios && typeof item.comentarios === 'string') {
+                noteText = item.comentarios.trim();
+              } else if (item.observaciones && typeof item.observaciones === 'string') {
+                noteText = item.observaciones.trim();
+              }
 
-        {/* Comentarios del platillo - Solo se muestra si hay comentarios */}
-        {(() => {
-          // Filtrar platillos que tienen comentarios (solo items cocinables)
-          const itemsWithComments = cookableItems
-                .map((item, index) => {
-                  // Obtener la nota del platillo
-                  let noteText = '';
-                  if (item.nota && typeof item.nota === 'string') {
-                    noteText = item.nota.trim();
-                  } else if (item.note && typeof item.note === 'string') {
-                    noteText = item.note.trim();
-                  } else if (item.notas && typeof item.notas === 'string') {
-                    noteText = item.notas.trim();
-                  } else if (item.description && typeof item.description === 'string') {
-                    noteText = item.description.trim();
-                  } else if (item.comentarios && typeof item.comentarios === 'string') {
-                    noteText = item.comentarios.trim();
-                  } else if (item.observaciones && typeof item.observaciones === 'string') {
-                    noteText = item.observaciones.trim();
-                  }
+              // Verificar si tiene nota válida (no vacía ni solo "total:")
+              const hasNote = noteText && noteText.length > 0 && !/^total\s*:/i.test(noteText);
 
-                  // Filtrar notas vacías o que sean solo "total:"
-                  const hasNote = noteText && noteText.length > 0 && !/^total\s*:/i.test(noteText);
-                  
-                  return hasNote ? { ...item, noteText, index } : null;
-                })
-                .filter(Boolean);
-
-          // Solo renderizar la sección si hay comentarios
-          return itemsWithComments.length > 0 ? (
-            <div className="order-detail-section notes-section">
-              <div className="section-header">
-                <MessageSquare size={20} />
-                <h3>Comentarios del platillo</h3>
-              </div>
-              <div className="special-notes">
-                {itemsWithComments.map((item) => (
-                  <div key={`comment-${item.nombre}-${item.index}`} className="special-note">
-                    <div className="note-dish">
-                      <span className="note-dish-name">{item.nombre}</span>
-                      <span className="note-dish-qty">x{item.cantidad || 1}</span>
+              return (
+                <div key={`dish-${item.nombre}-${index}`} className="dish-item-wrapper">
+                  <div className="dish-item">
+                    <div className="dish-quantity">
+                      <span>{item.cantidad || 1}x</span>
                     </div>
-                    <div className="note-text">
-                      <MessageSquare size={14} />
-                      <span>{item.noteText}</span>
+                    <div className="dish-details">
+                      <span className="dish-name">{item.nombre}</span>
+                      {item.categoria && <span className="dish-category">{item.categoria}</span>}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : null;
-        })()}
+                  
+                  {/* Comentario del platillo - Solo si tiene */}
+                  {hasNote && (
+                    <div className="dish-note">
+                      <MessageSquare size={14} />
+                      <span>{noteText}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Información adicional al final - Rediseñada */}
         <div className="order-meta-redesign">

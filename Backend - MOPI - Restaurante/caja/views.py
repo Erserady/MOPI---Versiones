@@ -222,10 +222,19 @@ def facturas_view(request):
 def mesas_con_ordenes_pendientes(request):
     """
     Endpoint para obtener mesas con órdenes que aún deben cobrarse.
-    Considera todas las órdenes activas en cocina (pendiente, en preparación, listo, entregado)
-    y cualquier otro estado equivalente a "servido", pero excluye las que ya fueron facturadas.
+    Incluye todos los estados desde pendiente hasta prefactura_enviada.
+    Las órdenes con cuenta solicitada (payment_requested) deben ser visibles
+    para que el cajero pueda enviar la pre-factura al mesero.
     """
-    estados_cobrables = ['pendiente', 'en_preparacion', 'listo', 'entregado', 'servido']
+    estados_cobrables = [
+        'pendiente', 
+        'en_preparacion', 
+        'listo', 
+        'entregado', 
+        'servido',
+        'payment_requested',      # Cuenta solicitada por el mesero
+        'prefactura_enviada',     # Pre-factura enviada al mesero
+    ]
     mesas = Table.objects.filter(orders__estado__in=estados_cobrables).distinct()
 
     data = []
@@ -247,7 +256,8 @@ def mesas_con_ordenes_pendientes(request):
                     'pedido': orden.pedido,
                     'cliente': orden.cliente,
                     'cantidad': orden.cantidad,
-                    'estado': orden.estado
+                    'estado': orden.estado,
+                    'waiter_name': getattr(orden, 'waiter_name', None) or getattr(orden, 'mesero', None) or 'Sin asignar'
                 } for orden in ordenes_pendientes
             ]
         })

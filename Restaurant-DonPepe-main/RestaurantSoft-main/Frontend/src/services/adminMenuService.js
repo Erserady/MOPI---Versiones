@@ -56,10 +56,13 @@ export async function createPlato(data) {
 
 export async function updatePlato(id, data) {
   const res = await apiFetch(`${API_BASE_URL}/api/administrador/platos/${id}/`, {
-    method: 'PUT',
+    method: 'PATCH', // Usar PATCH para actualización parcial
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Error actualizando plato');
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Error actualizando plato: ${errorText}`);
+  }
   return res.json();
 }
 

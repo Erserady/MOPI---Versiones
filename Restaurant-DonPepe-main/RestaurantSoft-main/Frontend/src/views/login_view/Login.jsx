@@ -36,9 +36,10 @@ const Login = () => {
         throw new Error(data.non_field_errors?.[0] || "Credenciales incorrectas");
       }
 
-      // Guardar token y datos del usuario
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // Guardar token y datos del usuario en sessionStorage
+      // sessionStorage permite múltiples usuarios en diferentes pestañas
+      sessionStorage.setItem("token", data.token);
+      sessionStorage.setItem("user", JSON.stringify(data.user));
       
       // Siempre ir a admin-preview después del login
       navigate("/admin-preview");

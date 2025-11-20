@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const READY_STATUS = "entregado";
+const PREPARING_STATUS = "en_preparacion";
 const MAX_NOTIFICATIONS = 15;
 
 const normalizeStatus = (value) => {
@@ -25,10 +26,15 @@ const resolveMesaLabel = (order) =>
 const resolveOrderLabel = (order) =>
   order?.order_id || order?.numero || order?.pedido_id || order?.id || "Sin folio";
 
-const buildNotification = (order, cacheKey) => {
+const buildNotification = (order, cacheKey, notificationType) => {
   const mesaLabel = resolveMesaLabel(order);
   const orderLabel = resolveOrderLabel(order);
   const timestamp = Date.now();
+
+  const messages = {
+    entregado: `La cocina marco la orden ${orderLabel} de la mesa ${mesaLabel} como entregada.`,
+    en_preparacion: `La cocina comenzo a preparar la orden ${orderLabel} de la mesa ${mesaLabel}.`,
+  };
 
   return {
     id: `${cacheKey}-${timestamp}`,
@@ -37,7 +43,8 @@ const buildNotification = (order, cacheKey) => {
     order: orderLabel,
     timestamp,
     read: false,
-    message: `La cocina marco la orden ${orderLabel} de la mesa ${mesaLabel} como entregada.`,
+    type: notificationType,
+    message: messages[notificationType] || `Actualizacion de la orden ${orderLabel}.`,
   };
 };
 
@@ -62,10 +69,17 @@ export function useReadyNotifications(orders) {
       nextStatuses.set(orderKey, status);
 
       const prevStatus = previousStatuses.get(orderKey);
+      
+      // Notificar cuando el pedido pasa a "entregado"
       const becameReady = status === READY_STATUS && prevStatus !== READY_STATUS;
-
       if (becameReady) {
-        newlyReadyNotifications.push(buildNotification(order, orderKey));
+        newlyReadyNotifications.push(buildNotification(order, orderKey, READY_STATUS));
+      }
+
+      // Notificar cuando el pedido pasa a "en_preparacion" (Cocinando)
+      const becamePreparing = status === PREPARING_STATUS && prevStatus !== PREPARING_STATUS && prevStatus !== READY_STATUS && prevStatus !== "entregado";
+      if (becamePreparing) {
+        newlyReadyNotifications.push(buildNotification(order, orderKey, PREPARING_STATUS));
       }
     });
 

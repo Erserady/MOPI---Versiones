@@ -1,25 +1,56 @@
 import React, { useEffect, useState } from "react";
 import { getOrdenes } from "../../../services/waiterService";
+import { getCurrentUserId } from "../../../utils/auth";
+import { cambiarEstadoOrden } from "../../../services/cookService";
+import { Receipt, DollarSign, Eye } from "lucide-react";
 
 const estadoColors = {
   pendiente: "#CD5C5C",
   entregado: "#FFA500",
   listo: "#57c84dff",
-  en_preparacion: "#4556b8ff",
+  en_preparacion: "#FF6B35",
   servido: "#20B2AA",
+  payment_requested: "#f59e0b",
+  prefactura_enviada: "#6366f1",
   facturado: "#808080",
+  pagado: "#808080",
+};
+
+const estadoLabels = {
+  pendiente: "Pendiente",
+  entregado: "Entregado",
+  listo: "Listo",
+  en_preparacion: "🔥 Preparando",
+  servido: "Servido",
+  payment_requested: "💰 Cuenta Solicitada",
+  prefactura_enviada: "📋 Pre-factura Enviada",
+  facturado: "Facturado",
+  pagado: "Pagado",
 };
 
 const ActiveOrdersSection = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [preFacturas, setPreFacturas] = useState({});
+  const currentWaiterId = getCurrentUserId();
 
   useEffect(() => {
     const loadOrders = async () => {
       try {
         const response = await getOrdenes();
         const arr = Array.isArray(response) ? response : [];
-        setOrders(arr);
+        
+        // Filtrar solo las órdenes del mesero actual
+        const filteredOrders = arr.filter((order) => {
+          // Excluir órdenes cerradas en caja (pagadas o facturadas)
+          if (order.estado === "pagado" || order.estado === "facturado") {
+            return false;
+          }
+          // Mostrar solo las órdenes del mesero actual
+          return order.waiter_id === currentWaiterId;
+        });
+        
+        setOrders(filteredOrders);
       } catch (e) {
         console.error("Error cargando ordenes:", e);
         setOrders([]);
@@ -29,7 +60,11 @@ const ActiveOrdersSection = () => {
     };
 
     loadOrders();
-  }, []);
+    
+    // Actualizar cada 5 segundos para reflejar cambios en tiempo real
+    const interval = setInterval(loadOrders, 5000);
+    return () => clearInterval(interval);
+  }, [currentWaiterId]);
 
   if (loading) return <p>Cargando órdenes…</p>;
 
@@ -59,12 +94,9 @@ const ActiveOrdersSection = () => {
       }}
     >
       {orders.length === 0 ? (
-        <p>No hay órdenes activas.</p>
+        <p>No tienes órdenes activas.</p>
       ) : (
-        orders
-
-          .filter((order) => order.estado !== "facturado")
-          .map((order) => {
+        orders.map((order) => {
             const items = parsePedido(order.pedido);
             const estadoColor = estadoColors[order.estado] || "#cccccc"; // fallback
             {
@@ -96,8 +128,8 @@ const ActiveOrdersSection = () => {
                     {order.mesa ?? "Mesa"}
                   </h3>
 
-                  <p style={{ margin: "4px 0", color: estadoColor }}>
-                    Estado: <b>{capitalizeFirstLetter(order.estado)}</b>
+                  <p style={{ margin: "4px 0", color: estadoColor, fontWeight: "700", fontSize: "14px" }}>
+                    Estado: <b>{estadoLabels[order.estado] || capitalizeFirstLetter(order.estado)}</b>
                   </p>
 
                   <p style={{ margin: "0", color: "#6b6b6b" }}>
@@ -151,6 +183,88 @@ const ActiveOrdersSection = () => {
                         )}
                       </div>
                     ))
+                  )}
+                </div>
+
+                {/* Botones de acción */}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  {/* Botón Solicitar Cuenta - Aparece si NO está en payment_requested, prefactura_enviada, pagado o facturado */}
+                  {!['payment_requested', 'prefactura_enviada', 'pagado', 'facturado'].includes(order.estado) && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await cambiarEstadoOrden(order.id, 'payment_requested');
+                          // Recargar órdenes
+                          const response = await getOrdenes();
+                          const arr = Array.isArray(response) ? response : [];
+                          const filteredOrders = arr.filter((o) => {
+                            if (o.estado === "pagado" || o.estado === "facturado") return false;
+                            return o.waiter_id === currentWaiterId;
+                          });
+                          setOrders(filteredOrders);
+                          alert('Cuenta solicitada correctamente');
+                        } catch (e) {
+                          console.error('Error solicitando cuenta:', e);
+                          alert('Error al solicitar cuenta');
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: '#f59e0b',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        fontSize: '14px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.target.style.background = '#d97706'}
+                      onMouseLeave={(e) => e.target.style.background = '#f59e0b'}
+                    >
+                      <DollarSign size={16} />
+                      Solicitar Cuenta
+                    </button>
+                  )}
+
+                  {/* Botón Ver Pre-factura */}
+                  {order.estado === 'prefactura_enviada' && (
+                    <button
+                      onClick={() => {
+                        if (preFacturas[order.id]) {
+                          // Mostrar pre-factura
+                          alert(`Pre-factura de Mesa ${order.mesa}:\n\nTotal: C$ ${preFacturas[order.id].total}\n\nProductos:\n${preFacturas[order.id].items.map(item => `- ${item.nombre} x${item.cantidad} - C$ ${item.subtotal}`).join('\n')}`);
+                        } else {
+                          alert('Pre-factura no disponible');
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: '#6366f1',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        fontSize: '14px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.target.style.background = '#4f46e5'}
+                      onMouseLeave={(e) => e.target.style.background = '#6366f1'}
+                    >
+                      <Eye size={16} />
+                      Ver Pre-factura
+                    </button>
                   )}
                 </div>
               </article>

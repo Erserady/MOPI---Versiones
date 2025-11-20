@@ -146,22 +146,29 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-# STATIC_ROOT =os.path.join(BASE_DIR, 'staticfiles')
+# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-if not DEBUG:
-        # Tell Django to copy statics to the `staticfiles` directory
-    # in your application directory on Render.
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    # Turn on WhiteNoise storage backend that takes care of compressing static files
-    # and creating unique names for each version so they can safely be cached forever.
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise - Configuración simplificada y robusta
+# Usar solo CompressedStaticFilesStorage sin manifest para evitar errores
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
+WHITENOISE_ALLOW_ALL_ORIGINS = True
+
+# Configuración para Django 5+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
+
+# Directorios adicionales de archivos estáticos
+STATICFILES_DIRS = []
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -183,7 +190,7 @@ REST_FRAMEWORK = {
 }
 
 # CORS - Configuración para desarrollo y producción
-default_origins = 'http://localhost:5173,http://127.0.0.1:5173,https://mopi-frontend.onrender.com'
+default_origins = 'http://localhost:5173,http://127.0.0.1:5173,https://mopi-frontend.onrender.com,https://mopi-frontend.fly.dev'
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', default_origins).split(',')
 
 # Limpiar espacios en blanco de los orígenes

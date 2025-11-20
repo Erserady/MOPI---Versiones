@@ -197,6 +197,10 @@ class PagoViewSet(viewsets.ModelViewSet):
                 factura.estado = 'pagada'
                 factura.metodo_pago = pago.metodo_pago
                 factura.save()
+                
+                # Actualizar las órdenes asociadas a estado 'pagado'
+                # Esto permite que desaparezcan del panel de mesero
+                factura.orders.update(estado='pagado')
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

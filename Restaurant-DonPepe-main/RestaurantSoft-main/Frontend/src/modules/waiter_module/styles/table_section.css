@@ -5,71 +5,169 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 1.5rem;
+  background: #f3f4f6;
+  min-height: 100vh;
 }
 
 /* =============================================================================
    HEADER CON TÍTULO Y ESTADÍSTICAS
 ============================================================================= */
 .tables-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.tables-title {
+  flex-shrink: 0;
+  flex: 0 0 auto;
 }
 
 .tables-title h1 {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #111827;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.25rem 0;
 }
 
 .tables-subtitle {
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: #6b7280;
-  margin: 0 0 1.5rem 0;
+  margin: 0;
+}
+
+/* Estadísticas en el header - Horizontal */
+.tables-stats-header {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.stat-card-header {
+  background: #f9fafb;
+  border: none;
+  padding: 1.25rem 2rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  border-left: 5px solid #e5e7eb;
+  min-width: 140px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card-header:hover {
+  background: #f3f4f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-header.libre {
+  border-left-color: #10b981;
+  background: #ecfdf5;
+}
+
+.stat-card-header.libre:hover {
+  background: #d1fae5;
+}
+
+.stat-card-header.ocupada {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.stat-card-header.ocupada:hover {
+  background: #fee2e2;
+}
+
+.stat-card-header.reservada {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.stat-card-header.reservada:hover {
+  background: #fef3c7;
+}
+
+.stat-card-header .stat-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card-header .stat-value {
+  color: #111827;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 /* Tarjetas de Estadísticas - Diseño Minimalista */
 .tables-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-top: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0;
 }
 
 .stat-card {
-  background: white;
-  border: 2px solid #e5e7eb;
-  padding: 1.25rem;
-  border-radius: 12px;
+  background: #f9fafb;
+  border: none;
+  padding: 1rem;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  gap: 0.4rem;
   transition: all 0.2s;
+  border-left: 4px solid #e5e7eb;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: #f3f4f6;
 }
 
 .stat-card.libre {
-  border-color: #10b981;
-  border-width: 3px;
+  border-left-color: #10b981;
+  background: #ecfdf5;
+}
+
+.stat-card.libre:hover {
+  background: #d1fae5;
 }
 
 .stat-card.ocupada {
-  border-color: #ef4444;
-  border-width: 3px;
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.stat-card.ocupada:hover {
+  background: #fee2e2;
 }
 
 .stat-card.reservada {
-  border-color: #f59e0b;
-  border-width: 3px;
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.stat-card.reservada:hover {
+  background: #fef3c7;
 }
 
 .stat-label {
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -77,20 +175,54 @@
 
 .stat-value {
   color: #111827;
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 800;
 }
 
-/* Barra de herramientas removida - no se usa búsqueda ni filtros */
+/* =============================================================================
+   LAYOUT DE DOS COLUMNAS
+============================================================================= */
+.tables-layout {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.tables-main {
+  min-width: 0;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar personalizado */
+.tables-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tables-main::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.tables-main::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.tables-main::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
 
 /* =============================================================================
    GRID DE MESAS
 ============================================================================= */
 .tables-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.875rem;
+  padding-bottom: 1rem;
 }
 
 /* =============================================================================
@@ -98,157 +230,168 @@
 ============================================================================= */
 .table-card-modern {
   background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 1.5rem;
+  border: 3px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  transition: all 0.3s ease;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
+  min-height: 110px;
+  aspect-ratio: 1;
+  cursor: pointer;
 }
 
-/* Removido gradiente animado superior */
-
 .table-card-modern:hover {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  filter: brightness(1.05);
+  border-width: 4px;
+}
+
+/* Estados de mesa con fondos de color */
+.table-card-modern.libre {
+  background: #d1fae5;
+  border-color: #10b981;
 }
 
 .table-card-modern.ocupada {
-  border-color: #ef4444;
-  border-width: 3px;
-}
-
-.table-card-modern.libre {
-  border-color: #10b981;
-  border-width: 3px;
+  background: #fecaca;
+  border-color: #dc2626;
 }
 
 .table-card-modern.reservada {
+  background: #fef3c7;
   border-color: #f59e0b;
-  border-width: 3px;
 }
 
-/* Badge de Estado */
+.table-card-modern.payment-requested {
+  border-color: #f59e0b;
+  border-width: 4px;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+/* Badge de Estado - Minimalista */
 .table-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  width: fit-content;
-  letter-spacing: 0.5px;
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Display del Número de Mesa */
+.table-card-modern.libre .table-status-badge {
+  background: #10b981;
+}
+
+.table-card-modern.ocupada .table-status-badge {
+  background: #ef4444;
+}
+
+.table-card-modern.reservada .table-status-badge {
+  background: #f59e0b;
+}
+
+/* Display del Número de Mesa - Minimalista */
 .table-number-display {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
 }
 
 .table-number {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #111827;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #1f2937;
   line-height: 1;
+  margin: 0;
 }
 
 .table-label {
-  font-size: 0.875rem;
-  color: #6b7280;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  display: none;
 }
 
-/* Grid de Información */
+/* Info del Mesero - Minimalista */
 .table-info-grid {
+  position: absolute;
+  bottom: 0.35rem;
+  left: 0.35rem;
+  right: 0.35rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
+  justify-content: center;
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: #f9fafb;
-  border-radius: 8px;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  max-width: 100%;
 }
 
 .info-icon {
-  color: #6366f1;
+  color: #6b7280;
   flex-shrink: 0;
+  width: 12px;
+  height: 12px;
 }
 
 .info-item > div {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
 }
 
 .info-label {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  display: none;
 }
 
 .info-value {
-  font-size: 0.9375rem;
-  color: #111827;
+  font-size: 0.65rem;
+  color: #374151;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Botón de Acción */
+/* Botón de Acción - Oculto, la tarjeta entera es clickeable */
 .table-action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.25rem;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  width: 100%;
+  display: none;
 }
 
-.table-action-btn.add {
-  background: #6366f1;
-  color: white;
+/* Tarjeta bloqueada - con icono de candado */
+.table-card-modern.blocked {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
-.table-action-btn.add:hover {
-  background: #4f46e5;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+.table-card-modern.blocked:hover {
+  transform: none;
+  box-shadow: none;
 }
 
-.table-action-btn.edit {
-  background: white;
-  color: #6366f1;
-  border: 2px solid #6366f1;
-}
-
-.table-action-btn.edit:hover {
-  background: #6366f1;
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+.table-card-modern.blocked::after {
+  content: '🔒';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  opacity: 0.5;
 }
 
 /* Estado Vacío */
@@ -256,19 +399,226 @@
   text-align: center;
   padding: 3rem 1rem;
   color: #9ca3af;
-  font-size: 1.125rem;
+  font-size: 0.875rem;
+  background: white;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+/* =============================================================================
+   SIDEBAR CON ESTADÍSTICAS Y FILTROS
+============================================================================= */
+.tables-sidebar {
+  position: sticky;
+  top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+/* Scrollbar personalizado para sidebar */
+.tables-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tables-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tables-sidebar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+
+.tables-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+.sidebar-section {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Estadísticas en el sidebar - Vertical */
+.tables-stats-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-card-vertical {
+  background: #f9fafb;
+  border: none;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+  border-left: 4px solid #e5e7eb;
+}
+
+.stat-card-vertical:hover {
+  background: #f3f4f6;
+}
+
+.stat-card-vertical.libre {
+  border-left-color: #10b981;
+  background: #ecfdf5;
+}
+
+.stat-card-vertical.libre:hover {
+  background: #d1fae5;
+}
+
+.stat-card-vertical.ocupada {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.stat-card-vertical.ocupada:hover {
+  background: #fee2e2;
+}
+
+.stat-card-vertical.reservada {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.stat-card-vertical.reservada:hover {
+  background: #fef3c7;
+}
+
+.stat-card-vertical .stat-label {
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card-vertical .stat-value {
+  color: #111827;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* Botones de Filtro */
+.filter-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.filter-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.filter-btn.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: white;
+}
+
+.filter-btn.active:hover {
+  background: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.filter-btn.active .filter-count {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* =============================================================================
    RESPONSIVE
 ============================================================================= */
 @media (max-width: 1024px) {
-  .tables-stats {
-    grid-template-columns: repeat(2, 1fr);
+  .tables-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .tables-stats-header {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .stat-card-header {
+    flex: 1;
+    min-width: 100px;
+    padding: 1rem 1.5rem;
+  }
+  
+  .stat-card-header .stat-value {
+    font-size: 2rem;
+  }
+  
+  .tables-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .tables-main {
+    max-height: none;
+    overflow-y: visible;
+  }
+  
+  .tables-sidebar {
+    position: static;
+    order: -1;
+    max-height: none;
+    overflow-y: visible;
+  }
+  
+  .sidebar-section {
+    padding: 1rem;
   }
   
   .tables-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   }
 }
 
@@ -277,16 +627,64 @@
     padding: 1rem;
   }
   
+  .tables-header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
   .tables-title h1 {
     font-size: 1.5rem;
   }
   
-  .tables-stats {
-    grid-template-columns: 1fr;
+  .tables-stats-header {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  
+  .stat-card-header {
+    min-width: 90px;
+    padding: 0.65rem 1rem;
+  }
+  
+  .stat-card-header .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .tables-layout {
+    gap: 1rem;
+  }
+  
+  .sidebar-section {
+    padding: 0.875rem;
+  }
+  
+  .sidebar-title {
+    font-size: 0.875rem;
+  }
+  
+  .filter-btn {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.8rem;
   }
   
   .tables-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .table-card-modern {
+    padding: 1rem;
+    min-height: 100px;
+  }
+  
+  .table-number {
+    font-size: 2.5rem;
+  }
+  
+  .info-value {
+    font-size: 0.65rem;
   }
 }
 

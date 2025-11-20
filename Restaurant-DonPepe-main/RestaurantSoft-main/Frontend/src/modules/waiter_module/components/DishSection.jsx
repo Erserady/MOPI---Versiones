@@ -145,13 +145,13 @@ const DishSection = () => {
   }
 
   return (
-    <section className="dish-section" style={{padding: '1.5rem'}}>
+    <section className="dish-section">
       <h1 style={{textAlign: 'center', marginBottom: '2rem', color: '#6366f1', fontSize: '2rem', fontWeight: '700'}}>Menú Disponible</h1>
       
-      <div style={{marginBottom: '2.5rem'}}>
+      <div className="categories-container">
         {/* Menú de categorías principales */}
         <h3 style={{textAlign: 'center', marginBottom: '1rem', fontWeight: '600', fontSize: '1rem'}}>Categorías principales</h3>
-        <div className="categories-menu" style={{justifyContent: 'center', gap: '1rem', marginBottom: '2rem'}}>
+        <div className="categories-menu">
           {categoryHierarchy.map((category) => (
             <button
               key={category.main}
@@ -175,9 +175,9 @@ const DishSection = () => {
         </div>
 
         {/* Menú de subcategorías */}
-        <h3 style={{textAlign: 'center', marginBottom: '1rem', fontWeight: '600', fontSize: '1rem'}}>Subcategorías</h3>
+        <h3 style={{textAlign: 'center', marginBottom: '1rem', fontWeight: '600', fontSize: '1rem', marginTop: '1.5rem'}}>Subcategorías</h3>
         {activeMainCategoryData && availableSubcategoriesForMain.length > 0 && (
-          <div className="categories-menu" style={{justifyContent: 'center', gap: '1rem', marginBottom: '1rem'}}>
+          <div className="categories-menu">
             {availableSubcategoriesForMain.map((subcategory) => (
               <button
                 key={subcategory}

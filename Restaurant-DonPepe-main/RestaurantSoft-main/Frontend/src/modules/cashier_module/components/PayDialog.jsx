@@ -4,6 +4,7 @@ import { createFactura, createPago, getCajas } from "../../../services/cashierSe
 import { updateMesa } from "../../../services/waiterService";
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
+import ReceiptPrinter from "./ReceiptPrinter";
 import "../styles/pay_dialog_modern.css";
 
 const PayDialog = ({ orders, isOpen, onClose }) => {
@@ -11,6 +12,8 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
   const [cashReceived, setCashReceived] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [receiptData, setReceiptData] = useState(null);
+  const [showReceipt, setShowReceipt] = useState(false);
   const { notification, showNotification, hideNotification} = useNotification();
 
   // Agrupar items por nombre para mostrar resumen
@@ -111,6 +114,28 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
       const total = parseFloat(orders.total || factura.total);
       const cambio = paymentMethod === 'cash' ? parseFloat(cashReceived) - total : 0;
 
+      // Preparar datos del ticket
+      const ticketData = {
+        ticketNumber: factura.numero_factura || factura.id,
+        facturaId: factura.id,
+        correlativo: String(factura.id).padStart(3, '0'),
+        vendorId: factura.caja_id || 1,
+        tableNumber: orders.tableNumber,
+        waiter: orders.waiter,
+        waiterName: orders.waiter,
+        customerName: orders.customerName || '',
+        customerAddress: orders.customerAddress || '',
+        items: groupedItems,
+        paymentMethod: paymentMethod,
+        total: total,
+        cashReceived: paymentMethod === 'cash' ? parseFloat(cashReceived) : total,
+        change: cambio,
+      };
+
+      // Guardar datos del ticket y abrir el diálogo de impresión
+      setReceiptData(ticketData);
+      setShowReceipt(true);
+
       // Notificar éxito
       showNotification({
         type: 'success',
@@ -118,7 +143,11 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
         message: `Total: C$${total.toFixed(2)} | Cambio: C$${cambio.toFixed(2)}${!mesaActualizada ? ' (Actualice mesa manualmente)' : ''}`,
         duration: 5000
       });
-      onClose();
+      
+      // Cerrar el diálogo de pago después de un breve delay
+      setTimeout(() => {
+        onClose();
+      }, 500);
       
     } catch (err) {
       console.error('Error procesando pago:', err);
@@ -332,6 +361,13 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
           duration={notification.duration}
         />
       )}
+
+      {/* Ticket de impresión */}
+      <ReceiptPrinter
+        isOpen={showReceipt}
+        onClose={() => setShowReceipt(false)}
+        receiptData={receiptData}
+      />
     </>
   );
 };

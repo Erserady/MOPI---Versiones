@@ -2,24 +2,53 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  justify-content: flex-start;
+  justify-content: center;
 
   @media (max-width: 720px) {
-    gap: 0.3rem;
-    justify-content: flex-start;
+    gap: 0.5rem;
+    justify-content: center;
     flex-wrap: nowrap;
     width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     background-color: #eeeeeea4;
-    padding: 20px;
+    padding: 12px 8px;
     border-radius: 10px;
+    /* Mejorar visualización del scroll */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    /* Mostrar scrollbar en móviles */
+    scrollbar-width: thin;
+    scrollbar-color: #007bff #e0e0e0;
+    /* Agregar espacio antes del primer elemento */
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  /* Scrollbar para webkit (Chrome, Safari) en móviles */
+  @media (max-width: 720px) {
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #e0e0e0;
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #007bff;
+      border-radius: 3px;
+    }
   }
 }
 .category-tip {
   width: 100%;
   margin-bottom: 2rem;
+  margin-top: 1rem;
   text-align: center;
   color: #aeaeae;
+  font-size: 0.85rem;
   display: none;
   @media (max-width: 720px) {
     display: block;
@@ -36,6 +65,7 @@
   font-weight: 500;
   transition: all 0.3s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover {
     background: #e9ecef;
@@ -46,6 +76,33 @@
     background: #007bff;
     color: white;
     border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  }
+  
+  /* Estilos más compactos para móviles */
+  @media (max-width: 720px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 20px;
+    border-width: 1.5px;
+    min-width: fit-content;
+  }
+  
+  /* Para pantallas muy pequeñas */
+  @media (max-width: 480px) {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Asegurar espacio para el primer botón en móviles */
+@media (max-width: 720px) {
+  .categories-menu .category-btn:first-child {
+    margin-left: 4px;
+  }
+  
+  .categories-menu .category-btn:last-child {
+    margin-right: 4px;
   }
 }
 
@@ -61,9 +118,23 @@
 }
 
 .dish-section {
-  padding: 0.2rem;
+  padding: 1.5rem;
+  
+  @media (max-width: 720px) {
+    padding: 0.5rem;
+  }
+  
   h2 {
     margin-top: 15px;
+  }
+}
+
+.categories-container {
+  margin-bottom: 2.5rem;
+  width: 100%;
+  
+  @media (max-width: 720px) {
+    margin-bottom: 1.5rem;
   }
 }
 
@@ -72,14 +143,21 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  padding: 0;
   
   h3 {
     margin-top: 15px;
     text-align: center;
+    width: 100%;
   }
   
   .categories-menu {
     justify-content: center;
+    width: 100%;
+  }
+  
+  @media (max-width: 720px) {
+    padding: 0 0.5rem;
   }
 }
 
@@ -105,14 +183,78 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 1rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   min-height: 140px;
+  position: relative;
   
   &:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     transform: translateY(-2px);
     border-color: #3b82f6;
+  }
+  
+  /* Estilo cuando el platillo está en el carrito */
+  &.in-cart {
+    background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+    border-color: #10b981;
+    border-width: 2.5px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    
+    &:hover {
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+      border-color: #059669;
+    }
+    
+    .dish-card-name {
+      color: #065f46;
+    }
+    
+    .dish-card-price {
+      color: #047857;
+      font-weight: 600;
+    }
+    
+    .dish-card-btn {
+      background: #10b981;
+      
+      &:hover:not(:disabled) {
+        background: #059669;
+      }
+    }
+  }
+}
+
+/* Badge de cantidad en la esquina superior derecha */
+.dish-quantity-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  border: 2.5px solid white;
+  min-width: 32px;
+  text-align: center;
+  z-index: 10;
+  animation: badge-pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes badge-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
@@ -183,5 +325,173 @@
   &.unavailable {
     background: #fee2e2;
     color: #991b1b;
+  }
+}
+
+/* ============================================
+   BARRA DE BÚSQUEDA Y FILTROS
+   ============================================ */
+
+.search-filter-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem auto;
+  padding: 0 0.5rem;
+  max-width: 800px;
+  
+  @media (max-width: 720px) {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+/* Barra de búsqueda */
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 500px;
+  
+  @media (max-width: 720px) {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.85rem 3rem 0.85rem 3rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: white;
+  
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  &::placeholder {
+    color: #9ca3af;
+  }
+  
+  @media (max-width: 720px) {
+    padding: 0.75rem 2.8rem 0.75rem 2.8rem;
+    font-size: 0.95rem;
+  }
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #6b7280;
+  pointer-events: none;
+  
+  @media (max-width: 720px) {
+    left: 0.85rem;
+  }
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 1rem;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #e5e7eb;
+    color: #374151;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  @media (max-width: 720px) {
+    right: 0.85rem;
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* Barra de filtros */
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  
+  @media (max-width: 720px) {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 999px;
+  background: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  
+  &:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  
+  &.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    
+    &:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+  }
+  
+  @media (max-width: 720px) {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+.results-count {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  background: #f3f4f6;
+  border-radius: 999px;
+  white-space: nowrap;
+  
+  @media (max-width: 720px) {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.65rem;
   }
 }

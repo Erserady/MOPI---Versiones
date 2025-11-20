@@ -10,7 +10,7 @@ export const STATUS_LABELS = {
 export const STATUS_STEPS = [
   { id: "pendiente", label: "En fila" },
   { id: "en_preparacion", label: "En cocina" },
-  { id: "listo", label: "Listo" },
+  { id: "listo", label: "Listo para entregar" },
   { id: "entregado", label: "Entregado" },
 ];
 

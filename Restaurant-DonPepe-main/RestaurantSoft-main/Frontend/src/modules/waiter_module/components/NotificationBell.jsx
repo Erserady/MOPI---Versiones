@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Bell, ChefHat, X } from "lucide-react";
+import { Bell, ChefHat, X, Flame } from "lucide-react";
 import "../styles/notification_center.css";
 
 const NotificationBell = ({
@@ -57,7 +57,7 @@ const NotificationBell = ({
         <div className="notification-panel shadow">
           <header className="notification-panel__header">
             <div>
-              <p>Pedidos entregados</p>
+              <p>Notificaciones de Cocina</p>
             </div>
             <button
               type="button"
@@ -71,20 +71,25 @@ const NotificationBell = ({
 
           <div className="notification-panel__body">
             {notifications.length === 0 ? (
-              <p className="notification-empty">Aun no hay pedidos listos pendientes.</p>
+              <p className="notification-empty">Aun no hay notificaciones de cocina.</p>
             ) : (
               <ul className="notification-list">
-                {notifications.map((notification) => (
-                  <li
-                    key={notification.id}
-                    className={`notification-item ${
-                      notification.read ? "read" : "unread"
-                    }`}
-                    onClick={() => onMarkAsRead?.(notification.id)}
-                  >
-                    <div className="notification-item__icon">
-                      <ChefHat size={18} />
-                    </div>
+                {notifications.map((notification) => {
+                  const isPreparingNotification = notification.type === "en_preparacion";
+                  const NotificationIcon = isPreparingNotification ? Flame : ChefHat;
+                  const iconColor = isPreparingNotification ? "#FF6B35" : "#57c84dff";
+                  
+                  return (
+                    <li
+                      key={notification.id}
+                      className={`notification-item ${
+                        notification.read ? "read" : "unread"
+                      }`}
+                      onClick={() => onMarkAsRead?.(notification.id)}
+                    >
+                      <div className="notification-item__icon" style={{ color: iconColor }}>
+                        <NotificationIcon size={18} />
+                      </div>
                     <div className="notification-item__content">
                       <p className="notification-item__title">
                         Mesa {notification.mesa} - Orden {notification.order}
@@ -106,7 +111,8 @@ const NotificationBell = ({
                       <X size={14} />
                     </button>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </div>

@@ -10,10 +10,12 @@ import {
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
 import CommentModal from "./CommentModal";
-import { RefreshCw, ChefHat } from "lucide-react";
+import { RefreshCw, ChefHat, Search, Filter, X } from "lucide-react";
 import { useLocation, useParams } from "react-router-dom";
+import { getCurrentUser, getCurrentUserId, getCurrentUserName } from "../../../utils/auth";
 
-const ACTIVE_ORDER_STATUSES = ["pendiente", "en_preparacion", "listo"];
+// Estados que permiten agregar más items (todos excepto "pagado")
+const INACTIVE_ORDER_STATUS = "pagado";
 
 // 🎯 NUEVO: emojis para subcategorías
 const categoryEmojis = {
@@ -154,6 +156,7 @@ const HandleOrder = ({
 }) => {
   const { tableNumber: routeTableParam } = useParams();
   const location = useLocation();
+  const currentWaiterId = getCurrentUserId();
   const mesaId = mesaIdProp || location.state?.mesaId || routeTableParam;
   const displayNumber =
     displayNumberProp ||
@@ -163,10 +166,15 @@ const HandleOrder = ({
     "?";
 
   const [menu, setMenu] = useState([]);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   // 🎯 NUEVO: estados de categoría principal y subcategoría
   const [activeMainCategory, setActiveMainCategory] = useState(null);
   const [activeSubcategory, setActiveSubcategory] = useState(null);
+
+  // 🔍 Estados para búsqueda y filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useImmer([]);
@@ -224,7 +232,8 @@ const HandleOrder = ({
 
       const match = ordersArray.find((orden) => {
         const status = normalizeStatus(orden?.estado);
-        if (!ACTIVE_ORDER_STATUSES.includes(status)) {
+        // Excluir solo órdenes pagadas - todas las demás pueden recibir items adicionales
+        if (status === INACTIVE_ORDER_STATUS) {
           return false;
         }
         const identifiers = buildIdentifierList([
@@ -238,12 +247,31 @@ const HandleOrder = ({
       });
 
       if (match) {
-        setExistingOrder(match);
-        setExistingItems(
-          mapPedidoItemsToCartShape(match.pedido || match.items)
-        );
-        setOrderError(null);
+        // Verificar que el mesero actual tenga permiso para editar esta orden
+        const matchWaiterIdStr = match.waiter_id ? String(match.waiter_id) : null;
+        const currentWaiterIdStr = currentWaiterId ? String(currentWaiterId) : null;
+        
+        console.log(`🔍 Validando acceso - Orden waiter_id: ${matchWaiterIdStr}, Usuario actual: ${currentWaiterIdStr}`);
+        
+        if (match.waiter_id && matchWaiterIdStr !== currentWaiterIdStr) {
+          console.log(`❌ Acceso DENEGADO - Mesa de ${match.waiter_name}`);
+          setAccessDenied(true);
+          setOrderError(
+            `Esta mesa está siendo atendida por ${match.waiter_name || 'otro mesero'}. No puedes modificar esta orden.`
+          );
+          setExistingOrder(null);
+          setExistingItems([]);
+        } else {
+          console.log(`✅ Acceso PERMITIDO`);
+          setAccessDenied(false);
+          setExistingOrder(match);
+          setExistingItems(
+            mapPedidoItemsToCartShape(match.pedido || match.items)
+          );
+          setOrderError(null);
+        }
       } else {
+        setAccessDenied(false);
         setExistingOrder(null);
         setExistingItems([]);
       }
@@ -272,7 +300,7 @@ const HandleOrder = ({
           category: plato.categoria_nombre || plato.categoria,
           price: parseFloat(plato.precio || 0),
           available: plato.disponible !== false,
-          description: plato.descripcion || "",
+          // No incluir description del plato - solo usaremos comentarios explícitos del mesero
         }));
 
         setMenu(menuFormateado);
@@ -308,9 +336,19 @@ const HandleOrder = ({
       )
     : [];
 
-  const filteredMenu = menu.filter(
-    (dish) => dish.category === activeSubcategory
-  );
+  const filteredMenu = menu.filter((dish) => {
+    // Filtro por categoría
+    const matchesCategory = dish.category === activeSubcategory;
+    
+    // Filtro por búsqueda (nombre del platillo)
+    const matchesSearch = searchTerm.trim() === "" || 
+      dish.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filtro por disponibilidad
+    const matchesAvailability = !showOnlyAvailable || dish.available;
+    
+    return matchesCategory && matchesSearch && matchesAvailability;
+  });
 
   const handleAddToCart = (dish) => {
     setCartItems((draft) => {
@@ -328,7 +366,7 @@ const HandleOrder = ({
           unitPrice: dish.price,
           subtotal: dish.price,
           cost: dish.price * 0.7,
-          description: dish.description || "",
+          description: "", // No usar descripción por defecto, solo comentarios del mesero
           createTime: new Date().toISOString(),
         });
       }
@@ -374,6 +412,17 @@ const HandleOrder = ({
   const projectedTotal = existingTotal + newItemsTotal;
 
   const handleConfirmOrder = async () => {
+    // Verificar acceso denegado
+    if (accessDenied) {
+      showNotification({
+        type: "error",
+        title: "Acceso denegado",
+        message: orderError || "No tienes permiso para modificar esta mesa.",
+        duration: 5000,
+      });
+      return;
+    }
+    
     if (cartItems.length === 0) {
       showNotification({
         type: "warning",
@@ -411,6 +460,7 @@ const HandleOrder = ({
           cantidad: mergedQuantity,
           nota: `Total: C$${mergedTotal.toFixed(2)}`,
           estado: existingOrder.estado || "pendiente",
+          waiter_id: existingOrder.waiter_id || getCurrentUserId(), // Mantener mesero original
         };
 
         await updateOrden(recordId, updatePayload);
@@ -429,6 +479,8 @@ const HandleOrder = ({
         const safeMesaId = mesaId || routeTableParam || "MESA-UNKNOWN";
         const totalQuantity = sumSerializedQuantities(newItemsPayload);
         const newOrderTotal = sumSerializedTotals(newItemsPayload);
+        const waiterId = getCurrentUserId();
+        const waiterName = getCurrentUserName();
         const orderData = {
           order_id: `ORD-${Date.now()}`,
           mesa_id: safeMesaId,
@@ -436,9 +488,21 @@ const HandleOrder = ({
           cantidad: totalQuantity,
           nota: `Total: C$${newOrderTotal.toFixed(2)}`,
           estado: "pendiente",
+          waiter_id: waiterId, // Asignar mesero actual
+          waiter_name: waiterName, // Nombre completo del mesero
         };
 
+        console.log(`📝 Creando nueva orden:`, {
+          mesa_id: safeMesaId,
+          waiter_id: waiterId,
+          waiter_name: orderData.waiter_name,
+          cantidad: totalQuantity,
+          total: newOrderTotal
+        });
+
         const response = await createOrden(orderData);
+        
+        console.log(`✅ Orden creada exitosamente:`, response);
 
         showNotification({
           type: "success",
@@ -482,6 +546,43 @@ const HandleOrder = ({
   const confirmButtonLabel = existingOrder
     ? "Actualizar pedido"
     : "Confirmar orden";
+
+  // Mostrar mensaje de acceso denegado si corresponde
+  if (accessDenied) {
+    return (
+      <section style={{ padding: "2rem", textAlign: "center" }}>
+        <div style={{
+          background: "#fee2e2",
+          border: "2px solid #ef4444",
+          borderRadius: "12px",
+          padding: "2rem",
+          maxWidth: "600px",
+          margin: "0 auto"
+        }}>
+          <Lock size={48} style={{ color: "#ef4444", marginBottom: "1rem" }} />
+          <h2 style={{ color: "#991b1b", marginBottom: "1rem" }}>Acceso Denegado</h2>
+          <p style={{ color: "#7f1d1d", fontSize: "1.1rem", marginBottom: "1rem" }}>
+            {orderError}
+          </p>
+          <button
+            onClick={() => window.history.back()}
+            style={{
+              background: "#ef4444",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              padding: "0.75rem 1.5rem",
+              fontSize: "1rem",
+              cursor: "pointer",
+              marginTop: "1rem"
+            }}
+          >
+            Volver a Mesas
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section style={{ padding: "1rem" }}>
@@ -567,6 +668,45 @@ const HandleOrder = ({
         <p className="category-tip">Tip: Desliza para cambiar de categoria.</p>
       </div>
 
+      {/* 🔍 Barra de búsqueda y filtros */}
+      <div className="search-filter-container">
+        <div className="search-bar">
+          <Search size={20} className="search-icon" />
+          <input
+            type="text"
+            placeholder="Buscar platillo por nombre..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="clear-search-btn"
+              aria-label="Limpiar búsqueda"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
+        
+        <div className="filters-bar">
+          <button
+            className={`filter-chip ${showOnlyAvailable ? 'active' : ''}`}
+            onClick={() => setShowOnlyAvailable(!showOnlyAvailable)}
+          >
+            <Filter size={16} />
+            {showOnlyAvailable ? 'Solo disponibles' : 'Todos'}
+          </button>
+          
+          {(searchTerm || showOnlyAvailable) && (
+            <span className="results-count">
+              {filteredMenu.length} {filteredMenu.length === 1 ? 'resultado' : 'resultados'}
+            </span>
+          )}
+        </div>
+      </div>
+
       <section className="category-dishes">
         <h2 className="category-title" style={{textAlign: 'center', color: '#6366f1', margin: '1.5rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
           <span>Categoria:</span>
@@ -575,21 +715,38 @@ const HandleOrder = ({
         </h2>
         <div className="dishes-grid">
           {filteredMenu.length > 0 ? (
-            filteredMenu.map((dish) => (
-              <article key={dish.id} className="dish-card-order">
-                <div className="dish-card-content">
-                  <h3 className="dish-card-name">{dish.name}</h3>
-                  <p className="dish-card-price">C${dish.price.toFixed(2)}</p>
-                </div>
-                <button
-                  className="dish-card-btn"
-                  onClick={() => handleAddToCart(dish)}
-                  disabled={!dish.available}
+            filteredMenu.map((dish) => {
+              // Verificar si el platillo está en el carrito y obtener la cantidad
+              const cartItem = cartItems.find(item => item.dishId === dish.id);
+              const quantity = cartItem ? cartItem.dishQuantity : 0;
+              const isInCart = quantity > 0;
+              
+              return (
+                <article 
+                  key={dish.id} 
+                  className={`dish-card-order ${isInCart ? 'in-cart' : ''}`}
                 >
-                  Agregar
-                </button>
-              </article>
-            ))
+                  {/* Badge de cantidad en la esquina superior derecha */}
+                  {isInCart && (
+                    <div className="dish-quantity-badge">
+                      x{quantity}
+                    </div>
+                  )}
+                  
+                  <div className="dish-card-content">
+                    <h3 className="dish-card-name">{dish.name}</h3>
+                    <p className="dish-card-price">C${dish.price.toFixed(2)}</p>
+                  </div>
+                  <button
+                    className="dish-card-btn"
+                    onClick={() => handleAddToCart(dish)}
+                    disabled={!dish.available}
+                  >
+                    {isInCart ? 'Agregar más' : 'Agregar'}
+                  </button>
+                </article>
+              );
+            })
           ) : (
             <p className="no-dishes" style={{gridColumn: '1 / -1'}}>No hay platos en esta categoria.</p>
           )}

@@ -1,20 +1,74 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Receipt, Printer, CreditCard, CircleCheckBig } from "lucide-react";
 import PayDialog from "./PayDialog";
 import OrderDetailsModal from "./OrderDetailsModal";
+import ReceiptPrinter from "./ReceiptPrinter";
 
 const PayCard = ({ order }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
   const kitchenBlocked = order.kitchenHold;
   const kitchenBlockedText =
     "Hay platillos en cocina. Espera a que cocina termine antes de cobrar.";
+
+  // Agrupar items por nombre para el ticket
+  const groupedItems = useMemo(() => {
+    if (!order.accounts || order.accounts.length === 0) return [];
+    
+    const itemsMap = new Map();
+    order.accounts.forEach((account) => {
+      account.items.forEach((item) => {
+        const key = item.name;
+        if (itemsMap.has(key)) {
+          const existing = itemsMap.get(key);
+          existing.quantity += item.quantity || 0;
+          existing.total += item.subtotal || 0;
+        } else {
+          itemsMap.set(key, {
+            name: item.name,
+            quantity: item.quantity || 0,
+            unitPrice: item.unitPrice || 0,
+            total: item.subtotal || 0,
+            nota: item.nota || '',
+            category: item.category || 'Otros'
+          });
+        }
+      });
+    });
+
+    return Array.from(itemsMap.values());
+  }, [order.accounts]);
 
   const handleCardClick = (e) => {
     // Solo abrir el modal si no se hizo clic en un botón
     if (!e.target.closest('button')) {
       setDetailsModalOpen(true);
     }
+  };
+
+  const handlePrintTicket = (e) => {
+    e.stopPropagation();
+    
+    // Preparar datos del ticket para pre-cuenta
+    const ticketData = {
+      ticketNumber: `PRE-${order.mesaId || order.tableId}`,
+      facturaId: 'PRE-CUENTA',
+      correlativo: String(order.mesaId || order.tableId).padStart(3, '0'),
+      vendorId: 1,
+      tableNumber: order.tableNumber,
+      waiter: order.waiter,
+      waiterName: order.waiter,
+      customerName: '',
+      customerAddress: '',
+      items: groupedItems,
+      paymentMethod: 'cash',
+      total: order.total,
+      cashReceived: 0,
+      change: 0,
+    };
+    
+    setShowReceipt(true);
   };
 
   return (
@@ -56,7 +110,11 @@ const PayCard = ({ order }) => {
           >
             <CreditCard size={20} /> Procesar Pago
           </button>
-          <button className="shadow ticket">
+          <button 
+            className="shadow ticket"
+            onClick={handlePrintTicket}
+            title="Imprimir pre-cuenta o ticket"
+          >
             <Printer size={20} /> Imprimir Ticket
           </button>
         </div>
@@ -73,6 +131,26 @@ const PayCard = ({ order }) => {
         order={order}
         isOpen={isDetailsModalOpen}
         onClose={() => setDetailsModalOpen(false)}
+      />
+      <ReceiptPrinter
+        isOpen={showReceipt}
+        onClose={() => setShowReceipt(false)}
+        receiptData={showReceipt ? {
+          ticketNumber: `PRE-${order.mesaId || order.tableId}`,
+          facturaId: 'PRE-CUENTA',
+          correlativo: String(order.mesaId || order.tableId).padStart(3, '0'),
+          vendorId: 1,
+          tableNumber: order.tableNumber,
+          waiter: order.waiter,
+          waiterName: order.waiter,
+          customerName: '',
+          customerAddress: '',
+          items: groupedItems,
+          paymentMethod: 'cash',
+          total: order.total,
+          cashReceived: 0,
+          change: 0,
+        } : null}
       />
     </article>
   );

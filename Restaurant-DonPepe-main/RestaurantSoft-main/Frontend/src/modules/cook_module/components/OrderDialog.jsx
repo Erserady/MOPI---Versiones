@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Clock, ChefHat, User, Hash, Calendar, MessageSquare, UtensilsCrossed, ArrowRight } from "lucide-react";
+import { Clock, ChefHat, User, Hash, Calendar, MessageSquare, UtensilsCrossed, ArrowRight, Check } from "lucide-react";
 import CustomDialog from "../../../common/CustomDialog";
 import {
   STATUS_LABELS,
@@ -58,84 +58,71 @@ const OrderDialog = ({
   return (
     <CustomDialog isOpen={isOpen} onClose={onClose}>
       <div className="order-detail-dialog">
-        {/* Header con información principal */}
-        <div className="order-detail-header">
-          <div className="order-detail-header__main">
-            <div className="order-detail-hero">
-              <div className="hero-icon">
-                <UtensilsCrossed size={32} strokeWidth={2.5} />
-              </div>
-              <div className="hero-info">
-                <span className="hero-label">Mesa</span>
-                <h1 className="hero-table">#{order.tableNumber}</h1>
-              </div>
-            </div>
-            <div className={`order-detail-timer timer-${slaPhase}`}>
-              <Clock size={24} strokeWidth={2.5} />
-              <div className="timer-content">
-                <span className="timer-label">Tiempo en cocina</span>
-                <span className="timer-value">{formatDuration(elapsedSeconds)}</span>
+        {/* Header sticky rediseñado */}
+        <div className="order-header-redesign">
+          {/* Fila superior: Mesa + Tiempo */}
+          <div className="header-top-row">
+            <div className="mesa-info-compact">
+              <UtensilsCrossed size={28} strokeWidth={2.5} />
+              <div>
+                <span className="mesa-label-compact">Mesa</span>
+                <h1 className="mesa-number-compact">#{order.tableNumber}</h1>
               </div>
             </div>
-          </div>
-          <div className={`order-detail-status status-${order.status}`}>
-            <ChefHat size={18} />
-            <span>{STATUS_LABELS[order.status] || order.status}</span>
-          </div>
-        </div>
-
-        {/* Grid de información clave */}
-        <div className="order-detail-meta">
-          <div className="meta-item">
-            <div className="meta-icon">
-              <Hash size={18} />
-            </div>
-            <div className="meta-content">
-              <span className="meta-label">Pedido</span>
-              <span className="meta-value">{order.orderNumber || "Sin folio"}</span>
+            
+            <div className={`timer-compact timer-${slaPhase}`}>
+              <Clock size={20} />
+              <div className="timer-text-group">
+                <span className="timer-label-compact">Tiempo en cocina</span>
+                <span className="timer-value-compact">{formatDuration(elapsedSeconds)}</span>
+              </div>
             </div>
           </div>
-          <div className="meta-item">
-            <div className="meta-icon">
-              <User size={18} />
-            </div>
-            <div className="meta-content">
-              <span className="meta-label">Mesero</span>
-              <span className="meta-value">{order.waiterName || "Sin asignar"}</span>
-            </div>
-          </div>
-          <div className="meta-item">
-            <div className="meta-icon">
-              <Calendar size={18} />
-            </div>
-            <div className="meta-content">
-              <span className="meta-label">Hora de entrada</span>
-              <span className="meta-value">{formatDateTime(order.createdAt)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Platillos */}
-        <div className="order-detail-section">
-          <div className="section-header">
-            <UtensilsCrossed size={20} />
-            <h3>Platillos del pedido</h3>
-          </div>
-          {cookableItems.length > 0 ? (
-            <div className="dishes-grid">
-              {cookableItems.map((item, index) => (
-                <div key={`${item.nombre}-${index}`} className="dish-card">
-                  <div className="dish-info">
-                    <span className="dish-name">{item.nombre || "Platillo"}</span>
-                    <span className="dish-quantity">x{item.cantidad || 1}</span>
+          
+          {/* Barra de progreso con botón de acción integrado */}
+          <div className="progress-with-action">
+            <div className="progress-badges-bar">
+              {STATUS_STEPS.map((step, index) => {
+                const isCompleted = index < currentStepIndex;
+                const isCurrent = index === currentStepIndex;
+                const isPending = index > currentStepIndex;
+                
+                // Versión corta para badges compactos
+                const shortLabel = step.label === "Listo para entregar" ? "Listo" : step.label;
+                
+                return (
+                  <div
+                    key={step.id}
+                    className={`progress-badge ${
+                      isCompleted ? 'completed' : isCurrent ? 'current' : 'pending'
+                    }`}
+                    data-status={step.id}
+                  >
+                    <ChefHat size={16} strokeWidth={2.5} />
+                    <span>{shortLabel}</span>
+                    {isCompleted && <Check size={14} strokeWidth={3} />}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          ) : (
-            <p className="empty-state">No hay platillos para cocinar en este pedido</p>
-          )}
+            
+            {/* Botón de acción al lado de la barra de progreso */}
+            {actions.length > 0 && (
+              <button
+                onClick={() => onChangeStatus(actions[0].target)}
+                className={`action-button-progress status-${order.status}`}
+              >
+                {actions[0].label}
+                <ArrowRight size={16} />
+              </button>
+            )}
+          </div>
         </div>
+        
+        {/* Contenido scrollable */}
+        <div className="order-detail-content">
+
+        {/* Comentarios del platillo (ahora incluye nombre y cantidad) - Movido arriba */}
 
         {/* Comentarios del platillo - Solo se muestra si hay comentarios */}
         {(() => {
@@ -190,53 +177,39 @@ const OrderDialog = ({
           ) : null;
         })()}
 
-        {/* Timeline de progreso */}
-        <div className="order-detail-section">
-          <div className="section-header">
-            <ChefHat size={20} />
-            <h3>Progreso del pedido</h3>
+        {/* Información adicional al final - Rediseñada */}
+        <div className="order-meta-redesign">
+          <div className="meta-card">
+            <div className="meta-icon-compact">
+              <Hash size={16} />
+            </div>
+            <div className="meta-text">
+              <span className="meta-label-compact">Pedido</span>
+              <span className="meta-value-compact">{order.orderNumber || "Sin folio"}</span>
+            </div>
           </div>
-          <div className="progress-timeline">
-            {STATUS_STEPS.map((step, index) => {
-              const isActive = index <= currentStepIndex;
-              const isCurrent = index === currentStepIndex;
-              return (
-                <div
-                  key={step.id}
-                  className={`progress-step ${
-                    isActive ? "active" : ""
-                  } ${isCurrent ? "current" : ""}`}
-                >
-                  <div className="step-marker">
-                    {isActive && <div className="step-marker-inner"></div>}
-                  </div>
-                  <div className="step-content">
-                    <span className="step-label">{step.label}</span>
-                    {index < STATUS_STEPS.length - 1 && (
-                      <ArrowRight className="step-arrow" size={16} />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          
+          <div className="meta-card">
+            <div className="meta-icon-compact">
+              <User size={16} />
+            </div>
+            <div className="meta-text">
+              <span className="meta-label-compact">Mesero</span>
+              <span className="meta-value-compact">{order.waiterName || "Sin asignar"}</span>
+            </div>
+          </div>
+          
+          <div className="meta-card">
+            <div className="meta-icon-compact">
+              <Calendar size={16} />
+            </div>
+            <div className="meta-text">
+              <span className="meta-label-compact">Hora</span>
+              <span className="meta-value-compact">{formatDateTime(order.createdAt)}</span>
+            </div>
           </div>
         </div>
-
-        {/* Acciones */}
-        {actions.length > 0 && (
-          <div className="order-detail-actions">
-            {actions.map((action) => (
-              <button
-                key={action.id}
-                onClick={() => onChangeStatus(action.target)}
-                className="action-button"
-              >
-                {action.label}
-                <ArrowRight size={18} />
-              </button>
-            ))}
-          </div>
-        )}
+        </div>
       </div>
     </CustomDialog>
   );

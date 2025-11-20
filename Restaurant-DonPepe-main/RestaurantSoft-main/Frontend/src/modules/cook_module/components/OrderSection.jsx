@@ -75,6 +75,17 @@ const OrderSection = () => {
     }
   }, [ordenesData]);
 
+  // Solicitar permisos de notificación al cargar el componente
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          console.log("✅ Permisos de notificación concedidos");
+        }
+      });
+    }
+  }, []);
+
   // Formatear y asignar prioridades
   const ordersFormatted = useMemo(() => {
     if (!Array.isArray(ordenesData)) return [];
@@ -179,11 +190,45 @@ const OrderSection = () => {
   const handleStatusChange = async (orderRecordId, newStatus) => {
     try {
       await cambiarEstadoOrden(orderRecordId, newStatus);
+      
+      // Si el estado cambió a "listo", notificar al mesero
+      if (newStatus === "listo") {
+        const order = ordersFormatted.find(o => o.recordId === orderRecordId);
+        if (order) {
+          notifyWaiter(order);
+        }
+      }
+      
       await refetch();
     } catch (err) {
       console.error("Error actualizando estado:", err);
       alert("No se pudo actualizar el estado de la orden.");
     }
+  };
+
+  // Función para notificar al mesero
+  const notifyWaiter = (order) => {
+    // Notificación del navegador
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("🍽️ Orden Lista para Entregar", {
+        body: `Mesa ${order.tableNumber} - ${order.waiterName || 'Mesero'}`,
+        icon: "/logo.png",
+        badge: "/logo.png",
+        tag: `order-${order.recordId}`,
+        requireInteraction: true,
+      });
+    }
+    
+    // Sonido de notificación (opcional)
+    try {
+      const audio = new Audio('/notification.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('No se pudo reproducir sonido:', e));
+    } catch (e) {
+      console.log('Audio no disponible');
+    }
+    
+    console.log(`🔔 Notificación enviada al mesero: ${order.waiterName} - Mesa ${order.tableNumber}`);
   };
 
   const lastSyncLabel = useMemo(() => {
@@ -298,13 +343,6 @@ const OrderSection = () => {
         <div>
           <p className="eyebrow hero-eyebrow">🔥 Panel de Cocina</p>
           <h1>Monitoreo de pedidos</h1>
-        </div>
-        <div className="kitchen-board__sync">
-          <span>{lastSyncLabel}</span>
-          <button className="primary-button" onClick={refetch}>
-            <RefreshCw size={16} />
-            Sincronizar
-          </button>
         </div>
       </div>
 

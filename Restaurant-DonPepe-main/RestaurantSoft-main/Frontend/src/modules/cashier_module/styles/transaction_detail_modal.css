@@ -284,10 +284,34 @@
 .transaction-modal-footer {
   display: flex;
   justify-content: flex-end;
+  gap: 1rem;
   padding: 1.5rem;
   border-top: 2px solid #e2e8f0;
   background: #f8fafc;
   border-radius: 0 0 16px 16px;
+}
+
+.transaction-modal-btn-primary {
+  padding: 0.75rem 1.5rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.transaction-modal-btn-primary:hover:not(:disabled) {
+  background: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+}
+
+.transaction-modal-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .transaction-modal-btn-close {

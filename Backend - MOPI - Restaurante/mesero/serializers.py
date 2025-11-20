@@ -47,7 +47,7 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'order_id', 'table', 'mesa', 'mesa_id', 'tableNumber',
             'pedido', 'items', 'cliente', 'cantidad', 'nota', 'preparacion_enlazada',
-            'estado', 'waiterName', 'products', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds'
+            'estado', 'waiterName', 'waiter_id', 'waiter_name', 'products', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds'
         ]
         read_only_fields = ['id', 'table', 'products', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds']
 
@@ -70,7 +70,7 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
         Preprocesar aliases de entrada:
         - aceptar 'mesa', 'mesa_id', o 'tableNumber' como el identificador de mesa
         - aceptar 'items' como alias para 'pedido'
-        - aceptar 'waiterName' como alias para 'cliente'
+        - aceptar 'waiterName' como alias para 'cliente' y 'waiter_name'
         """
         data = dict(data)  # copia mutable
         # normalizar mesa
@@ -80,9 +80,12 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
         # normalize items -> pedido
         if 'items' in data and 'pedido' not in data:
             data['pedido'] = data.get('items')
-        # normalize waiterName -> cliente
-        if 'waiterName' in data and ('cliente' not in data or not data.get('cliente')):
-            data['cliente'] = data.get('waiterName')
+        # normalize waiterName -> cliente (legacy) y waiter_name (nuevo)
+        if 'waiterName' in data:
+            if 'cliente' not in data or not data.get('cliente'):
+                data['cliente'] = data.get('waiterName')
+            if 'waiter_name' not in data or not data.get('waiter_name'):
+                data['waiter_name'] = data.get('waiterName')
         return super().to_internal_value(data)
 
     @transaction.atomic

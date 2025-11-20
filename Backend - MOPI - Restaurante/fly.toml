@@ -1,0 +1,35 @@
+# Configuración de Fly.io para Restaurante Don Pepe - Backend Django
+app = "mopi"
+primary_region = "dfw"  # Dallas, Texas - región más cercana a México
+
+[build]
+  dockerfile = "Dockerfile.fly"
+
+[env]
+  PORT = "8000"
+  DJANGO_SETTINGS_MODULE = "drfsimplecrud.settings"
+  PYTHONUNBUFFERED = "1"
+  DEBUG = "False"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/admin/login/"
+
+[deploy]
+  release_command = "sh release.sh"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

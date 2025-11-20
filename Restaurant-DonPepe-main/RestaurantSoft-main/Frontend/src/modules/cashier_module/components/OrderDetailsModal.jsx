@@ -1,12 +1,30 @@
-import React from 'react';
-import { X, Receipt, UtensilsCrossed, MessageSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Receipt, UtensilsCrossed, MessageSquare, Send } from 'lucide-react';
 import '../styles/transaction_detail_modal.css';
+import { cambiarEstadoOrden } from '../../../services/cookService';
 
 const OrderDetailsModal = ({ isOpen, onClose, order }) => {
+  const [sending, setSending] = useState(false);
+  
   if (!isOpen || !order) return null;
 
   const formatCurrency = (value) => {
     return `C$ ${parseFloat(value || 0).toFixed(2)}`;
+  };
+
+  const handleSendPreFactura = async () => {
+    try {
+      setSending(true);
+      // Cambiar estado a prefactura_enviada
+      await cambiarEstadoOrden(order.orderId, 'prefactura_enviada');
+      alert('Pre-factura enviada al mesero correctamente');
+      onClose();
+    } catch (error) {
+      console.error('Error enviando pre-factura:', error);
+      alert('Error al enviar pre-factura');
+    } finally {
+      setSending(false);
+    }
   };
 
   // Agrupar items por nombre para mostrar resumen
@@ -141,6 +159,24 @@ const OrderDetailsModal = ({ isOpen, onClose, order }) => {
 
         {/* Footer */}
         <div className="transaction-modal-footer">
+          {/* Botón Enviar Pre-factura - Solo si la orden tiene estado payment_requested */}
+          {order.status === 'payment_requested' && (
+            <button 
+              className="transaction-modal-btn-primary" 
+              onClick={handleSendPreFactura}
+              disabled={sending}
+              style={{
+                background: '#6366f1',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <Send size={18} />
+              {sending ? 'Enviando...' : 'Enviar Pre-factura al Mesero'}
+            </button>
+          )}
           <button className="transaction-modal-btn-close" onClick={onClose}>
             Cerrar
           </button>

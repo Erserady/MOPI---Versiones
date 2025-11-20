@@ -51,8 +51,8 @@ services:
       dockerfile: Dockerfile
       args:
         # El frontend se ejecuta en el navegador del usuario, no en el contenedor
-        # Configurado para acceso en red local con IP: 192.168.1.50
-        VITE_API_URL: http://192.168.1.50:8000
+        # Usar localhost para desarrollo local (el navegador accede al backend en localhost:8000)
+        VITE_API_URL: http://localhost:8000
     container_name: mopi_frontend
     depends_on:
       - backend

@@ -44,12 +44,26 @@ class WaiterOrder(models.Model):
     cantidad = models.PositiveIntegerField(default=1)
     nota = models.TextField(blank=True, null=True)
     preparacion_enlazada = models.CharField(max_length=100, blank=True, null=True, help_text="opcional: id de orden en cocina")
-    estado = models.CharField(max_length=50, default='pendiente', help_text="pendiente, servido, pagado")
+    estado = models.CharField(max_length=50, default='pendiente', help_text="pendiente, en_preparacion, listo, servido, facturado, pagado")
     en_cocina_since = models.DateTimeField(
         null=True,
         blank=True,
         help_text="Momento exacto en que la orden entró a cocina"
     )
+    
+    # Campos para rastreo del mesero asignado a esta orden específica
+    waiter_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="ID del mesero que creó/atiende esta orden"
+    )
+    waiter_name = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="Nombre del mesero que creó/atiende esta orden"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

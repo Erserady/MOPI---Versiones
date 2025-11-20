@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import "../styles/header.css";
 import { LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -6,29 +6,70 @@ import { useLocation, useNavigate } from "react-router-dom";
 const Header = ({ userRole, welcomeTitle, currentView, userName, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [userVerified, setUserVerified] = useState(false);
 
   const logOutFunction = () => {
+    // Limpiar completamente el sessionStorage
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    
     alert("Cerrando sesion...");
     console.log("Cerrando sesion...");
     navigate("/");
-    // Aqui iria la logica real para cerrar sesion
   };
 
   const locationRole = location.state?.role;
   const locationUser = location.state?.user;
 
+  // Obtener usuario del sessionStorage con validación
   const storedUser = useMemo(() => {
     if (typeof window === "undefined") {
       return null;
     }
 
     try {
-      const rawUser = window.localStorage.getItem("user");
-      return rawUser ? JSON.parse(rawUser) : null;
+      const rawUser = window.sessionStorage.getItem("user");
+      if (!rawUser) return null;
+      
+      const parsed = JSON.parse(rawUser);
+      
+      // Validar que el objeto tenga las propiedades básicas esperadas
+      if (!parsed || typeof parsed !== 'object') {
+        console.warn("⚠️ Usuario en sessionStorage inválido, limpiando...");
+        sessionStorage.removeItem("user");
+        return null;
+      }
+      
+      return parsed;
     } catch (error) {
-      console.error("No se pudo recuperar el usuario almacenado:", error);
+      console.error("⚠️ Error al recuperar usuario, limpiando sessionStorage:", error);
+      sessionStorage.removeItem("user");
       return null;
     }
+  }, []);
+  
+  // Validar consistencia del usuario al montar el componente
+  useEffect(() => {
+    const validateUser = () => {
+      const currentUser = sessionStorage.getItem("user");
+      const currentToken = sessionStorage.getItem("token");
+      
+      // Si hay token pero no hay usuario, o viceversa, limpiar ambos
+      if ((currentToken && !currentUser) || (!currentToken && currentUser)) {
+        console.warn("⚠️ Inconsistencia detectada en sessionStorage, limpiando...");
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+      }
+      
+      setUserVerified(true);
+    };
+    
+    validateUser();
+    
+    // Revalidar periódicamente cada 30 segundos
+    const interval = setInterval(validateUser, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const user = locationUser ?? storedUser;
@@ -60,6 +101,18 @@ const Header = ({ userRole, welcomeTitle, currentView, userName, children }) => 
   };
 
   const userDisplayName = resolveDisplayName();
+  
+  // Logging para debugging (solo en desarrollo)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && user) {
+      console.log('👤 Usuario actual en Header:', {
+        name: userDisplayName,
+        role: role,
+        id: user.id,
+        username: user.username
+      });
+    }
+  }, [user, userDisplayName, role]);
 
   const handleReturn = () => {
     if (role === "admin") {

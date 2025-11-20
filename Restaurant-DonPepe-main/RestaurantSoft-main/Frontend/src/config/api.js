@@ -55,7 +55,7 @@ export const getDefaultHeaders = () => {
   };
   
   // Agregar token de autenticación si existe
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   if (token) {
     headers.Authorization = `Token ${token}`;
   }

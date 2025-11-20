@@ -39,9 +39,22 @@ const UserSelectionModal = ({ isOpen, onClose, roleData, onUserSelect }) => {
         throw new Error(data.pin?.[0] || data.non_field_errors?.[0] || "PIN incorrecto");
       }
 
-      // Guardar token y datos del usuario
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // Guardar token y datos del usuario con timestamp en sessionStorage
+      // sessionStorage mantiene sesiones independientes por pestaña
+      const userDataWithTimestamp = {
+        ...data.user,
+        _lastLogin: Date.now(),
+        _sessionId: `${data.user.id}-${Date.now()}`
+      };
+      
+      sessionStorage.setItem("token", data.token);
+      sessionStorage.setItem("user", JSON.stringify(userDataWithTimestamp));
+      
+      console.log("✅ Sesión iniciada:", {
+        user: data.user.username || data.user.name,
+        role: roleData.role,
+        timestamp: new Date().toISOString()
+      });
 
       onUserSelect(selectedUser, roleData.role);
       handleClose();

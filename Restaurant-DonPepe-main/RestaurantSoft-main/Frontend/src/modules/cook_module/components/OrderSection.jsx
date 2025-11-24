@@ -320,6 +320,7 @@ const OrderSection = () => {
                 <DishGroupCard
                   key={group.dishName}
                   dishName={group.dishName}
+                  totalCount={group.totalCount}
                   tables={group.tables}
                   onTableClick={handleTableClick}
                 />

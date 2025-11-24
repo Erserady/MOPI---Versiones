@@ -21,7 +21,7 @@
 /* Panel Izquierdo - Imagen de la cocina */
 .login-left-panel {
   flex: 1.8;
-  background-image: url("../../imagenes/ChatGPT Image 3 nov 2025, 11_48_43 a.m..png");
+  background-image: url("../../imagenes/ChatGPT Image 23 nov 2025, 02_25_56 p.m..png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -47,7 +47,7 @@
 /* Panel Derecho - Formulario */
 .login-right-panel {
   flex: 1;
-  background-image: url("../../imagenes/ChatGPT Image 3 nov 2025, 11_44_43 a.m..png");
+  background-image: url("../../imagenes/ChatGPT Image 23 nov 2025, 02_32_34 p.m..png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -74,7 +74,7 @@
   padding: 40px 30px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; /* Centra los bloques internos */
   gap: 20px;
   width: 90%;
   max-width: 400px;
@@ -85,6 +85,7 @@
   clip-path: circle(50% at 50% 50%);
   aspect-ratio: 1 / 1;
   width: 90px;
+  align-self: center;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -98,7 +99,16 @@
   gap: 8px;
   align-items: center;
   justify-content: center;
+  text-align: center;
   margin-bottom: 10px;
+}
+
+.login-help-link {
+  width: 100%;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 .login-title {
@@ -122,6 +132,8 @@
   align-items: flex-start;
   flex-direction: column;
   width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
 }
 
 .login-input-group label {
@@ -200,6 +212,9 @@
   margin-top: 10px;
   height: 50px;
   width: 100%;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
   background-color: #ff8a3c;
   border: none;
   border-radius: 25px;

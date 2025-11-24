@@ -1,36 +1,28 @@
 import React from "react";
-import { ChefHat, Hash } from "lucide-react";
 
 /**
  * Componente para mostrar un platillo agrupado con las mesas que lo pidieron
+ * REDISEÑO COMPLETO - Elegante y profesional
  */
-const DishGroupCard = ({ dishName, tables, onTableClick }) => {
+const DishGroupCard = ({ dishName, tables, totalCount, onTableClick }) => {
+  const total = totalCount ?? tables.reduce((sum, t) => sum + (t.quantity || 1), 0);
+
   return (
-    <div className="dish-group-card">
-      <div className="dish-group-header">
-        <div className="dish-group-icon">
-          <ChefHat size={24} />
-        </div>
-        <div className="dish-group-info">
-          <h3 className="dish-group-name">{dishName}</h3>
-          <p className="dish-group-count">
-            <Hash size={14} />
-            {tables.length} {tables.length === 1 ? "mesa" : "mesas"}
-          </p>
-        </div>
+    <div className="dish-card-pro">
+      <div className="dish-card-header">
+        <h3 className="dish-title">{dishName}</h3>
+        <span className="dish-quantity">×{total}</span>
       </div>
-      
-      <div className="dish-group-tables">
+
+      <div className="dish-tables">
         {tables.map((table) => (
           <button
             key={`${table.recordId}-${dishName}`}
-            className={`dish-table-badge priority-${table.priority}`}
+            className="mesa-badge"
             onClick={() => onTableClick(table)}
-            title={`Mesa ${table.tableNumber} - Prioridad ${table.priority}`}
+            title={`Mesa ${table.tableNumber} - Cantidad: ${table.quantity}`}
           >
-            <span className="table-priority">#{table.priority}</span>
-            <span className="table-number">Mesa {table.tableNumber}</span>
-            <span className="table-quantity">x{table.quantity}</span>
+            Mesa {table.tableNumber}
           </button>
         ))}
       </div>

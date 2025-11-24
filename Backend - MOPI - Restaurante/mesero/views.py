@@ -83,7 +83,23 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
         return response
 
     def perform_update(self, serializer):
+        """
+        Override update para manejar el reseteo de estado cuando se edita un pedido.
+        Si el mesero edita los items (campo 'pedido') de una orden que ya fue atendida
+        por cocina, el estado se resetea a 'pendiente' para que vuelva a la cola.
+        """
         previous_state = serializer.instance.estado
+        previous_pedido = serializer.instance.pedido
+        
+        # Verificar si el campo 'pedido' (items) cambió
+        new_pedido = serializer.validated_data.get('pedido')
+        pedido_changed = new_pedido is not None and new_pedido != previous_pedido
+        
+        # Si el pedido cambió y la orden ya fue atendida, resetear a pendiente
+        if pedido_changed and previous_state in ['en_preparacion', 'listo', 'servido', 'entregado']:
+            serializer.validated_data['estado'] = 'pendiente'
+            serializer.validated_data['en_cocina_since'] = None
+        
         instance = serializer.save()
         sync_cocina_timestamp(instance, previous_state=previous_state)
 

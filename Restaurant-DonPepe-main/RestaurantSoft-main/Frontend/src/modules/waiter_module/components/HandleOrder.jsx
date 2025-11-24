@@ -14,8 +14,8 @@ import { RefreshCw, ChefHat, Search, Filter, X } from "lucide-react";
 import { useLocation, useParams } from "react-router-dom";
 import { getCurrentUser, getCurrentUserId, getCurrentUserName } from "../../../utils/auth";
 
-// Estados que permiten agregar más items (todos excepto "pagado")
-const INACTIVE_ORDER_STATUS = "pagado";
+// Estados en los que SÍ se puede adjuntar a la misma orden; fuera de esto se genera una nueva
+const APPENDABLE_ORDER_STATUSES = ["pendiente", "en_preparacion", "listo"];
 
 // 🎯 NUEVO: emojis para subcategorías
 const categoryEmojis = {
@@ -232,8 +232,8 @@ const HandleOrder = ({
 
       const match = ordersArray.find((orden) => {
         const status = normalizeStatus(orden?.estado);
-        // Excluir solo órdenes pagadas - todas las demás pueden recibir items adicionales
-        if (status === INACTIVE_ORDER_STATUS) {
+        // Solo reusar órdenes que sigan activas en cocina; si ya fue entregada/servida se crea nueva
+        if (!APPENDABLE_ORDER_STATUSES.includes(status)) {
           return false;
         }
         const identifiers = buildIdentifierList([
@@ -250,9 +250,9 @@ const HandleOrder = ({
         // Verificar que el mesero actual tenga permiso para editar esta orden
         const matchWaiterIdStr = match.waiter_id ? String(match.waiter_id) : null;
         const currentWaiterIdStr = currentWaiterId ? String(currentWaiterId) : null;
-        
+
         console.log(`🔍 Validando acceso - Orden waiter_id: ${matchWaiterIdStr}, Usuario actual: ${currentWaiterIdStr}`);
-        
+
         if (match.waiter_id && matchWaiterIdStr !== currentWaiterIdStr) {
           console.log(`❌ Acceso DENEGADO - Mesa de ${match.waiter_name}`);
           setAccessDenied(true);
@@ -332,21 +332,21 @@ const HandleOrder = ({
 
   const availableSubcategoriesForMain = activeMainCategoryData
     ? activeMainCategoryData.subcategories.filter((sub) =>
-        availableSubcategories.includes(sub)
-      )
+      availableSubcategories.includes(sub)
+    )
     : [];
 
   const filteredMenu = menu.filter((dish) => {
     // Filtro por categoría
     const matchesCategory = dish.category === activeSubcategory;
-    
+
     // Filtro por búsqueda (nombre del platillo)
-    const matchesSearch = searchTerm.trim() === "" || 
+    const matchesSearch = searchTerm.trim() === "" ||
       dish.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     // Filtro por disponibilidad
     const matchesAvailability = !showOnlyAvailable || dish.available;
-    
+
     return matchesCategory && matchesSearch && matchesAvailability;
   });
 
@@ -422,7 +422,7 @@ const HandleOrder = ({
       });
       return;
     }
-    
+
     if (cartItems.length === 0) {
       showNotification({
         type: "warning",
@@ -459,7 +459,7 @@ const HandleOrder = ({
           pedido: JSON.stringify(mergedItems),
           cantidad: mergedQuantity,
           nota: `Total: C$${mergedTotal.toFixed(2)}`,
-          estado: existingOrder.estado || "pendiente",
+          // Let backend handle estado reset automatically when items are added
           waiter_id: existingOrder.waiter_id || getCurrentUserId(), // Mantener mesero original
         };
 
@@ -468,11 +468,11 @@ const HandleOrder = ({
         showNotification({
           type: "success",
           title: "Pedido actualizado",
-          message: `Se agregaron ${
-            newItemsPayload.length
-          } platillos para la mesa ${displayNumber}. Total proyectado: C$${mergedTotal.toFixed(
-            2
-          )}`,
+          message: `Se agregaron ${newItemsPayload.length
+            } platillos para la mesa ${displayNumber}. Total proyectado: C$${mergedTotal.toFixed(
+              2
+            )
+            } `,
           duration: 5000,
         });
       } else {
@@ -482,17 +482,17 @@ const HandleOrder = ({
         const waiterId = getCurrentUserId();
         const waiterName = getCurrentUserName();
         const orderData = {
-          order_id: `ORD-${Date.now()}`,
+          order_id: `ORD - ${Date.now()} `,
           mesa_id: safeMesaId,
           pedido: JSON.stringify(newItemsPayload),
           cantidad: totalQuantity,
-          nota: `Total: C$${newOrderTotal.toFixed(2)}`,
+          nota: `Total: C$${newOrderTotal.toFixed(2)} `,
           estado: "pendiente",
           waiter_id: waiterId, // Asignar mesero actual
           waiter_name: waiterName, // Nombre completo del mesero
         };
 
-        console.log(`📝 Creando nueva orden:`, {
+        console.log(`📝 Creando nueva orden: `, {
           mesa_id: safeMesaId,
           waiter_id: waiterId,
           waiter_name: orderData.waiter_name,
@@ -501,17 +501,17 @@ const HandleOrder = ({
         });
 
         const response = await createOrden(orderData);
-        
-        console.log(`✅ Orden creada exitosamente:`, response);
+
+        console.log(`✅ Orden creada exitosamente: `, response);
 
         showNotification({
           type: "success",
           title: "Orden confirmada",
-          message: `Orden #${
-            response.order_id
-          } creada para Mesa ${displayNumber}. Total: C$${newOrderTotal.toFixed(
-            2
-          )}`,
+          message: `Orden #${response.order_id
+            } creada para Mesa ${displayNumber}.Total: C$${newOrderTotal.toFixed(
+              2
+            )
+            } `,
           duration: 5000,
         });
       }
@@ -630,23 +630,21 @@ const HandleOrder = ({
         {/* 🎯 BOTONES DE CATEGORÍAS PRINCIPALES */}
         <h3>Categorías Principales</h3>
         <div className="categories-menu">
-          {categoryHierarchy.map((cat) => (
-            <button
-              key={cat.main}
-              className={`category-btn ${
-                activeMainCategory === cat.main ? "active" : ""
-              }`}
-              onClick={() => {
-                setActiveMainCategory(cat.main);
-                const first = cat.subcategories.find((sub) =>
-                  availableSubcategories.includes(sub)
-                );
-                if (first) setActiveSubcategory(first);
-              }}
-            >
-              {cat.main}
-            </button>
-          ))}
+            {categoryHierarchy.map((cat) => (
+              <button
+                key={cat.main}
+                className={`category-btn ${activeMainCategory === cat.main ? "active" : ""}`}
+                onClick={() => {
+                  setActiveMainCategory(cat.main);
+                  const first = cat.subcategories.find((sub) =>
+                    availableSubcategories.includes(sub)
+                  );
+                  if (first) setActiveSubcategory(first);
+                }}
+              >
+                {cat.main}
+              </button>
+            ))}
         </div>
 
         {/* 🎯 BOTONES DE SUBCATEGORÍAS */}
@@ -655,9 +653,7 @@ const HandleOrder = ({
           {availableSubcategoriesForMain.map((sub) => (
             <button
               key={sub}
-              className={`category-btn ${
-                activeSubcategory === sub ? "active" : ""
-              }`}
+              className={`category-btn ${activeSubcategory === sub ? "active" : ""}`}
               onClick={() => setActiveSubcategory(sub)}
             >
               {categoryEmojis[sub] || "🍽"} {sub}
@@ -689,7 +685,7 @@ const HandleOrder = ({
             </button>
           )}
         </div>
-        
+
         <div className="filters-bar">
           <button
             className={`filter-chip ${showOnlyAvailable ? 'active' : ''}`}
@@ -698,7 +694,7 @@ const HandleOrder = ({
             <Filter size={16} />
             {showOnlyAvailable ? 'Solo disponibles' : 'Todos'}
           </button>
-          
+
           {(searchTerm || showOnlyAvailable) && (
             <span className="results-count">
               {filteredMenu.length} {filteredMenu.length === 1 ? 'resultado' : 'resultados'}
@@ -708,10 +704,10 @@ const HandleOrder = ({
       </div>
 
       <section className="category-dishes">
-        <h2 className="category-title" style={{textAlign: 'center', color: '#6366f1', margin: '1.5rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+        <h2 className="category-title" style={{ textAlign: 'center', color: '#6366f1', margin: '1.5rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
           <span>Categoria:</span>
-          <ChefHat size={28} style={{color: '#6366f1'}} />
-          <span style={{borderBottom: '3px solid #6366f1', paddingBottom: '2px'}}>{activeSubcategory}</span>
+          <ChefHat size={28} style={{ color: '#6366f1' }} />
+          <span style={{ borderBottom: '3px solid #6366f1', paddingBottom: '2px' }}>{activeSubcategory}</span>
         </h2>
         <div className="dishes-grid">
           {filteredMenu.length > 0 ? (
@@ -720,11 +716,11 @@ const HandleOrder = ({
               const cartItem = cartItems.find(item => item.dishId === dish.id);
               const quantity = cartItem ? cartItem.dishQuantity : 0;
               const isInCart = quantity > 0;
-              
+
               return (
-                <article 
-                  key={dish.id} 
-                  className={`dish-card-order ${isInCart ? 'in-cart' : ''}`}
+                <article
+                  key={dish.id}
+                        className={`dish-card-order ${isInCart ? 'in-cart' : ''}`}
                 >
                   {/* Badge de cantidad en la esquina superior derecha */}
                   {isInCart && (
@@ -732,7 +728,7 @@ const HandleOrder = ({
                       x{quantity}
                     </div>
                   )}
-                  
+
                   <div className="dish-card-content">
                     <h3 className="dish-card-name">{dish.name}</h3>
                     <p className="dish-card-price">C${dish.price.toFixed(2)}</p>
@@ -748,7 +744,7 @@ const HandleOrder = ({
               );
             })
           ) : (
-            <p className="no-dishes" style={{gridColumn: '1 / -1'}}>No hay platos en esta categoria.</p>
+            <p className="no-dishes" style={{ gridColumn: '1 / -1' }}>No hay platos en esta categoria.</p>
           )}
         </div>
       </section>

@@ -463,10 +463,13 @@
 
 /* Animación intermitente para >30 min */
 @keyframes blink-border {
-  0%, 100% {
+
+  0%,
+  100% {
     border-color: #dc2626;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
   }
+
   50% {
     border-color: #ef4444;
     box-shadow: 0 8px 20px rgba(239, 68, 68, 0.5);
@@ -474,9 +477,12 @@
 }
 
 @keyframes blink-text {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.6;
   }
@@ -564,9 +570,11 @@
 .kitchen-order-card.status-pendiente .kitchen-card-accent {
   border-color: rgba(249, 115, 22, 0.5);
 }
+
 .kitchen-order-card.status-en_preparacion .kitchen-card-accent {
   border-color: rgba(14, 165, 233, 0.45);
 }
+
 .kitchen-order-card.status-listo .kitchen-card-accent {
   border-color: rgba(16, 185, 129, 0.55);
 }
@@ -638,18 +646,22 @@
 .timer-pill.idle {
   background: #e2e8f0;
 }
+
 .timer-pill.ok {
   background: rgba(16, 185, 129, 0.15);
   color: #047857;
 }
+
 .timer-pill.warning {
   background: rgba(251, 191, 36, 0.2);
   color: #92400e;
 }
+
 .timer-pill.late {
   background: rgba(239, 68, 68, 0.15);
   color: #b91c1c;
 }
+
 .timer-pill.critical {
   background: rgba(185, 28, 28, 0.15);
   color: #7f1d1d;
@@ -660,9 +672,11 @@
   0% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.35;
   }
+
   100% {
     opacity: 1;
   }
@@ -1013,10 +1027,13 @@
 }
 
 @keyframes pulse-timer-border {
-  0%, 100% {
+
+  0%,
+  100% {
     border-color: #f87171;
     box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.2);
   }
+
   50% {
     border-color: #ef4444;
     box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.15);
@@ -1515,6 +1532,7 @@
 }
 
 @media (max-width: 640px) {
+
   .kitchen-card__context,
   .kitchen-order-card__meta {
     grid-template-columns: 1fr;
@@ -1675,16 +1693,165 @@
 
 .dish-groups-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
 }
 
+/* ============================================
+   DISH CARD - DISEÑO PROFESIONAL COMPLETO
+   ============================================ */
+
+.dish-card-pro {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dish-card-pro:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+}
+
+/* Header con nombre y cantidad */
+.dish-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dish-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+  flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.dish-quantity {
+  background: #111827;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 60px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Badges de mesas */
+.dish-tables {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mesa-badge {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.mesa-badge:hover {
+  background: #111827;
+  border-color: #111827;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* LEGACY STYLES - Mantener por compatibilidad */
+/* SIMPLE CARD LAYOUT - Solo nombre y mesas */
+.dish-group-card-simple {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dish-group-card-simple:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+/* NOMBRE DEL PLATILLO - Texto completo sin cortar */
+.dish-name-simple {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* TAGS DE MESAS - Compactos y limpios */
+.table-tags-simple {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.table-tag-simple {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #374151;
+  min-width: 45px;
+}
+
+.table-tag-simple:hover {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+}
+
+/* LEGACY STYLES - Keep for backward compatibility */
 .dish-group-card {
   background: #fafafa;
-  border: 2px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .dish-group-card:hover {
@@ -1695,23 +1862,11 @@
 .dish-group-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.dish-group-icon {
-  width: 48px;
-  height: 48px;
-  background: white;
-  border: 2px solid #cbd5e1;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #475569;
-  flex-shrink: 0;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .dish-group-info {
@@ -1721,90 +1876,85 @@
 
 .dish-group-name {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 800;
   color: #0f172a;
   line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .dish-group-count {
   margin: 0.25rem 0 0 0;
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: 0.8rem;
+  color: #6b7280;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
 
-.dish-group-tables {
+.dish-total-badge {
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 0.35rem 0.8rem;
+  font-weight: 800;
+  font-size: 1.4rem;
+  line-height: 1;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+}
+
+.dish-table-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 0.4rem;
 }
 
-.dish-table-badge {
+.dish-table-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.5rem 0.85rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #0f172a;
-}
-
-.dish-table-badge:hover {
-  border-color: #0f172a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
-}
-
-.table-priority {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #f1f5f9;
-  color: #475569;
+  gap: 0.35rem;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.85rem;
   font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #111827;
+  line-height: 1;
+}
+
+.dish-table-tag:hover {
+  border-color: #0f172a;
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+
+.dish-table-tag .table-number {
+  font-weight: 800;
+}
+
+.dish-table-tag .table-quantity.tag {
   font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  min-width: 28px;
-}
-
-.dish-table-badge.priority-1 .table-priority {
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fca5a5;
-}
-
-.dish-table-badge.priority-2 .table-priority {
-  background: #fef3c7;
-  color: #ca8a04;
-  border: 1px solid #fcd34d;
-}
-
-.dish-table-badge.priority-3 .table-priority {
-  background: #dbeafe;
-  color: #0284c7;
-  border: 1px solid #93c5fd;
-}
-
-.table-number {
-  color: #0f172a;
   font-weight: 600;
+  color: #4b5563;
 }
 
-.table-quantity {
-  color: #64748b;
-  font-weight: 500;
+.dish-table-tag.priority-1 {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.dish-table-tag.priority-2 {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.dish-table-tag.priority-3 {
+  background: #f0f9ff;
+  border-color: #bae6fd;
 }
 
 /* ============================================
@@ -1874,10 +2024,13 @@
 }
 
 @keyframes pulse-card-border {
-  0%, 100% {
+
+  0%,
+  100% {
     border-color: #f87171;
     box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.15);
   }
+
   50% {
     border-color: #ef4444;
     box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.1);
@@ -2199,10 +2352,13 @@
 }
 
 @keyframes pulse-timer-critical {
-  0%, 100% {
+
+  0%,
+  100% {
     border-color: #f87171;
     box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.15);
   }
+
   50% {
     border-color: #ef4444;
     box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
@@ -2435,12 +2591,15 @@
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
 }
 
 .progress-badges-bar::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
+  /* Chrome/Safari */
 }
 
 .progress-badge {
@@ -2573,35 +2732,35 @@
   .order-header-redesign {
     padding: 1.25rem;
   }
-  
+
   .header-top-row {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .timer-compact {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .header-bottom-row {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .action-button-inline {
     width: 100%;
     justify-content: center;
   }
-  
+
   .order-meta-redesign {
     grid-template-columns: 1fr;
   }
-  
+
   .order-detail-content {
     max-height: 50vh;
   }
-  
+
   /* Barra de progreso con botón en móvil */
   .progress-with-action {
     flex-direction: column;
@@ -2609,21 +2768,21 @@
     gap: 0.75rem;
     padding: 1rem 0.25rem 0 0.25rem;
   }
-  
+
   .progress-badges-bar {
     gap: 0.5rem;
   }
-  
+
   .progress-badge {
     padding: 0.5rem 1rem;
     font-size: 0.75rem;
   }
-  
+
   .progress-badge svg {
     width: 14px;
     height: 14px;
   }
-  
+
   .action-button-progress {
     width: 100%;
     justify-content: center;
@@ -2706,9 +2865,12 @@
 }
 
 @keyframes pulse-progress {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
   }
+
   50% {
     box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.1);
   }
@@ -2768,21 +2930,21 @@
   .order-detail-header.sticky-header {
     padding: 1.5rem 1rem 1rem 1rem;
   }
-  
+
   .progress-timeline-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
   .progress-timeline-header .progress-step {
     width: 100%;
   }
-  
+
   .progress-timeline-header .step-arrow {
     display: none;
   }
-  
+
   .order-detail-content {
     max-height: 50vh;
     padding: 1rem 0.25rem;

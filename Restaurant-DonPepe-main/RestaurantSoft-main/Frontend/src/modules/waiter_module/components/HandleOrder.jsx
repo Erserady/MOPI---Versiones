@@ -125,11 +125,25 @@ const serializeCartItems = (items = []) =>
     categoria: item.dishCategory || item.category || null,
   }));
 
+// Normalizador robusto para valores numéricos que pueden venir como string con símbolos o comas
+const toNumber = (value) => {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const sanitized = value.replace(/[^\d,.-]/g, "").replace(",", ".");
+    const parsed = parseFloat(sanitized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
 const sumSubtotals = (items = []) =>
   items.reduce((acc, item) => {
-    const fallback =
-      (Number(item.unitPrice) || 0) * (Number(item.dishQuantity) || 0);
-    return acc + (Number(item.subtotal) || fallback);
+    const qty = toNumber(item.dishQuantity);
+    const unit = toNumber(item.unitPrice ?? item.price);
+    const subtotal = toNumber(item.subtotal);
+    const effective = subtotal || unit * qty;
+    return acc + effective;
   }, 0);
 
 const sumSerializedQuantities = (items = []) =>
@@ -357,15 +371,16 @@ const HandleOrder = ({
         existing.dishQuantity += 1;
         existing.subtotal = existing.dishQuantity * existing.unitPrice;
       } else {
+        const unitPrice = toNumber(dish.price);
         draft.push({
           dishId: dish.id,
           dishName: dish.name,
           dishCategory: dish.category,
           dishStatus: "Pendiente",
           dishQuantity: 1,
-          unitPrice: dish.price,
-          subtotal: dish.price,
-          cost: dish.price * 0.7,
+          unitPrice,
+          subtotal: unitPrice,
+          cost: unitPrice * 0.7,
           description: "", // No usar descripción por defecto, solo comentarios del mesero
           createTime: new Date().toISOString(),
         });

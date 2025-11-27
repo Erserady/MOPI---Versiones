@@ -96,11 +96,14 @@ const DishTable = ({
         );
 
       case "summary":
+        // Mostrar la nota solo si existe texto; de lo contrario dejar vacío
+        const note =
+          typeof dish.description === "string" ? dish.description.trim() : "";
         return (
           <tr key={dish.dishId || index}>
             <td className="dish-name">{dish.dishName}</td>
             <td className="dish-quantity">{dish.dishQuantity}</td>
-            <td className="dish-notes">{dish.description || "Sin notas"}</td>
+            <td className="dish-notes">{note}</td>
             <td className="dish-subtotal">
               C$
               {(

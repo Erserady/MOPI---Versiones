@@ -10,6 +10,7 @@ const DishTable = ({
   onRemove,
   onComment,
   onQuantityChange,
+  onRemoveExisting,
 }) => {
   const defaultHeaders = ["Nombre", "Precio", "Disponibilidad"];
   const tableHeaders = headers || defaultHeaders;
@@ -95,7 +96,7 @@ const DishTable = ({
           </tr>
         );
 
-      case "summary":
+      case "summary": {
         // Mostrar la nota solo si existe texto; de lo contrario dejar vacío
         const note =
           typeof dish.description === "string" ? dish.description.trim() : "";
@@ -113,6 +114,36 @@ const DishTable = ({
             </td>
           </tr>
         );
+      }
+
+      case "summary-removable": {
+        // Igual que summary, pero con botón de eliminación para items ya registrados en la orden
+        const note =
+          typeof dish.description === "string" ? dish.description.trim() : "";
+        return (
+          <tr key={dish.dishId || index}>
+            <td className="dish-name">{dish.dishName}</td>
+            <td className="dish-quantity">{dish.dishQuantity}</td>
+            <td className="dish-notes">{note}</td>
+            <td className="dish-subtotal">
+              C$
+              {(
+                dish.subtotal ||
+                (dish.unitPrice || 0) * (dish.dishQuantity || 0)
+              ).toFixed(2)}
+            </td>
+            <td className="dish-actions">
+              <button
+                className="remove-btn"
+                onClick={() => onRemoveExisting && onRemoveExisting(dish, index)}
+                title="Solicitar eliminación del item"
+              >
+                <Trash2 size={14} />
+              </button>
+            </td>
+          </tr>
+        );
+      }
 
       default:
         return null;

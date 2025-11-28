@@ -1,4 +1,4 @@
-import { useImmer } from "use-immer";
+﻿import { useImmer } from "use-immer";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import DishTable from "./DishTable";
 import { getPlatos } from "../../../services/adminMenuService";
@@ -6,18 +6,29 @@ import {
   createOrden,
   getOrdenes,
   updateOrden,
+  requestRemoveItem,
+  getOrderRemoveRequests,
 } from "../../../services/waiterService";
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
 import CommentModal from "./CommentModal";
-import { RefreshCw, ChefHat, Search, Filter, X } from "lucide-react";
+import { RefreshCw, ChefHat, Search, Filter, X, Lock } from "lucide-react";
 import { useLocation, useParams } from "react-router-dom";
-import { getCurrentUser, getCurrentUserId, getCurrentUserName } from "../../../utils/auth";
+import { getCurrentUserId, getCurrentUserName } from "../../../utils/auth";
+import RemoveItemModal from "./RemoveItemModal";
 
-// Estados en los que SÍ se puede adjuntar a la misma orden; fuera de esto se genera una nueva
-const APPENDABLE_ORDER_STATUSES = ["pendiente", "en_preparacion", "listo"];
+const APPENDABLE_ORDER_STATUSES = [
+  "pendiente",
+  "en_preparacion",
+  "listo",
+  "entregado",
+  "servido",
+  "payment_requested",
+  "prefactura_enviada",
+];
 
-// 🎯 NUEVO: emojis para subcategorías
+const DISPLAYABLE_ORDER_STATUSES = [...APPENDABLE_ORDER_STATUSES];
+
 const categoryEmojis = {
   "LICORES IMPORTADOS": "🍾",
   "CERVEZA NACIONAL": "🍺",
@@ -37,7 +48,6 @@ const categoryEmojis = {
   "EXTRAS": "✨",
 };
 
-// 🎯 NUEVO: estructura jerárquica
 const categoryHierarchy = [
   {
     main: "🍹 Bebidas Alcohólicas",
@@ -121,11 +131,10 @@ const serializeCartItems = (items = []) =>
     nombre: item.dishName,
     cantidad: item.dishQuantity,
     precio: item.unitPrice,
-    nota: item.description?.trim() || "", // Solo envía comentario si existe
+    nota: item.description?.trim() || "",
     categoria: item.dishCategory || item.category || null,
   }));
 
-// Normalizador robusto para valores numéricos que pueden venir como string con símbolos o comas
 const toNumber = (value) => {
   if (value === null || value === undefined) return 0;
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -181,15 +190,10 @@ const HandleOrder = ({
 
   const [menu, setMenu] = useState([]);
   const [accessDenied, setAccessDenied] = useState(false);
-
-  // 🎯 NUEVO: estados de categoría principal y subcategoría
   const [activeMainCategory, setActiveMainCategory] = useState(null);
   const [activeSubcategory, setActiveSubcategory] = useState(null);
-
-  // 🔍 Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useImmer([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -199,10 +203,33 @@ const HandleOrder = ({
       ? mapPedidoItemsToCartShape(initialOrder.pedido || initialOrder.items)
       : []
   );
+  const [isExistingOrderReadOnly, setIsExistingOrderReadOnly] = useState(() =>
+    initialOrder
+      ? !APPENDABLE_ORDER_STATUSES.includes(
+          normalizeStatus(initialOrder.estado)
+        )
+      : false
+  );
+  const [removeRequests, setRemoveRequests] = useState([]);
+  const [removeHistoryLoading, setRemoveHistoryLoading] = useState(false);
+  const [removeHistoryLoaded, setRemoveHistoryLoaded] = useState(false);
+  const [removeHistoryOrderId, setRemoveHistoryOrderId] = useState(null);
+  const [notifiedRejectedIds, setNotifiedRejectedIds] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem("notifiedRejectedIds");
+      const arr = stored ? JSON.parse(stored) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderError, setOrderError] = useState(null);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [commentModalDish, setCommentModalDish] = useState(null);
+  const [removeModalOpen, setRemoveModalOpen] = useState(false);
+  const [removeModalItem, setRemoveModalItem] = useState(null);
+  const [removeModalIndex, setRemoveModalIndex] = useState(null);
   const { showNotification, hideNotification, notification } =
     useNotification();
 
@@ -228,14 +255,93 @@ const HandleOrder = ({
     ]
   );
 
+  const loadRemoveRequests = useCallback(
+    async (orderId) => {
+      if (!orderId) {
+        setRemoveRequests([]);
+        setRemoveHistoryOrderId(null);
+        setRemoveHistoryLoaded(false);
+        return;
+      }
+      const shouldShowLoading =
+        !removeHistoryLoaded || removeHistoryOrderId !== orderId;
+
+      try {
+        if (shouldShowLoading) {
+          setRemoveHistoryLoading(true);
+        }
+        const response = await getOrderRemoveRequests(orderId);
+        const list = Array.isArray(response) ? response : [];
+        const rejected = list.filter(
+          (req) => (req.estado || req.status || "").toLowerCase() === "rechazada"
+        );
+        // Notificar rechazos nuevos (única vez por request id)
+        if (rejected.length > 0) {
+          const newOnes = rejected.filter((r) => !notifiedRejectedIds.includes(r.id));
+          if (newOnes.length > 0) {
+            newOnes.forEach((r) => {
+              showNotification({
+                type: "error",
+                title: "Solicitud rechazada",
+                message: r.motivo_rechazo
+                  ? `Motivo: ${r.motivo_rechazo}`
+                  : "Tu solicitud de eliminación fue rechazada.",
+                duration: 6000,
+              });
+            });
+            const updated = [...notifiedRejectedIds, ...newOnes.map((r) => r.id)];
+            setNotifiedRejectedIds(updated);
+            try {
+              sessionStorage.setItem("notifiedRejectedIds", JSON.stringify(updated));
+            } catch (e) {
+              // ignore storage errors
+            }
+          }
+        }
+        const visible = list.filter(
+          (req) => (req.estado || req.status || "").toLowerCase() !== "rechazada"
+        );
+        setRemoveRequests(visible);
+        setRemoveHistoryOrderId(orderId);
+        setRemoveHistoryLoaded(true);
+      } catch (err) {
+        console.error("Error cargando historial de eliminaciones:", err);
+      } finally {
+        if (shouldShowLoading) {
+          setRemoveHistoryLoading(false);
+        }
+      }
+    },
+    [removeHistoryLoaded, removeHistoryOrderId]
+  );
+
   useEffect(() => {
     if (initialOrder) {
       setExistingOrder(initialOrder);
       setExistingItems(
         mapPedidoItemsToCartShape(initialOrder.pedido || initialOrder.items)
       );
+      setIsExistingOrderReadOnly(
+        !APPENDABLE_ORDER_STATUSES.includes(
+          normalizeStatus(initialOrder.estado)
+        )
+      );
+      const initOrderId = initialOrder.id || initialOrder.order_id;
+      if (initOrderId) {
+        loadRemoveRequests(initOrderId);
+      }
     }
-  }, [initialOrder]);
+  }, [initialOrder, loadRemoveRequests]);
+
+  // Reset notificaciones al cambiar de orden
+  useEffect(() => {
+    const currentOrderId = existingOrder?.id || existingOrder?.order_id;
+    if (!currentOrderId) return;
+    setNotifiedRejectedIds((prev) => {
+      // filtrar solo ids ya notificados para esta sesión; no limpiamos storage global
+      return prev;
+    });
+  }, [existingOrder?.id, existingOrder?.order_id]);
 
   const fetchExistingOrder = useCallback(async () => {
     if (mesaIdentifierList.length === 0) return;
@@ -244,12 +350,7 @@ const HandleOrder = ({
       const orders = await getOrdenes();
       const ordersArray = Array.isArray(orders) ? orders : [];
 
-      const match = ordersArray.find((orden) => {
-        const status = normalizeStatus(orden?.estado);
-        // Solo reusar órdenes que sigan activas en cocina; si ya fue entregada/servida se crea nueva
-        if (!APPENDABLE_ORDER_STATUSES.includes(status)) {
-          return false;
-        }
+      const matchesCurrentTable = (orden) => {
         const identifiers = buildIdentifierList([
           orden?.table,
           orden?.mesa_id,
@@ -258,10 +359,27 @@ const HandleOrder = ({
           orden?.tableNumber,
         ]);
         return identifiers.some((id) => mesaIdentifierList.includes(id));
+      };
+
+      const appendableMatch = ordersArray.find((orden) => {
+        const status = normalizeStatus(orden?.estado);
+        return (
+          APPENDABLE_ORDER_STATUSES.includes(status) &&
+          matchesCurrentTable(orden)
+        );
       });
 
+      const displayableMatch = ordersArray.find((orden) => {
+        const status = normalizeStatus(orden?.estado);
+        return (
+          DISPLAYABLE_ORDER_STATUSES.includes(status) &&
+          matchesCurrentTable(orden)
+        );
+      });
+
+      const match = appendableMatch || displayableMatch;
+
       if (match) {
-        // Verificar que el mesero actual tenga permiso para editar esta orden
         const matchWaiterIdStr = match.waiter_id ? String(match.waiter_id) : null;
         const currentWaiterIdStr = currentWaiterId ? String(currentWaiterId) : null;
 
@@ -275,6 +393,8 @@ const HandleOrder = ({
           );
           setExistingOrder(null);
           setExistingItems([]);
+          setIsExistingOrderReadOnly(false);
+          setRemoveRequests([]);
         } else {
           console.log(`✅ Acceso PERMITIDO`);
           setAccessDenied(false);
@@ -283,11 +403,21 @@ const HandleOrder = ({
             mapPedidoItemsToCartShape(match.pedido || match.items)
           );
           setOrderError(null);
+          setIsExistingOrderReadOnly(
+            !APPENDABLE_ORDER_STATUSES.includes(
+              normalizeStatus(match.estado)
+            )
+          );
+          const orderIdForHistory = match.id || match.order_id;
+          loadRemoveRequests(orderIdForHistory);
         }
       } else {
         setAccessDenied(false);
         setExistingOrder(null);
         setExistingItems([]);
+        setIsExistingOrderReadOnly(false);
+        setOrderError(null);
+        setRemoveRequests([]);
       }
     } catch (error) {
       console.error("Error cargando pedido existente:", error);
@@ -295,13 +425,24 @@ const HandleOrder = ({
     } finally {
       setOrderLoading(false);
     }
-  }, [mesaIdentifierList]);
+  }, [mesaIdentifierList, loadRemoveRequests]);
 
   useEffect(() => {
     fetchExistingOrder();
   }, [fetchExistingOrder]);
 
-  // 🎯 NUEVO: cargar platos SIN categorías del backend
+  // Poll para refrescar historial de eliminaciones sin recargar manual
+  useEffect(() => {
+    const id = existingOrder?.id || existingOrder?.order_id;
+    if (!id) return;
+    // carga inmediata sin spinner extra (ya controlado en loadRemoveRequests)
+    loadRemoveRequests(id);
+    const interval = setInterval(() => {
+      loadRemoveRequests(id);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [existingOrder?.id, existingOrder?.order_id, loadRemoveRequests]);
+
   useEffect(() => {
     const loadMenuData = async () => {
       try {
@@ -314,7 +455,6 @@ const HandleOrder = ({
           category: plato.categoria_nombre || plato.categoria,
           price: parseFloat(plato.precio || 0),
           available: plato.disponible !== false,
-          // No incluir description del plato - solo usaremos comentarios explícitos del mesero
         }));
 
         setMenu(menuFormateado);
@@ -351,16 +491,10 @@ const HandleOrder = ({
     : [];
 
   const filteredMenu = menu.filter((dish) => {
-    // Filtro por categoría
     const matchesCategory = dish.category === activeSubcategory;
-
-    // Filtro por búsqueda (nombre del platillo)
     const matchesSearch = searchTerm.trim() === "" ||
       dish.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-    // Filtro por disponibilidad
     const matchesAvailability = !showOnlyAvailable || dish.available;
-
     return matchesCategory && matchesSearch && matchesAvailability;
   });
 
@@ -381,7 +515,7 @@ const HandleOrder = ({
           unitPrice,
           subtotal: unitPrice,
           cost: unitPrice * 0.7,
-          description: "", // No usar descripción por defecto, solo comentarios del mesero
+          description: "",
           createTime: new Date().toISOString(),
         });
       }
@@ -405,10 +539,26 @@ const HandleOrder = ({
       setCartItems((draft) => {
         const item = draft.find((i) => i.dishId === commentModalDish.dishId);
         if (item) {
-          item.description = comment; // Solo guarda el comentario si hay texto, vacío si no hay
+          item.description = comment;
         }
       });
     }
+  };
+
+  const handleRequestRemoveExisting = async (dish, index) => {
+    if (!existingOrder) {
+      showNotification({
+        type: "error",
+        title: "Sin pedido activo",
+        message: "No hay un pedido actual para esta mesa.",
+        duration: 4000,
+      });
+      return;
+    }
+
+    setRemoveModalItem(dish);
+    setRemoveModalIndex(index);
+    setRemoveModalOpen(true);
   };
 
   const handleQuantityChange = (index, delta) => {
@@ -424,15 +574,33 @@ const HandleOrder = ({
 
   const existingTotal = sumSubtotals(existingItems);
   const newItemsTotal = sumSubtotals(cartItems);
-  const projectedTotal = existingTotal + newItemsTotal;
+  const projectedTotal = existingOrder
+    ? isExistingOrderReadOnly
+      ? existingTotal
+      : existingTotal + newItemsTotal
+    : newItemsTotal;
 
   const handleConfirmOrder = async () => {
-    // Verificar acceso denegado
     if (accessDenied) {
       showNotification({
         type: "error",
         title: "Acceso denegado",
         message: orderError || "No tienes permiso para modificar esta mesa.",
+        duration: 5000,
+      });
+      return;
+    }
+
+    const canUpdateExistingOrder =
+      existingOrder && !isExistingOrderReadOnly;
+
+    if (existingOrder && isExistingOrderReadOnly) {
+      showNotification({
+        type: "warning",
+        title: "Pedido bloqueado",
+        message:
+          `El pedido actual está en estado "${existingOrder.estado ?? "desconocido"}". ` +
+          "No se pueden agregar platillos hasta que se reabra la orden.",
         duration: 5000,
       });
       return;
@@ -455,7 +623,7 @@ const HandleOrder = ({
     try {
       const newItemsPayload = serializeCartItems(cartItems);
 
-      if (existingOrder) {
+      if (canUpdateExistingOrder) {
         const baseItemsPayload = serializeCartItems(existingItems);
         const mergedItems = [...baseItemsPayload, ...newItemsPayload];
         const mergedQuantity = sumSerializedQuantities(mergedItems);
@@ -474,8 +642,7 @@ const HandleOrder = ({
           pedido: JSON.stringify(mergedItems),
           cantidad: mergedQuantity,
           nota: `Total: C$${mergedTotal.toFixed(2)}`,
-          // Let backend handle estado reset automatically when items are added
-          waiter_id: existingOrder.waiter_id || getCurrentUserId(), // Mantener mesero original
+          waiter_id: existingOrder.waiter_id || getCurrentUserId(),
         };
 
         await updateOrden(recordId, updatePayload);
@@ -503,8 +670,8 @@ const HandleOrder = ({
           cantidad: totalQuantity,
           nota: `Total: C$${newOrderTotal.toFixed(2)} `,
           estado: "pendiente",
-          waiter_id: waiterId, // Asignar mesero actual
-          waiter_name: waiterName, // Nombre completo del mesero
+          waiter_id: waiterId,
+          waiter_name: waiterName,
         };
 
         console.log(`📝 Creando nueva orden: `, {
@@ -559,10 +726,11 @@ const HandleOrder = ({
   }
 
   const confirmButtonLabel = existingOrder
-    ? "Actualizar pedido"
+    ? isExistingOrderReadOnly
+      ? "Confirmar orden"
+      : "Actualizar pedido"
     : "Confirmar orden";
 
-  // Mostrar mensaje de acceso denegado si corresponde
   if (accessDenied) {
     return (
       <section style={{ padding: "2rem", textAlign: "center" }}>
@@ -609,6 +777,11 @@ const HandleOrder = ({
         Nuevos platillos: C${newItemsTotal.toFixed(2)} · Total proyectado: C$
         {projectedTotal.toFixed(2)}
       </p>
+      {isExistingOrderReadOnly && existingOrder && (
+        <p style={{ color: "#b45309", marginTop: "-0.25rem", marginBottom: "1rem" }}>
+          Pedido en estado "{existingOrder.estado}". Solo lectura para agregar platillos.
+        </p>
+      )}
 
       <section className="category-dishes">
         <h3>Pedido actual</h3>
@@ -622,9 +795,10 @@ const HandleOrder = ({
             </div>
           ) : existingItems.length > 0 ? (
             <DishTable
-              utility="summary"
+              utility="summary-removable"
               data={existingItems}
-              headers={["Platillo", "Cantidad", "Notas", "Subtotal"]}
+              headers={["Platillo", "Cantidad", "Notas", "Subtotal", "Acciones"]}
+              onRemoveExisting={handleRequestRemoveExisting}
             />
           ) : (
             <p className="no-dishes">
@@ -635,6 +809,45 @@ const HandleOrder = ({
             <p style={{ color: "#b91c1c", marginTop: "0.5rem" }}>
               {orderError}
             </p>
+          )}
+        </div>
+      </section>
+
+      <section className="category-dishes">
+        <h4>Historial de eliminaciones</h4>
+        <div className="table-container">
+          {removeHistoryLoading ? (
+            <div style={{ textAlign: "center", padding: "1rem" }}>
+              <RefreshCw className="spin" size={20} />
+              <p style={{ color: "#6b7280" }}>Cargando historial...</p>
+            </div>
+          ) : removeRequests.length > 0 ? (
+            <table className="dish-table shadow">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Cantidad</th>
+                  <th>Razón</th>
+                  <th>Estado</th>
+                  <th>Autorizado por</th>
+                </tr>
+              </thead>
+              <tbody className="tbody-class">
+                {removeRequests.map((req, idx) => (
+                  <tr key={req.id || idx}>
+                    <td>{req.item_nombre || req.dish_name || "Platillo"}</td>
+                    <td>{req.cantidad ?? req.quantity ?? "-"}</td>
+                    <td>{req.razon || req.reason || "Sin razón"}</td>
+                    <td style={{ textTransform: "capitalize" }}>
+                      {req.estado || req.status || "pendiente"}
+                    </td>
+                    <td>{req.autorizado_por || req.approved_by || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="no-dishes">Sin solicitudes de eliminación.</p>
           )}
         </div>
       </section>
@@ -727,7 +940,6 @@ const HandleOrder = ({
         <div className="dishes-grid">
           {filteredMenu.length > 0 ? (
             filteredMenu.map((dish) => {
-              // Verificar si el platillo está en el carrito y obtener la cantidad
               const cartItem = cartItems.find(item => item.dishId === dish.id);
               const quantity = cartItem ? cartItem.dishQuantity : 0;
               const isInCart = quantity > 0;
@@ -735,9 +947,8 @@ const HandleOrder = ({
               return (
                 <article
                   key={dish.id}
-                        className={`dish-card-order ${isInCart ? 'in-cart' : ''}`}
+                  className={`dish-card-order ${isInCart ? 'in-cart' : ''}`}
                 >
-                  {/* Badge de cantidad en la esquina superior derecha */}
                   {isInCart && (
                     <div className="dish-quantity-badge">
                       x{quantity}
@@ -807,6 +1018,39 @@ const HandleOrder = ({
         onSave={handleSaveComment}
         dishName={commentModalDish?.dishName || ""}
         initialComment={commentModalDish?.description || ""}
+      />
+
+      <RemoveItemModal
+        isOpen={removeModalOpen}
+        item={removeModalItem}
+        onClose={() => {
+          setRemoveModalOpen(false);
+          setRemoveModalItem(null);
+          setRemoveModalIndex(null);
+        }}
+        onConfirm={async (reasonText) => {
+          if (!existingOrder) {
+            throw new Error("No hay un pedido actual para esta mesa.");
+          }
+          const orderId = existingOrder.id || existingOrder.order_id;
+          if (!orderId) {
+            throw new Error("No se encontró el identificador de la orden.");
+          }
+          await requestRemoveItem(
+            orderId,
+            removeModalIndex,
+            reasonText.trim(),
+            getCurrentUserName() || "mesero"
+          );
+          showNotification({
+            type: "success",
+            title: "Solicitud enviada",
+            message:
+              "Se envió la solicitud de eliminación a caja. Cocina será notificada si corresponde.",
+            duration: 4000,
+          });
+          loadRemoveRequests(orderId);
+        }}
       />
     </section>
   );

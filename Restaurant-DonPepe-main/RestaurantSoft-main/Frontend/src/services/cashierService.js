@@ -205,6 +205,49 @@ export async function getEgresos() {
   return res.json();
 }
 
+// Solicitudes de eliminación de items (cajero)
+export async function getPendingRemoveRequests() {
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/remove-requests/pending/`);
+  if (!res.ok) throw new Error('Error obteniendo solicitudes pendientes');
+  return res.json();
+}
+
+export async function approveRemoveRequest(requestId, autorizadoPor) {
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/remove-requests/${requestId}/approve/`, {
+    method: 'POST',
+    body: JSON.stringify({ autorizado_por: autorizadoPor }),
+  });
+  if (!res.ok) {
+    let msg = 'Error aprobando solicitud';
+    try {
+      const data = await res.json();
+      msg = data.error || data.detail || msg;
+    } catch (e) {
+      msg = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+export async function rejectRemoveRequest(requestId, rechazadoPor, motivoRechazo = '') {
+  const res = await apiFetch(`${API_BASE_URL}/api/caja/remove-requests/${requestId}/reject/`, {
+    method: 'POST',
+    body: JSON.stringify({ rechazado_por: rechazadoPor, motivo_rechazo: motivoRechazo }),
+  });
+  if (!res.ok) {
+    let msg = 'Error rechazando solicitud';
+    try {
+      const data = await res.json();
+      msg = data.error || data.detail || msg;
+    } catch (e) {
+      msg = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
 export async function createEgreso(data) {
   const res = await apiFetch(`${API_BASE_URL}/api/caja/egresos/`, {
     method: 'POST',

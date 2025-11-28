@@ -1,16 +1,29 @@
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import "../styles/cashier_section.css";
-import { CreditCard, Receipt, DollarSign, Banknote, RefreshCw, AlertCircle, TrendingDown, Filter, X } from "lucide-react";
+import { CreditCard, Receipt, DollarSign, Banknote, RefreshCw, AlertCircle, TrendingDown, Filter, X, CheckCircle, XCircle } from "lucide-react";
 import CashierModal from "./Cashier.Modal";
 import TransactionDetailModal from "./TransactionDetailModal";
 import ReportDateModal from "./ReportDateModal";
 import ExpenseModal from "./ExpenseModal";
-import { getCajas, getPagos, abrirCaja, cerrarCaja, getPagosByDate, getPagosByMonth, getEgresos, createEgreso } from "../../../services/cashierService";
+import {
+  getCajas,
+  getPagos,
+  abrirCaja,
+  cerrarCaja,
+  getPagosByDate,
+  getPagosByMonth,
+  getEgresos,
+  createEgreso,
+  getPendingRemoveRequests,
+  approveRemoveRequest,
+  rejectRemoveRequest,
+} from "../../../services/cashierService";
 import { generateDetailedCashReport } from "../utils/reportGenerator";
 import { useDataSync } from "../../../hooks/useDataSync";
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
+import { getCurrentUserName } from "../../../utils/auth";
 
 const CashierSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +45,7 @@ const CashierSection = () => {
   const { data: cajas, refetch: refetchCajas } = useDataSync(getCajas, 5000);
   const { data: pagos, refetch: refetchPagos } = useDataSync(getPagos, 5000);
   const { data: egresos, refetch: refetchEgresos } = useDataSync(getEgresos, 5000);
+  const { data: pendingRemovals, refetch: refetchRemovals } = useDataSync(getPendingRemoveRequests, 4000);
   
   // Obtener caja actual (la primera abierta o la última)
   const cajaActual = cajas?.find(c => c.estado === 'abierta') || cajas?.[0];
@@ -370,6 +384,51 @@ const CashierSection = () => {
     }
   };
 
+  const handleApproveRemoval = async (req) => {
+    try {
+      await approveRemoveRequest(req.id, getCurrentUserName() || "cajero");
+      showNotification({
+        type: "success",
+        title: "Solicitud aprobada",
+        message: `Se eliminó "${req.item_nombre}" de la orden ${req.order_identifier || req.order_id}.`,
+        duration: 4000,
+      });
+      refetchRemovals();
+    } catch (err) {
+      console.error("Error aprobando solicitud:", err);
+      showNotification({
+        type: "error",
+        title: "No se pudo aprobar",
+        message: err.message || "Error aprobando la solicitud.",
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleRejectRemoval = async (req) => {
+    const motivo = window.prompt(
+      `Motivo de rechazo para "${req.item_nombre || "item"}" (opcional):`
+    );
+    try {
+      await rejectRemoveRequest(req.id, getCurrentUserName() || "cajero", motivo || "");
+      showNotification({
+        type: "info",
+        title: "Solicitud rechazada",
+        message: `Rechazaste la eliminación de "${req.item_nombre}".`,
+        duration: 4000,
+      });
+      refetchRemovals();
+    } catch (err) {
+      console.error("Error rechazando solicitud:", err);
+      showNotification({
+        type: "error",
+        title: "No se pudo rechazar",
+        message: err.message || "Error rechazando la solicitud.",
+        duration: 5000,
+      });
+    }
+  };
+
   if (!cajas) {
     return (
       <section className="cashier-section">
@@ -501,7 +560,7 @@ const CashierSection = () => {
           </button>
         </CashierCard>
 
-        <CashierCard title="Flujo de Efectivo Hoy" customClass="cashier-flow">
+      <CashierCard title="Flujo de Efectivo Hoy" customClass="cashier-flow">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f3f4f6', borderRadius: '8px' }}>
               <span>💵 Ventas en Efectivo:</span>
@@ -526,6 +585,65 @@ const CashierSection = () => {
               <strong>{pagosHoy.length + egresosHoy.length}</strong>
             </div>
           </div>
+        </CashierCard>
+
+        <CashierCard title="Solicitudes de eliminación" customClass="cashier-remove-requests">
+          {pendingRemovals === undefined ? (
+            <p style={{ textAlign: 'center', color: '#6b7280' }}>Cargando solicitudes...</p>
+          ) : pendingRemovals && pendingRemovals.length > 0 ? (
+            pendingRemovals.map((req) => (
+              <div
+                key={req.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto',
+                  gap: '0.75rem',
+                  padding: '0.75rem',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '10px',
+                  marginBottom: '0.75rem',
+                  background: '#f9fafb'
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: '700', color: '#111827' }}>
+                    {req.item_nombre || 'Platillo'} (x{req.cantidad || 1})
+                  </div>
+                  <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                    Mesa: {req.mesa || 'N/D'} · Orden: {req.order_identifier || req.order_id || 'N/D'}
+                  </div>
+                  <div style={{ color: '#374151', marginTop: '0.35rem' }}>
+                    Razón: {req.razon || 'Sin razón'}
+                  </div>
+                  <div style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                    Solicitado por: {req.solicitado_por || 'Mesero'} · Hace {Math.round((Date.now() - new Date(req.created_at)) / 60000)} min
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'flex-end' }}>
+                  <button
+                    className="cashier-btn shadow"
+                    onClick={() => handleApproveRemoval(req)}
+                    style={{ background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.75rem' }}
+                  >
+                    <CheckCircle size={16} />
+                    Aprobar
+                  </button>
+                  <button
+                    className="cashier-btn shadow"
+                    onClick={() => handleRejectRemoval(req)}
+                    style={{ background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.75rem', border: '1px solid #fecdd3' }}
+                  >
+                    <XCircle size={16} />
+                    Rechazar
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p style={{ textAlign: 'center', color: '#9ca3af', padding: '1rem' }}>
+              No hay solicitudes pendientes.
+            </p>
+          )}
         </CashierCard>
 
         <CashierCard

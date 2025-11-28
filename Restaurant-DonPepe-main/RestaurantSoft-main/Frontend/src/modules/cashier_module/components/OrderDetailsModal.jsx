@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { X, Receipt, UtensilsCrossed, MessageSquare, Send, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Receipt, UtensilsCrossed, MessageSquare, Send, Trash2, AlertTriangle, RefreshCw, Clock } from 'lucide-react';
 import '../styles/transaction_detail_modal.css';
 import { cambiarEstadoOrden, deleteOrdenCocina, updateOrdenCocina } from '../../../services/cookService';
+import { getOrderRemoveRequests } from '../../../services/waiterService';
 import AlertModal from '../../../components/AlertModal';
 import ConfirmModal from '../../../components/ConfirmModal';
 
@@ -11,8 +12,11 @@ const OrderDetailsModal = ({ isOpen, onClose, order, onOrderCancelled }) => {
   const [alert, setAlert] = useState({ isOpen: false, type: 'info', title: '', message: '' });
   const [editedItems, setEditedItems] = useState(null);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: 'cancel', itemToRemove: null });
-  
-  if (!isOpen || !order) return null;
+  const [removals, setRemovals] = useState([]);
+  const [removalsLoading, setRemovalsLoading] = useState(false);
+  const [removalsError, setRemovalsError] = useState(null);
+  const [removalsLoaded, setRemovalsLoaded] = useState(false);
+  const [removalsKey, setRemovalsKey] = useState(null);
 
   const formatCurrency = (value) => {
     return `C$ ${parseFloat(value || 0).toFixed(2)}`;
@@ -122,6 +126,68 @@ const OrderDetailsModal = ({ isOpen, onClose, order, onOrderCancelled }) => {
       setSending(false);
     }
   };
+
+  // Cargar historial de eliminaciones (aprobadas/rechazadas/pendientes) para la orden
+  useEffect(() => {
+    const loadRemovals = async () => {
+      const ids =
+        (Array.isArray(order?.orderIds) && order.orderIds.length > 0
+          ? order.orderIds
+          : order?.orderId
+            ? [order.orderId]
+            : []);
+
+      if (ids.length === 0) {
+        setRemovals([]);
+        setRemovalsLoaded(false);
+        setRemovalsKey(null);
+        return;
+      }
+
+      const key = ids.slice().sort().join('|');
+      const shouldFetch = !removalsLoaded || removalsKey !== key;
+      if (!shouldFetch) return;
+
+      try {
+        setRemovalsLoading(true);
+        setRemovalsError(null);
+
+        const results = await Promise.all(
+          ids.map(async (oid) => {
+            try {
+              const data = await getOrderRemoveRequests(oid);
+              return Array.isArray(data) ? data : [];
+            } catch (e) {
+              console.error('Error cargando eliminaciones para orden', oid, e);
+              return [];
+            }
+          })
+        );
+
+        // Combinar y ordenar por fecha si existe created_at
+        const combined = results.flat();
+        combined.sort((a, b) => {
+          const da = a?.created_at ? new Date(a.created_at).getTime() : 0;
+          const db = b?.created_at ? new Date(b.created_at).getTime() : 0;
+          return db - da;
+        });
+
+        setRemovals(combined);
+        setRemovalsLoaded(true);
+        setRemovalsKey(key);
+      } catch (err) {
+        console.error('Error cargando eliminaciones:', err);
+        setRemovalsError('No se pudo cargar el historial de eliminaciones.');
+      } finally {
+        setRemovalsLoading(false);
+      }
+    };
+    if (isOpen) {
+      loadRemovals();
+    }
+  }, [isOpen, order?.orderId, order?.orderIds, removalsLoaded, removalsKey]);
+
+  if (!isOpen || !order) return null;
 
   // Agrupar items por nombre para mostrar resumen
   const groupedItems = () => {
@@ -265,6 +331,64 @@ const OrderDetailsModal = ({ isOpen, onClose, order, onOrderCancelled }) => {
                   )}
                 </div>
               ))}
+            </div>
+
+            {/* Historial de eliminaciones - no se imprime */}
+            <div className="removal-history no-print">
+              <div className="removal-history__header">
+                <AlertTriangle size={18} />
+                <h4>Historial de eliminaciones</h4>
+              </div>
+
+              {removalsLoading && (
+                <div className="removal-history__loading">
+                  <RefreshCw className="spin" size={18} />
+                  <span>Cargando historial...</span>
+                </div>
+              )}
+
+              {removalsError && (
+                <p className="removal-history__error">{removalsError}</p>
+              )}
+
+              {!removalsLoading && !removalsError && (
+                <>
+                  {removals.length === 0 ? (
+                    <p className="removal-history__empty">No hay eliminaciones registradas.</p>
+                  ) : (
+                    <div className="removal-history__list">
+                      {removals.map((req) => (
+                        <article key={req.id} className="removal-history__card">
+                          <div className="removal-history__top">
+                            <div className="pill pill--danger">x{req.cantidad ?? req.quantity ?? 1}</div>
+                            <div className="removal-history__name">{req.item_nombre || req.dish_name || 'Platillo'}</div>
+                            <span className={`removal-history__status removal-history__status--${(req.estado || req.status || 'pendiente').toLowerCase()}`}>
+                              {(req.estado || req.status || 'pendiente').toString().toUpperCase()}
+                            </span>
+                          </div>
+                          <p className="removal-history__reason">{req.razon || req.reason || 'Sin razón'}</p>
+                          <div className="removal-history__meta">
+                            <span>Solicitó: {req.solicitado_por || 'mesero'}</span>
+                            {req.autorizado_por && <span>Aprobó: {req.autorizado_por}</span>}
+                            {req.rechazado_por && <span>Rechazó: {req.rechazado_por}</span>}
+                            {req.created_at && (
+                              <span className="removal-history__time">
+                                <Clock size={14} />
+                                {new Date(req.created_at).toLocaleString('es-ES', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  day: '2-digit',
+                                  month: '2-digit'
+                                })}
+                              </span>
+                            )}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Totales */}

@@ -29,11 +29,20 @@ const PriorityOrderCard = ({ order, priority, onChangeStatus }) => {
     onChangeStatus(order.recordId, nextStatus);
   };
 
+  const cookableItems = useMemo(() => {
+    return filterCookableItems(order.items || []);
+  }, [order.items]);
+
   // Calcular total de platillos sumando cantidades (solo items cocinables)
   const totalDishes = useMemo(() => {
-    const cookableItems = filterCookableItems(order.items || []);
     return cookableItems.reduce((sum, item) => sum + (item.cantidad || 1), 0);
-  }, [order.items]);
+  }, [cookableItems]);
+
+  const readyProgress = useMemo(() => {
+    const total = cookableItems.length;
+    const ready = cookableItems.filter((item) => item.listo_en_cocina).length;
+    return { total, ready };
+  }, [cookableItems]);
 
   const ariaLabel = `Prioridad ${priority}, Mesa ${order.tableNumber}, ${
     STATUS_LABELS[order.status] || order.status
@@ -76,6 +85,7 @@ const PriorityOrderCard = ({ order, priority, onChangeStatus }) => {
           </div>
           <div className="priority-card-items">
             <span>{totalDishes} {totalDishes === 1 ? 'platillo' : 'platillos'}</span>
+            <span className="ready-progress"> - {readyProgress.ready}/{readyProgress.total} listos</span>
           </div>
         </div>
       </button>

@@ -11,6 +11,7 @@ import {
   parseOrderItems,
   filterCookableItems,
 } from "../utils/orderUtils";
+import { CustomAlertContainer, AlertService } from "./CustomAlert";
 
 const STATUS_FILTERS = [
   { id: "all", label: "Todos" },
@@ -89,7 +90,7 @@ const OrderSection = () => {
   // Formatear y asignar prioridades
   const ordersFormatted = useMemo(() => {
     if (!Array.isArray(ordenesData)) return [];
-    
+
     const formatted = ordenesData
       .map((orden, index) => {
         const items = filterCookableItems(parseOrderItems(orden.items ?? orden.pedido));
@@ -118,7 +119,7 @@ const OrderSection = () => {
         const dateB = new Date(b.createdAt).getTime();
         return dateA - dateB;
       });
-    
+
     // Asignar prioridad numérica (1, 2, 3...)
     return formatted.map((order, index) => ({
       ...order,
@@ -134,12 +135,15 @@ const OrderSection = () => {
       if (!Array.isArray(order.items)) return;
       
       order.items.forEach((item) => {
+        // Omitir platillos ya marcados como listos en cocina
+        if (item.listo_en_cocina) return;
+
         const dishName = item.nombre || "Platillo sin nombre";
         
         if (!groups[dishName]) {
           groups[dishName] = [];
         }
-        
+
         groups[dishName].push({
           recordId: order.recordId,
           tableNumber: order.tableNumber,
@@ -150,7 +154,7 @@ const OrderSection = () => {
         });
       });
     });
-    
+
     // Convertir a array y ordenar por cantidad de mesas (más popular primero)
     return Object.entries(groups)
       .map(([dishName, tables]) => ({
@@ -183,26 +187,33 @@ const OrderSection = () => {
     selectedFilter === "all"
       ? dishGroups
       : dishGroups.map((group) => ({
-          ...group,
-          tables: group.tables.filter((t) => t.status === selectedFilter),
-        })).filter((group) => group.tables.length > 0);
+        ...group,
+        tables: group.tables.filter((t) => t.status === selectedFilter),
+      })).filter((group) => group.tables.length > 0);
 
   const handleStatusChange = async (orderRecordId, newStatus) => {
     try {
       await cambiarEstadoOrden(orderRecordId, newStatus);
-      
+
       // Si el estado cambió a "listo", notificar al mesero
       if (newStatus === "listo") {
         const order = ordersFormatted.find(o => o.recordId === orderRecordId);
         if (order) {
           notifyWaiter(order);
+          AlertService.success(
+            "Orden lista",
+            `Mesa ${order.tableNumber} lista para entregar`
+          );
         }
       }
-      
+
       await refetch();
     } catch (err) {
       console.error("Error actualizando estado:", err);
-      alert("No se pudo actualizar el estado de la orden.");
+      AlertService.error(
+        "Error al actualizar",
+        "No se pudo actualizar el estado de la orden."
+      );
     }
   };
 
@@ -218,7 +229,7 @@ const OrderSection = () => {
         requireInteraction: true,
       });
     }
-    
+
     // Sonido de notificación (opcional)
     try {
       const audio = new Audio('/notification.mp3');
@@ -227,7 +238,7 @@ const OrderSection = () => {
     } catch (e) {
       console.log('Audio no disponible');
     }
-    
+
     console.log(`🔔 Notificación enviada al mesero: ${order.waiterName} - Mesa ${order.tableNumber}`);
   };
 
@@ -339,65 +350,68 @@ const OrderSection = () => {
   }
 
   return (
-    <div className="kitchen-board">
-      <div className="kitchen-board__hero">
-        <div>
-          <p className="eyebrow hero-eyebrow">🔥 Panel de Cocina</p>
-          <h1>Monitoreo de pedidos</h1>
+    <>
+      <CustomAlertContainer />
+      <div className="kitchen-board">
+        <div className="kitchen-board__hero">
+          <div>
+            <p className="eyebrow hero-eyebrow">🔥 Panel de Cocina</p>
+            <h1>Monitoreo de pedidos</h1>
+          </div>
         </div>
-      </div>
 
-      <div className="kitchen-stats">
-        {summaryCards.map(({ id, title, description, value, Icon, accent }) => (
-          <article key={id} className={`kitchen-stat-card kitchen-stat-card--${accent}`}>
-            <div className="kitchen-stat-card__icon">
-              <Icon size={20} />
-            </div>
-            <div>
-              <p className="kitchen-stat-card__title">{title}</p>
-              <p className="kitchen-stat-card__value">{value}</p>
-              <p className="kitchen-stat-card__description">{description}</p>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <div className="kitchen-board__controls">
-        <div className="kitchen-board__filters">
-          {STATUS_FILTERS.map((filter) => (
-            <button
-              key={filter.id}
-              className={`kitchen-filter-pill ${selectedFilter === filter.id ? "active" : ""}`}
-              onClick={() => setSelectedFilter(filter.id)}
-            >
-              <span>{filter.label}</span>
-              <small>{statusCounters[filter.id] ?? 0}</small>
-            </button>
+        <div className="kitchen-stats">
+          {summaryCards.map(({ id, title, description, value, Icon, accent }) => (
+            <article key={id} className={`kitchen-stat-card kitchen-stat-card--${accent}`}>
+              <div className="kitchen-stat-card__icon">
+                <Icon size={20} />
+              </div>
+              <div>
+                <p className="kitchen-stat-card__title">{title}</p>
+                <p className="kitchen-stat-card__value">{value}</p>
+                <p className="kitchen-stat-card__description">{description}</p>
+              </div>
+            </article>
           ))}
         </div>
-        <div className="kitchen-board__controls-right">
-          <div className="kitchen-sla-legend">
-            {SLA_LEGEND.map((item) => (
-              <div key={item.id} className={`kitchen-legend-pill ${item.tone}`}>
-                <span className="legend-dot" />
-                <span className="legend-label">{item.label}</span>
-              </div>
+
+        <div className="kitchen-board__controls">
+          <div className="kitchen-board__filters">
+            {STATUS_FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                className={`kitchen-filter-pill ${selectedFilter === filter.id ? "active" : ""}`}
+                onClick={() => setSelectedFilter(filter.id)}
+              >
+                <span>{filter.label}</span>
+                <small>{statusCounters[filter.id] ?? 0}</small>
+              </button>
             ))}
           </div>
-          
-          <button
-            className={`toggle-groups-button ${showDishGroups ? 'active' : ''}`}
-            onClick={() => setShowDishGroups(!showDishGroups)}
-            title={showDishGroups ? "Ocultar platillos agrupados" : "Mostrar platillos agrupados"}
-          >
-            <ChefHat size={18} />
-            <span>{showDishGroups ? 'Ocultar' : 'Agrupar'} Platillos</span>
-          </button>
-        </div>
-      </div>
+          <div className="kitchen-board__controls-right">
+            <div className="kitchen-sla-legend">
+              {SLA_LEGEND.map((item) => (
+                <div key={item.id} className={`kitchen-legend-pill ${item.tone}`}>
+                  <span className="legend-dot" />
+                  <span className="legend-label">{item.label}</span>
+                </div>
+              ))}
+            </div>
 
-      {boardContent}
-    </div>
+            <button
+              className={`toggle-groups-button ${showDishGroups ? 'active' : ''}`}
+              onClick={() => setShowDishGroups(!showDishGroups)}
+              title={showDishGroups ? "Ocultar platillos agrupados" : "Mostrar platillos agrupados"}
+            >
+              <ChefHat size={18} />
+              <span>{showDishGroups ? 'Ocultar' : 'Agrupar'} Platillos</span>
+            </button>
+          </div>
+        </div>
+
+        {boardContent}
+      </div>
+    </>
   );
 };
 

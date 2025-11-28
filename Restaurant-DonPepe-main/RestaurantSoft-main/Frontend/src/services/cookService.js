@@ -44,7 +44,35 @@ export async function cambiarEstadoOrden(id, nuevoEstado) {
     method: 'PATCH',
     body: JSON.stringify({ estado: nuevoEstado }),
   });
-  if (!res.ok) throw new Error('Error cambiando estado de orden');
+  if (!res.ok) {
+    let message = 'Error cambiando estado de orden';
+    try {
+      const data = await res.json();
+      message = data?.error || data?.detail || message;
+    } catch (e) {
+      // usar mensaje por defecto
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
+// Marcar platillo individual como listo/no listo en cocina
+export async function actualizarEstadoPlatillo(orderId, itemUid, listoEnCocina) {
+  const res = await apiFetch(`${API_BASE_URL}/api/cocina/orders/${orderId}/items/${itemUid}/`, {
+    method: 'PATCH',
+    body: JSON.stringify({ listo_en_cocina: !!listoEnCocina }),
+  });
+  if (!res.ok) {
+    let message = 'Error actualizando platillo en cocina';
+    try {
+      const data = await res.json();
+      message = data?.error || data?.detail || message;
+    } catch (e) {
+      // usar mensaje por defecto
+    }
+    throw new Error(message);
+  }
   return res.json();
 }
 

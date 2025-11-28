@@ -1,0 +1,317 @@
+/* ============================================
+   MODAL DE SOLICITUD DE ELIMINACIÓN DE ITEM
+   ============================================ */
+
+.remove-item-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.remove-item-modal {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: slideUp 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.remove-item-modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-item-modal__close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.remove-item-modal__icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: #d97706;
+    border: 4px solid #fde68a;
+}
+
+.remove-item-modal__title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.5rem;
+    text-align: center;
+}
+
+.remove-item-modal__subtitle {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0 0 1.5rem;
+    text-align: center;
+}
+
+/* Información del item */
+.remove-item-info {
+    background: #fef2f2;
+    border: 2px solid #fca5a5;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.remove-item-info__header {
+    background: #fee2e2;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #991b1b;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-bottom: 2px solid #fca5a5;
+}
+
+.remove-item-info__details {
+    padding: 0.85rem 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #fecaca;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row .label {
+    font-size: 0.9rem;
+    color: #7f1d1d;
+    font-weight: 500;
+}
+
+.info-row strong {
+    font-size: 1rem;
+    color: #991b1b;
+}
+
+.info-row.total-row {
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid #fca5a5;
+    border-bottom: none;
+}
+
+.info-row.total-row .label,
+.info-row.total-row strong {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #7f1d1d;
+}
+
+/* Formulario de razón */
+.remove-item-modal__content {
+    margin-bottom: 1.25rem;
+}
+
+.razon-label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.razon-label .required {
+    color: #ef4444;
+    margin-left: 0.25rem;
+}
+
+.razon-textarea {
+    width: 100%;
+    padding: 0.85rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    transition: all 0.2s;
+}
+
+.razon-textarea:focus {
+    outline: none;
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.razon-textarea:disabled {
+    background: #f8fafc;
+    cursor: not-allowed;
+}
+
+.razon-counter {
+    text-align: right;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 0.35rem;
+}
+
+.razon-error {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    padding: 0.65rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.razon-error::before {
+    content: '⚠️';
+}
+
+/* Botones de acción */
+.remove-item-modal__actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.remove-item-modal__button {
+    flex: 1;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-item-modal__button.cancel {
+    background: #f1f5f9;
+    color: #475569;
+    border: 2px solid #cbd5e1;
+}
+
+.remove-item-modal__button.cancel:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+.remove-item-modal__button.confirm {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.remove-item-modal__button.confirm:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+    transform: translateY(-2px);
+}
+
+.remove-item-modal__button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Nota informativa */
+.remove-item-modal__note {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.remove-item-modal__note strong {
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .remove-item-modal {
+        padding: 1.25rem;
+        max-width: 100%;
+        max-height: 90vh;
+    }
+
+    .remove-item-modal__title {
+        font-size: 1.25rem;
+    }
+
+    .remove-item-modal__actions {
+        flex-direction: column;
+    }
+
+    .remove-item-modal__button {
+        width: 100%;
+    }
+}

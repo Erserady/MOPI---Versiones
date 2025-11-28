@@ -1,7 +1,7 @@
-import json
 from rest_framework import serializers
 from django.utils import timezone
 from mesero.models import WaiterOrder
+from mesero.utils import normalize_order_items
 
 
 class KitchenWaiterOrderSerializer(serializers.ModelSerializer):
@@ -61,21 +61,27 @@ class KitchenWaiterOrderSerializer(serializers.ModelSerializer):
         return obj.cliente or None
 
     def get_items(self, obj):
-        raw = obj.pedido
-        if not raw:
-            return []
-        if isinstance(raw, list):
-            return raw
-        try:
-            data = json.loads(raw)
-            if isinstance(data, list):
-                return data
-        except (TypeError, ValueError):
-            pass
-        return []
+        return normalize_order_items(obj.pedido, stable=True, stable_seed=obj.id)
 
     def get_elapsed_seconds(self, obj):
         if obj.en_cocina_since:
             delta = timezone.now() - obj.en_cocina_since
             return max(int(delta.total_seconds()), 0)
         return None
+
+    def validate(self, attrs):
+        """
+        Evita marcar la orden como lista si hay platillos de cocina sin checklist.
+        """
+        new_status = attrs.get("estado")
+        instance = getattr(self, "instance", None)
+
+        if instance and new_status == "listo":
+            items = normalize_order_items(instance.pedido)
+            cookable_items = [item for item in items if item.get("preparable_en_cocina", True)]
+            if cookable_items and not all(item.get("listo_en_cocina") for item in cookable_items):
+                raise serializers.ValidationError(
+                    "No se puede marcar la orden como lista hasta que todos los platillos estén marcados como listos en cocina."
+                )
+
+        return super().validate(attrs)

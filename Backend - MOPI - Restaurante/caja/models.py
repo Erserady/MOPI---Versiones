@@ -152,3 +152,38 @@ class Egreso(models.Model):
     
     def __str__(self):
         return f"Egreso C${self.monto} - {self.caja.numero_caja} - {self.created_at.date()}"
+
+
+class RemoveRequest(models.Model):
+    """
+    Solicitudes de eliminación de items de una orden de mesero.
+    Las crea el mesero, las aprueba/rechaza el cajero.
+    """
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+    ]
+
+    order = models.ForeignKey(
+        WaiterOrder,
+        on_delete=models.CASCADE,
+        related_name='remove_requests'
+    )
+    item_index = models.IntegerField(help_text="Índice del item dentro del pedido serializado")
+    item_nombre = models.CharField(max_length=255, blank=True, null=True)
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    razon = models.TextField()
+    solicitado_por = models.CharField(max_length=255, blank=True, null=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    autorizado_por = models.CharField(max_length=255, blank=True, null=True)
+    rechazado_por = models.CharField(max_length=255, blank=True, null=True)
+    motivo_rechazo = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"RemoveRequest({self.id}) orden={self.order_id} estado={self.estado}"

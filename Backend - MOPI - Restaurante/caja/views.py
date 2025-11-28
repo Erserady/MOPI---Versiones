@@ -5,9 +5,17 @@ from django.shortcuts import render
 from django.db import transaction
 from django.utils import timezone
 from decimal import Decimal
-from .models import Caja, Factura, Pago, CierreCaja, Egreso
-from .serializers import CajaSerializer, FacturaSerializer, PagoSerializer, CierreCajaSerializer, EgresoSerializer
+from .models import Caja, Factura, Pago, CierreCaja, Egreso, RemoveRequest
+from .serializers import (
+    CajaSerializer,
+    FacturaSerializer,
+    PagoSerializer,
+    CierreCajaSerializer,
+    EgresoSerializer,
+    RemoveRequestSerializer,
+)
 from mesero.models import WaiterOrder, Table
+from mesero.utils import parse_items
 
 class CajaViewSet(viewsets.ModelViewSet):
     queryset = Caja.objects.all().order_by('-fecha_apertura')
@@ -209,6 +217,77 @@ class CierreCajaViewSet(viewsets.ModelViewSet):
     queryset = CierreCaja.objects.all().order_by('-fecha_cierre')
     serializer_class = CierreCajaSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class RemoveRequestViewSet(viewsets.ModelViewSet):
+    queryset = RemoveRequest.objects.select_related('order', 'order__table').all().order_by('-created_at')
+    serializer_class = RemoveRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['get'], url_path='pending')
+    def pending(self, request):
+        """Solicitudes en estado pendiente (para cajero)."""
+        pending_qs = self.get_queryset().filter(estado='pendiente')
+        serializer = self.get_serializer(pending_qs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], url_path='approve')
+    @transaction.atomic
+    def approve(self, request, pk=None):
+        req = self.get_object()
+        if req.estado != 'pendiente':
+            return Response({'error': 'La solicitud ya fue procesada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        order = req.order
+        items = parse_items(order.pedido)
+        idx = req.item_index
+
+        if idx < 0 or idx >= len(items):
+            return Response({'error': 'Índice de item no válido en el pedido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Remover el item de la orden y recalcular cantidad
+        try:
+            items.pop(idx)
+        except IndexError:
+            return Response({'error': 'Índice de item fuera de rango'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            import json
+            order.pedido = json.dumps(items)
+        except Exception:
+            return Response({'error': 'No se pudo serializar el pedido actualizado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        nueva_cantidad = 0
+        for item in items:
+            try:
+                nueva_cantidad += int(item.get('cantidad', 1))
+            except Exception:
+                continue
+        order.cantidad = nueva_cantidad
+        order.save(update_fields=['pedido', 'cantidad', 'updated_at'])
+
+        req.estado = 'aprobada'
+        req.autorizado_por = request.data.get('autorizado_por') or request.user.get_full_name() or request.user.username
+        req.save(update_fields=['estado', 'autorizado_por', 'updated_at'])
+
+        serializer = self.get_serializer(req)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], url_path='reject')
+    @transaction.atomic
+    def reject(self, request, pk=None):
+        req = self.get_object()
+        if req.estado != 'pendiente':
+            return Response({'error': 'La solicitud ya fue procesada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        req.estado = 'rechazada'
+        req.rechazado_por = request.data.get('rechazado_por') or request.user.get_full_name() or request.user.username
+        req.motivo_rechazo = request.data.get('motivo_rechazo', '')
+        req.save(update_fields=['estado', 'rechazado_por', 'motivo_rechazo', 'updated_at'])
+
+        serializer = self.get_serializer(req)
+        return Response(serializer.data)
+
 
 # Vistas HTML
 def caja_view(request):

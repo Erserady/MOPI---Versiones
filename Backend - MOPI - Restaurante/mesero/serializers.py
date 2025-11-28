@@ -2,7 +2,10 @@ from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
 from .models import Table, WaiterOrder
-import json
+from .utils import (
+    normalize_order_items,
+    serialize_normalized_items,
+)
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -50,6 +53,14 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
             'estado', 'waiterName', 'waiter_id', 'waiter_name', 'products', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds'
         ]
         read_only_fields = ['id', 'table', 'products', 'created_at', 'updated_at', 'en_cocina_since', 'elapsed_seconds']
+
+    def _normalize_pedido(self, pedido_raw, reset_ready=False):
+        """
+        Normaliza items y devuelve JSON serializado para almacenar.
+        """
+        if pedido_raw is None:
+            return None
+        return serialize_normalized_items(pedido_raw, reset_ready=reset_ready)
 
     def to_representation(self, instance):
         """Normalizar salida: mostrar mesa por su nombre/mesa_id y mapear campos"""
@@ -107,6 +118,10 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
         validated_data.pop('tableNumber', None)
         validated_data.pop('items', None)
         validated_data.pop('waiterName', None)
+        # Normalizar items antes de guardar
+        normalized_pedido = self._normalize_pedido(validated_data.get('pedido'))
+        if normalized_pedido is not None:
+            validated_data['pedido'] = normalized_pedido
         # crear WaiterOrder con FK a table
         order = WaiterOrder.objects.create(table=table_obj, **validated_data)
         return order
@@ -119,22 +134,10 @@ class WaiterOrderSerializer(serializers.ModelSerializer):
     
     def get_products(self, obj):
         """Parsear el campo pedido (JSON string) y retornar como lista de productos"""
-        if not obj.pedido:
-            return []
-        
-        try:
-            # Intentar parsear el pedido como JSON
-            pedido_data = json.loads(obj.pedido) if isinstance(obj.pedido, str) else obj.pedido
-            
-            # Si es una lista, es el formato esperado
-            if isinstance(pedido_data, list):
-                return pedido_data
-            
-            # Si es un diccionario con una clave 'products' o 'items'
-            if isinstance(pedido_data, dict):
-                return pedido_data.get('products', pedido_data.get('items', []))
-            
-            return []
-        except (json.JSONDecodeError, TypeError, ValueError):
-            # Si falla el parseo, retornar lista vacía
-            return []
+        return normalize_order_items(obj.pedido, stable=True, stable_seed=obj.id)
+
+    def update(self, instance, validated_data):
+        normalized_pedido = self._normalize_pedido(validated_data.get('pedido'))
+        if normalized_pedido is not None:
+            validated_data['pedido'] = normalized_pedido
+        return super().update(instance, validated_data)

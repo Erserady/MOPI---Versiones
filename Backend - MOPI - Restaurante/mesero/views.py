@@ -3,15 +3,19 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.shortcuts import render
+from django.db import transaction
+
 from .models import Table, WaiterOrder
 from .serializers import TableSerializer, WaiterOrderSerializer
-from .utils import sync_cocina_timestamp
-from caja.models import Caja
+from .utils import serialize_normalized_items, sync_cocina_timestamp, parse_items
+from caja.models import RemoveRequest, Caja
+from caja.serializers import RemoveRequestSerializer
+
 
 class TableViewSet(viewsets.ModelViewSet):
     queryset = Table.objects.all().order_by('mesa_id')
     serializer_class = TableSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Requiere autenticación para todas las operaciones
+    permission_classes = [permissions.IsAuthenticated]  # Requiere autenticacion para todas las operaciones
     
     def perform_update(self, serializer):
         original_waiter_id = serializer.instance.assigned_waiter_id
@@ -41,6 +45,7 @@ class TableViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
 class WaiterOrderViewSet(viewsets.ModelViewSet):
     queryset = (
         WaiterOrder.objects
@@ -52,54 +57,39 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
-        """Validar que la caja esté abierta antes de crear un pedido"""
-        # Verificar si hay una caja abierta
+        """Validar que la caja este abierta antes de crear un pedido"""
         caja_abierta = Caja.objects.filter(estado='abierta').first()
-        
         if not caja_abierta:
             return Response({
                 'error': 'No se pueden crear pedidos',
                 'mensaje': 'La caja debe estar abierta para poder tomar pedidos. Por favor, contacte al administrador para abrir la caja.'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Si la caja está abierta, proceder con la creación normal
         response = super().create(request, *args, **kwargs)
-        
-        # Si la orden se creó exitosamente, actualizar el estado de la mesa
+
         if response.status_code == status.HTTP_201_CREATED:
             try:
                 order = WaiterOrder.objects.get(id=response.data['id'])
                 table = order.table
-                
-                # Actualizar estado de la mesa a "occupied" y asignar mesero
                 table.status = 'occupied'
                 table.assigned_waiter = request.user
                 table.save()
                 sync_cocina_timestamp(order)
-                
             except WaiterOrder.DoesNotExist:
                 pass
-        
         return response
 
     def perform_update(self, serializer):
-        """
-        Override update para manejar el reseteo de estado cuando se edita un pedido.
-        Si el mesero edita los items (campo 'pedido') de una orden que ya fue atendida
-        por cocina, el estado se resetea a 'pendiente' para que vuelva a la cola.
-        """
         previous_state = serializer.instance.estado
         previous_pedido = serializer.instance.pedido
-        
-        # Verificar si el campo 'pedido' (items) cambió
         new_pedido = serializer.validated_data.get('pedido')
         pedido_changed = new_pedido is not None and new_pedido != previous_pedido
-        
-        # Si el pedido cambió y la orden ya fue atendida, resetear a pendiente
+
         if pedido_changed and previous_state in ['en_preparacion', 'listo', 'servido', 'entregado']:
             serializer.validated_data['estado'] = 'pendiente'
             serializer.validated_data['en_cocina_since'] = None
-        
+
+        if pedido_changed:
+            serializer.validated_data['pedido'] = serialize_normalized_items(new_pedido, reset_ready=True)
         instance = serializer.save()
         sync_cocina_timestamp(instance, previous_state=previous_state)
 
@@ -109,7 +99,71 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
-# endpoint público alternativo (opcional)
+    def _create_remove_request(self, request, order):
+        """Crea una solicitud de eliminacion para un item de la orden."""
+        item_index_raw = request.data.get('item_index')
+        try:
+            item_index = int(item_index_raw)
+        except (TypeError, ValueError):
+            return Response({'error': 'item_index debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
+
+        items = parse_items(order.pedido)
+        if item_index < 0 or item_index >= len(items):
+            return Response({'error': 'Indice de item fuera de rango'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if RemoveRequest.objects.filter(order=order, item_index=item_index, estado='pendiente').exists():
+            return Response({'error': 'Ya existe una solicitud pendiente para este item'}, status=status.HTTP_400_BAD_REQUEST)
+
+        item_data = items[item_index]
+        item_nombre = (
+            item_data.get('nombre')
+            or item_data.get('dishName')
+            or item_data.get('name')
+            or 'Platillo'
+        )
+        cantidad = item_data.get('cantidad', 1) or 1
+        razon = request.data.get('razon') or ''
+        if not razon.strip():
+            return Response({'error': 'La razon es obligatoria'}, status=status.HTTP_400_BAD_REQUEST)
+
+        solicitado_por = request.data.get('solicitado_por') or request.user.get_full_name() or request.user.username
+
+        remove_req = RemoveRequest.objects.create(
+            order=order,
+            item_index=item_index,
+            item_nombre=str(item_nombre),
+            cantidad=cantidad,
+            razon=razon.strip(),
+            solicitado_por=solicitado_por,
+            estado='pendiente',
+        )
+
+        serializer = RemoveRequestSerializer(remove_req, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='request-remove-item')
+    def request_remove_item(self, request, pk=None):
+        order = self.get_object()
+        return self._create_remove_request(request, order)
+
+    @action(detail=True, methods=['post'], url_path='request_remove_item')
+    def request_remove_item_alt(self, request, pk=None):
+        order = self.get_object()
+        return self._create_remove_request(request, order)
+
+    @action(detail=True, methods=['get'], url_path='remove-requests')
+    def remove_requests(self, request, pk=None):
+        order = self.get_object()
+        qs = RemoveRequest.objects.filter(order=order).order_by('-created_at')
+        serializer = RemoveRequestSerializer(qs, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], url_path='remove_requests')
+    def remove_requests_alt(self, request, pk=None):
+        return self.remove_requests(request, pk)
+
+
+# endpoint publico alternativo (opcional)
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def mesero_open_api(request):
@@ -121,6 +175,7 @@ def mesero_open_api(request):
     )
     serializer = WaiterOrderSerializer(qs, many=True, context={'request': request})
     return Response(serializer.data)
+
 
 # Vista HTML simple para mesero: /mesero/pedido/
 def mesero_pedido_view(request):

@@ -773,6 +773,27 @@ const HandleOrder = ({
         Mesa {displayNumber || "?"} | Pedido actual: C$
         {existingTotal.toFixed(2)}
       </h3>
+        {existingOrder && (
+        <p style={{ margin: "0.35rem 0 0.35rem", color: "#374151" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.35rem 0.65rem",
+              borderRadius: "999px",
+              background: "#eef2ff",
+              color: "#4338ca",
+              fontWeight: 700,
+              fontSize: "0.9rem",
+              boxShadow: "0 8px 18px rgba(99,102,241,0.15)",
+              transition: "transform 0.2s ease, box-shadow 0.2s ease",
+            }}
+          >
+            Estado actual: {existingOrder.estado || "desconocido"}
+          </span>
+        </p>
+      )}
       <p style={{ color: "#6b7280", marginBottom: "1rem" }}>
         Nuevos platillos: C${newItemsTotal.toFixed(2)} · Total proyectado: C$
         {projectedTotal.toFixed(2)}

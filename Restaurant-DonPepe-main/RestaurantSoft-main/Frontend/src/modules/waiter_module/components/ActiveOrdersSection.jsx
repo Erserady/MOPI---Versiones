@@ -5,6 +5,7 @@ import { cambiarEstadoOrden } from "../../../services/cookService";
 import { Receipt, DollarSign, Eye } from "lucide-react";
 import AlertModal from "../../../components/AlertModal";
 import PreFacturaModal from "./PreFacturaModal";
+import { useNavigate } from "react-router-dom";
 
 const estadoColors = {
   pendiente: "#CD5C5C",
@@ -30,13 +31,14 @@ const estadoLabels = {
   pagado: "Pagado",
 };
 
-const ActiveOrdersSection = () => {
+const ActiveOrdersSection = ({ orders: externalOrders = null, embedded = false }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [preFacturas, setPreFacturas] = useState({});
   const [alert, setAlert] = useState({ isOpen: false, type: 'info', title: '', message: '' });
   const [preFacturaModal, setPreFacturaModal] = useState({ isOpen: false, data: null });
   const currentWaiterId = getCurrentUserId();
+  const navigate = useNavigate();
 
   // Función para cerrar alert
   const closeAlert = () => setAlert({ ...alert, isOpen: false });
@@ -56,46 +58,56 @@ const ActiveOrdersSection = () => {
     }
   };
 
+  // Procesar órdenes (desde prop o fetch)
+  const processOrders = (arr) => {
+    // Filtrar solo las órdenes del mesero actual y no pagadas/facturadas
+    const filteredOrders = arr.filter((order) => {
+      if (order.estado === "pagado" || order.estado === "facturado") {
+        return false;
+      }
+      return order.waiter_id === currentWaiterId;
+    });
+
+    // Guardar pre-factura si aplica
+    filteredOrders.forEach(order => {
+      if (order.estado === 'prefactura_enviada' && !preFacturas[order.id]) {
+        const items = parsePedido(order.pedido).map(item => ({
+          nombre: item.nombre,
+          cantidad: item.cantidad || 0,
+          precio: item.precio || 0,
+          subtotal: (item.cantidad || 0) * (item.precio || 0)
+        }));
+        const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+        
+        setPreFacturas(prev => ({
+          ...prev,
+          [order.id]: {
+            mesa: order.mesa,
+            mesero: order.waiterName,
+            items,
+            total
+          }
+        }));
+      }
+    });
+
+    setOrders(filteredOrders);
+  };
+
   useEffect(() => {
+    // Si recibimos órdenes externas, usarlas y no crear intervalos
+    if (externalOrders) {
+      const arr = Array.isArray(externalOrders) ? externalOrders : [];
+      processOrders(arr);
+      setLoading(false);
+      return;
+    }
+
     const loadOrders = async () => {
       try {
         const response = await getOrdenes();
         const arr = Array.isArray(response) ? response : [];
-        
-        // Filtrar solo las órdenes del mesero actual
-        const filteredOrders = arr.filter((order) => {
-          // Excluir órdenes cerradas en caja (pagadas o facturadas)
-          if (order.estado === "pagado" || order.estado === "facturado") {
-            return false;
-          }
-          // Mostrar solo las órdenes del mesero actual
-          return order.waiter_id === currentWaiterId;
-        });
-        
-        // Cuando una orden cambia a prefactura_enviada, guardar los datos
-        filteredOrders.forEach(order => {
-          if (order.estado === 'prefactura_enviada' && !preFacturas[order.id]) {
-            const items = parsePedido(order.pedido).map(item => ({
-              nombre: item.nombre,
-              cantidad: item.cantidad || 0,
-              precio: item.precio || 0,
-              subtotal: (item.cantidad || 0) * (item.precio || 0)
-            }));
-            const total = items.reduce((sum, item) => sum + item.subtotal, 0);
-            
-            setPreFacturas(prev => ({
-              ...prev,
-              [order.id]: {
-                mesa: order.mesa,
-                mesero: order.waiterName,
-                items,
-                total
-              }
-            }));
-          }
-        });
-        
-        setOrders(filteredOrders);
+        processOrders(arr);
       } catch (e) {
         console.error("Error cargando ordenes:", e);
         setOrders([]);
@@ -105,11 +117,9 @@ const ActiveOrdersSection = () => {
     };
 
     loadOrders();
-    
-    // Actualizar cada 5 segundos para reflejar cambios en tiempo real
     const interval = setInterval(loadOrders, 5000);
     return () => clearInterval(interval);
-  }, [currentWaiterId]);
+  }, [currentWaiterId, externalOrders]);
 
   if (loading) return <p>Cargando órdenes…</p>;
 
@@ -119,16 +129,25 @@ const ActiveOrdersSection = () => {
     return formatted[0].toUpperCase() + formatted.slice(1);
   }
 
-  return (
-    <div
-      style={{
+  const containerStyle = embedded
+    ? {
+        padding: "12px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        maxHeight: "520px",
+        overflowY: "auto",
+      }
+    : {
         padding: "20px",
         display: "flex",
         flexWrap: "wrap",
         gap: "20px",
         justifyContent: "space-evenly",
-      }}
-    >
+      };
+
+  return (
+    <div style={containerStyle}>
       {orders.length === 0 ? (
         <p>No tienes órdenes activas.</p>
       ) : (
@@ -142,7 +161,7 @@ const ActiveOrdersSection = () => {
               <article
                 key={order.id || order.order_id}
                 style={{
-                  width: "280px",
+                  width: embedded ? "100%" : "280px",
                   background: "#ffffff",
                   borderRadius: "16px",
                   boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
@@ -151,6 +170,23 @@ const ActiveOrdersSection = () => {
                   flexDirection: "column",
                   gap: "12px",
                   border: `3px solid ${estadoColor}`,
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  const mesaId =
+                    order.mesa_id ||
+                    order.table ||
+                    order.mesa ||
+                    order.tableNumber ||
+                    order.mesa_label ||
+                    order.id;
+                  navigate(`/waiter-dashboard/${mesaId}/orders-handler`, {
+                    state: {
+                      mesaId,
+                      tableNumber: order.mesa || order.tableNumber || mesaId,
+                      currentOrder: order,
+                    },
+                  });
                 }}
               >
                 <div>
@@ -161,7 +197,7 @@ const ActiveOrdersSection = () => {
                       fontWeight: "700",
                     }}
                   >
-                    {order.mesa ?? "Mesa"}
+                    Mesa {order.mesa ?? order.tableNumber ?? order.mesa_id ?? order.order_id}
                   </h3>
 
                   <p style={{ margin: "4px 0", color: estadoColor, fontWeight: "700", fontSize: "14px" }}>
@@ -227,7 +263,8 @@ const ActiveOrdersSection = () => {
                   {/* Botón Solicitar Cuenta - Aparece si NO está en payment_requested, prefactura_enviada, pagado o facturado */}
                   {!['payment_requested', 'prefactura_enviada', 'pagado', 'facturado'].includes(order.estado) && (
                     <button
-                      onClick={async () => {
+                      onClick={async (e) => {
+                        e.stopPropagation();
                         try {
                           // Guardar datos de la orden antes de cambiar estado
                           const items = parsePedido(order.pedido).map(item => ({
@@ -293,7 +330,8 @@ const ActiveOrdersSection = () => {
                   {/* Botón Ver Pre-factura */}
                   {order.estado === 'prefactura_enviada' && (
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (preFacturas[order.id]) {
                           setPreFacturaModal({ isOpen: true, data: preFacturas[order.id] });
                         } else {

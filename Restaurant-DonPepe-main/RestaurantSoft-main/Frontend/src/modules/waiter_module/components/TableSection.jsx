@@ -5,6 +5,7 @@ import { useDataSync } from "../../../hooks/useDataSync";
 import { getMesas } from "../../../services/waiterService";
 import { RefreshCw, Filter } from "lucide-react";
 import { getCurrentUserId } from "../../../utils/auth";
+import ActiveOrdersSection from "./ActiveOrdersSection";
 
 const TableSection = ({ ordenes = [] }) => {
   // Obtener ID del mesero actual
@@ -188,16 +189,25 @@ const TableSection = ({ ordenes = [] }) => {
       <div className="tables-layout">
         {/* Columna izquierda: Grid de mesas */}
         <div className="tables-main">
-          <section className="tables-grid">
-            {filteredTables.map((table) => (
-              <TableCard key={table.mesa_id || table.tableNumber} tables={table} />
-            ))}
-          </section>
-
-          {filteredTables.length === 0 && (
-            <div className="tables-empty">
-              <p>No hay mesas que coincidan con el filtro seleccionado</p>
+          {filterMode === "own" ? (
+            <div style={{ width: "100%", padding: "10px 0" }}>
+              <h3 style={{ margin: "0 0 12px 4px", color: "#111827" }}>Pedidos activos</h3>
+              <ActiveOrdersSection orders={ordenes || []} embedded={false} />
             </div>
+          ) : (
+            <>
+              <section className="tables-grid">
+                {filteredTables.map((table) => (
+                  <TableCard key={table.mesa_id || table.tableNumber} tables={table} />
+                ))}
+              </section>
+
+              {filteredTables.length === 0 && (
+                <div className="tables-empty">
+                  <p>No hay mesas que coincidan con el filtro seleccionado</p>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -221,7 +231,7 @@ const TableSection = ({ ordenes = [] }) => {
                 className={`filter-btn ${filterMode === "own" ? "active" : ""}`}
                 onClick={() => setFilterMode("own")}
               >
-                Mis mesas
+                Pedidos activos
                 <span className="filter-count">{tablesFormatted.filter(t => t.isOwnTable).length}</span>
               </button>
               <button

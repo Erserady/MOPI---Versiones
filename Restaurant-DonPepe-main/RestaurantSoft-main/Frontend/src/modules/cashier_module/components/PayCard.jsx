@@ -5,6 +5,15 @@ import OrderDetailsModal from "./OrderDetailsModal";
 import ReceiptPrinter from "./ReceiptPrinter";
 
 const PayCard = ({ order, onOrderUpdate }) => {
+  const formatStatus = (value) => {
+    if (!value) return "Desconocido";
+    const textVal = String(value).replace(/_/g, ' ').trim().toLowerCase();
+    return textVal.split(' ')
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
@@ -92,6 +101,10 @@ const PayCard = ({ order, onOrderUpdate }) => {
             </h2>
             <p className="pay-card-subtitle">
               <span className="waiter">Mesero:</span> {order.waiter}
+            </p>
+            <p className="pay-card-subtitle">
+              <span className="account">Estado:</span>{" "}
+              {(order.status || order.kitchenStatuses?.[0]?.estado || "desconocido")}
             </p>
             <p className="pay-card-subtitle">
               <span className="account">Cuentas pendientes:</span>{" "}

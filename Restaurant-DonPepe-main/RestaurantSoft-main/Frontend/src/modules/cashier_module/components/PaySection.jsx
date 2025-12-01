@@ -14,6 +14,71 @@ import "../styles/reject_remove_modal.css";
 
 const KITCHEN_BLOCK_STATES = ["pendiente", "en_preparacion"];
 
+// Categorías de bar/bebidas que no pasan por cocina
+const CATEGORY_EXCLUDE_LIST = [
+  "bebidas",
+  "bebidas alcoholicas",
+  "bebidas alcohólicas",
+  "bebidas no alcoholicas",
+  "bebidas no alcohólicas",
+  "cocteles",
+  "cocteles y vinos",
+  "coctails y vinos",
+  "enlatados y desechables",
+  "licores importados",
+  "cerveza nacional",
+  "cerveza internacional",
+  "ron nacional",
+  "cigarros",
+  "bar",
+  "refrescos",
+  "jugos",
+];
+
+const PRODUCT_NAME_KEYWORDS = [
+  "cerveza",
+  "beer",
+  "whisky",
+  "vodka",
+  "ron",
+  "gin",
+  "tequila",
+  "trago",
+  "cocktail",
+  "coctel",
+  "vino",
+  "refresco",
+  "soda",
+  "coca",
+  "pepsi",
+  "sprite",
+  "agua",
+  "jugo",
+  "limonada",
+  "naranjada",
+  "bottle",
+  "botella",
+  "lata",
+  "can",
+];
+
+const normalizeText = (value) =>
+  (value || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const isNonCookableItem = (item = {}) => {
+  const category = normalizeText(item.categoria || item.category || "principal");
+  if (CATEGORY_EXCLUDE_LIST.some((c) => normalizeText(c) === category)) return true;
+
+  const name = normalizeText(item.nombre || item.name || "");
+  if (!name) return false;
+  return PRODUCT_NAME_KEYWORDS.some((kw) => name.includes(normalizeText(kw)));
+};
+
 const PaySection = () => {
   const [processing, setProcessing] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -103,6 +168,9 @@ const PaySection = () => {
         }
       });
 
+      const hasOnlyNonCookable =
+        allItems.length > 0 && allItems.every((i) => isNonCookableItem(i));
+
       // Determinar el estado general - priorizar payment_requested
       const orderStatus = mesaOrders.find(o => o.estado === 'payment_requested')?.estado || 
                          mesaOrders.find(o => o.estado === 'prefactura_enviada')?.estado ||
@@ -121,6 +189,7 @@ const PaySection = () => {
                 mesaOrders[0]?.cliente || 
                 "Sin asignar",
         kitchenHold: hasKitchenHold,
+        nonCookableOnly: hasOnlyNonCookable,
         kitchenStatuses: mesaOrders.map((orden) => ({
           id: orden.id,
           orderId: orden.order_id,

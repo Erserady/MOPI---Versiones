@@ -5,7 +5,7 @@ export const cookNavigationBar = [
 
 export const waiterNavigationBar = [
   { title: "Mesas", section: "tables" },
-  { title: "Menú Diario", section: "menu" },
+  { title: "Menu Diario", section: "menu" },
 ];
 
 export const cashierNavigationBar = [
@@ -14,8 +14,7 @@ export const cashierNavigationBar = [
 ];
 
 export const adminNavigationBar = [
-  { title: "Gestión", section: "resume" },
-  { title: "Inventario", section: "inventory", disabled: true, badge: "Próximamente" },
-  { title: "Menú", section: "products" },
+  { title: "Gestion", section: "resume" },
+  { title: "Menu", section: "products" },
   { title: "Personal", section: "staff" },
 ];

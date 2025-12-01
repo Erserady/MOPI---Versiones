@@ -36,23 +36,10 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
-            /* Optimizado para EPSON TM-U220 - 76mm roll paper @ 160x144 DPI */
+            /* Ticket simplificado para EPSON TM-U220: texto negro nítido */
             @page {
-              size: 76mm auto; /* Alto dinámico según contenido */
+              size: 76mm auto; /* Alto dinámico según contenido y ancho útil */
               margin: 0;
-            }
-            
-            @media print {
-              @page {
-                size: 76mm auto;
-                margin: 0;
-              }
-              
-              html, body {
-                image-rendering: -webkit-optimize-contrast;
-                image-rendering: crisp-edges;
-                image-rendering: pixelated;
-              }
             }
             
             * {
@@ -63,17 +50,13 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             
             body {
               font-family: 'Courier New', Courier, monospace;
-              padding: 3mm 2mm;
-              width: 76mm;
-              font-size: 10pt; /* Aumentado para mejor legibilidad en 160DPI */
+              padding: 2.5mm 2mm;
+              width: 70mm;
+              font-size: 9.5pt;
               line-height: 1.3;
               color: #000;
               background: #fff;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-              font-weight: 500; /* Texto más grueso */
-              -webkit-font-smoothing: antialiased;
-              -moz-osx-font-smoothing: grayscale;
+              font-weight: 400;
             }
             
             .receipt-container {
@@ -86,29 +69,29 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             }
             
             .restaurant-name {
-              font-weight: 900;
-              font-size: 13pt;
+              font-weight: 700;
+              font-size: 11pt;
               margin-bottom: 1mm;
-              letter-spacing: 0.5px;
+              letter-spacing: 0.3px;
             }
             
             .restaurant-info {
               font-size: 9pt;
-              line-height: 1.4;
-              font-weight: 500;
+              line-height: 1.3;
+              font-weight: 400;
             }
             
             .divider {
-              border-bottom: 2px dashed #000;
+              border-bottom: 1px dashed #000;
               margin: 2mm 0;
-              height: 2px;
+              height: 1px;
             }
             
             .ticket-info {
               font-size: 9pt;
               margin-bottom: 2mm;
-              line-height: 1.4;
-              font-weight: 500;
+              line-height: 1.3;
+              font-weight: 400;
             }
             
             .info-row {
@@ -118,7 +101,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             }
             
             .section-title {
-              font-weight: 900;
+              font-weight: 700;
               margin-bottom: 2mm;
               text-align: center;
               font-size: 10pt;
@@ -128,24 +111,24 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               width: 100%;
               margin: 2mm 0;
               font-size: 9pt;
-              font-weight: 500;
+              font-weight: 400;
             }
             
             .items-table-header {
-              font-weight: 900;
-              border-bottom: 2px solid #000;
+              font-weight: 700;
+              border-bottom: 1px solid #000;
               padding-bottom: 1mm;
               margin-bottom: 1mm;
               display: grid;
-              grid-template-columns: 18mm 1fr 16mm 18mm;
-              gap: 2mm;
+              grid-template-columns: 12mm 1fr 14mm 16mm;
+              gap: 1.5mm;
               font-size: 9pt;
             }
             
             .item-row {
               display: grid;
-              grid-template-columns: 18mm 1fr 16mm 18mm;
-              gap: 2mm;
+              grid-template-columns: 12mm 1fr 14mm 16mm;
+              gap: 1.5mm;
               margin-bottom: 1mm;
               align-items: start;
               page-break-inside: avoid;
@@ -155,21 +138,23 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               word-wrap: break-word;
               overflow-wrap: break-word;
               font-size: 9pt;
-              font-weight: 500;
+              font-weight: 400;
             }
             
             .text-right {
               text-align: right;
+              white-space: nowrap;
+              overflow: visible;
             }
             
             .payment-section {
               margin-top: 2mm;
               font-size: 9pt;
-              font-weight: 500;
+              font-weight: 400;
             }
             
             .total-section {
-              font-weight: 900;
+              font-weight: 700;
               font-size: 11pt;
               margin-top: 2mm;
               text-align: center;
@@ -179,20 +164,20 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             .total-amount {
               font-size: 14pt;
               margin: 1mm 0;
-              letter-spacing: 1px;
-              font-weight: 900;
+              letter-spacing: 0.6px;
+              font-weight: 700;
             }
             
             .footer-section {
               text-align: center;
               margin-top: 3mm;
               font-size: 9pt;
-              line-height: 1.5;
-              font-weight: 500;
+              line-height: 1.3;
+              font-weight: 400;
             }
             
             .tip-message {
-              font-weight: 900;
+              font-weight: 700;
               margin: 2mm 0;
             }
             
@@ -203,23 +188,24 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             
             .attendant {
               margin-top: 2mm;
-              font-size: 9pt;
-              font-weight: 500;
+              font-size: 9.5pt;
+              font-weight: 400;
             }
             
             @media print {
               body {
                 padding: 2mm;
+                margin: 0;
+                width: 72mm;
               }
               
               .no-print {
                 display: none !important;
               }
               
-              /* Forzar calidad de impresión */
-              * {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+              .receipt-container {
+                width: 100%;
+                box-shadow: none;
               }
             }
           </style>

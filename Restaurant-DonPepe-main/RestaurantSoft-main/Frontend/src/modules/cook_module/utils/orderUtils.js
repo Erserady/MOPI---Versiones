@@ -1,4 +1,4 @@
-const TABLE_REGEX = /mesa\s*:?\s*([#\w-]+)/i;
+/*  */const TABLE_REGEX = /mesa\s*:?\s*([#\w-]+)/i;
 
 export const STATUS_LABELS = {
   pendiente: "En fila",
@@ -76,13 +76,25 @@ export function parseOrderItems(raw) {
   return [];
 }
 
+// Categorías que NO deben llegar a cocina (bebidas/bar/etc.)
 const CATEGORY_EXCLUDE_LIST = [
+  "bebidas",
+  "bebidas alcoholicas",
+  "bebidas alcohólicas",
+  "bebidas no alcoholicas",
+  "bebidas no alcohólicas",
+  "cocteles",
+  "cocteles y vinos",
+  "coctails y vinos",
   "enlatados y desechables",
   "licores importados",
   "cerveza nacional",
   "cerveza internacional",
-  "cigarros",
   "ron nacional",
+  "cigarros",
+  "bar",
+  "refrescos",
+  "jugos",
 ];
 const CATEGORY_EXCLUDE_NORMALIZED = CATEGORY_EXCLUDE_LIST.map((value) =>
   value
@@ -142,6 +154,8 @@ const shouldFilterItem = (item = {}) => {
     item.categoria,
     item.category,
     item.dishCategory,
+    item.categoria_nombre,
+    item.categoriaNombre,
     item.tipo,
     item.type,
   ];

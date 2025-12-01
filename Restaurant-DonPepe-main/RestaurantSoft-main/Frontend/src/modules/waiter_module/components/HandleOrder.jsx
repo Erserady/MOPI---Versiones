@@ -135,6 +135,67 @@ const serializeCartItems = (items = []) =>
     categoria: item.dishCategory || item.category || null,
   }));
 
+// Agrupa items iguales (nombre + precio + nota) sumando cantidades/subtotales
+const aggregateItems = (items = []) => {
+  const map = new Map();
+  items.forEach((item, idx) => {
+    const name = (item.dishName || item.nombre || item.name || "Platillo").trim();
+    const price = Number(item.unitPrice ?? item.precio ?? item.price ?? 0) || 0;
+    const note = (item.description || item.nota || "").trim();
+    const key = `${name.toLowerCase()}|${price}|${note.toLowerCase()}`;
+    const qty = Number(item.dishQuantity ?? item.cantidad ?? item.quantity ?? 0) || 0;
+    const subtotal = Number(item.subtotal ?? price * qty) || 0;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        ...item,
+        dishName: name,
+        unitPrice: price,
+        dishQuantity: qty,
+        subtotal,
+        description: note,
+        _rawIndexes: [idx],
+      });
+    } else {
+      const agg = map.get(key);
+      agg.dishQuantity += qty;
+      agg.subtotal += subtotal;
+      agg._rawIndexes.push(idx);
+    }
+  });
+
+  return Array.from(map.values()).map((item) => ({
+    ...item,
+    _rawIndex: item._rawIndexes[0],
+  }));
+};
+
+// Agrupa items ya serializados (nombre/cantidad/precio/nota)
+const mergeSerializedItems = (items = []) => {
+  const map = new Map();
+  items.forEach((item) => {
+    const name = (item.nombre || item.name || "").trim();
+    const price = Number(item.precio ?? item.price ?? 0) || 0;
+    const note = (item.nota || item.note || "").trim();
+    const key = `${name.toLowerCase()}|${price}|${note.toLowerCase()}`;
+    const qty = Number(item.cantidad ?? item.quantity ?? 0) || 0;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        ...item,
+        nombre: name,
+        precio: price,
+        cantidad: qty,
+        nota: note,
+      });
+    } else {
+      const agg = map.get(key);
+      agg.cantidad += qty;
+    }
+  });
+  return Array.from(map.values());
+};
+
 const toNumber = (value) => {
   if (value === null || value === undefined) return 0;
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -573,8 +634,17 @@ const HandleOrder = ({
     });
   };
 
-  const existingTotal = sumSubtotals(existingItems);
-  const newItemsTotal = sumSubtotals(cartItems);
+  const aggregatedExistingItems = useMemo(
+    () => aggregateItems(existingItems),
+    [existingItems]
+  );
+  const aggregatedCartItems = useMemo(
+    () => aggregateItems(cartItems),
+    [cartItems]
+  );
+
+  const existingTotal = sumSubtotals(aggregatedExistingItems);
+  const newItemsTotal = sumSubtotals(aggregatedCartItems);
   const projectedTotal = existingOrder
     ? isExistingOrderReadOnly
       ? existingTotal
@@ -622,11 +692,11 @@ const HandleOrder = ({
     setIsSubmitting(true);
 
     try {
-      const newItemsPayload = serializeCartItems(cartItems);
+      const newItemsPayload = serializeCartItems(aggregateItems(cartItems));
 
       if (canUpdateExistingOrder) {
-        const baseItemsPayload = serializeCartItems(existingItems);
-        const mergedItems = [...baseItemsPayload, ...newItemsPayload];
+        const baseItemsPayload = serializeCartItems(aggregateItems(existingItems));
+        const mergedItems = mergeSerializedItems([...baseItemsPayload, ...newItemsPayload]);
         const mergedQuantity = sumSerializedQuantities(mergedItems);
         const mergedTotal = sumSerializedTotals(mergedItems);
         const recordId = existingOrder.id || existingOrder.order_id;
@@ -660,14 +730,15 @@ const HandleOrder = ({
         });
       } else {
         const safeMesaId = mesaId || routeTableParam || "MESA-UNKNOWN";
-        const totalQuantity = sumSerializedQuantities(newItemsPayload);
-        const newOrderTotal = sumSerializedTotals(newItemsPayload);
+        const mergedNewItems = mergeSerializedItems(newItemsPayload);
+        const totalQuantity = sumSerializedQuantities(mergedNewItems);
+        const newOrderTotal = sumSerializedTotals(mergedNewItems);
         const waiterId = getCurrentUserId();
         const waiterName = getCurrentUserName();
         const orderData = {
           order_id: `ORD - ${Date.now()} `,
           mesa_id: safeMesaId,
-          pedido: JSON.stringify(newItemsPayload),
+          pedido: JSON.stringify(mergedNewItems),
           cantidad: totalQuantity,
           nota: `Total: C$${newOrderTotal.toFixed(2)} `,
           estado: "pendiente",
@@ -815,12 +886,14 @@ const HandleOrder = ({
                 Consultando pedido...
               </p>
             </div>
-          ) : existingItems.length > 0 ? (
+          ) : aggregatedExistingItems.length > 0 ? (
             <DishTable
               utility="summary-removable"
-              data={existingItems}
+              data={aggregatedExistingItems}
               headers={["Platillo", "Cantidad", "Notas", "Subtotal", "Acciones"]}
-              onRemoveExisting={handleRequestRemoveExisting}
+              onRemoveExisting={(dish) =>
+                handleRequestRemoveExisting(dish, dish._rawIndex)
+              }
             />
           ) : (
             <p className="no-dishes">
@@ -961,10 +1034,10 @@ const HandleOrder = ({
         <h3>Platillos por agregar</h3>
         <div className="table-container">
 
-          {cartItems.length > 0 ? (
+          {aggregatedCartItems.length > 0 ? (
             <DishTable
               utility="buycar"
-              data={cartItems}
+              data={aggregatedCartItems}
               onQuantityChange={handleQuantityChange}
               onRemove={handleRemoveFromCart}
               onComment={handleComment}

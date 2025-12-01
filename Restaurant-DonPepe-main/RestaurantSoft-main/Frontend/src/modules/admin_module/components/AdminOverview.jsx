@@ -17,6 +17,7 @@ import TransactionHistoryModal from "./TransactionHistoryModal";
 import { useMetadata } from "../../../hooks/useMetadata";
 import { getMesas, createMesa, deleteMesa } from "../../../services/waiterService";
 import { getCajas, getFacturas, getPagos, getEgresos } from "../../../services/cashierService";
+import { getOrden } from "../../../services/cookService";
 import { useDataSync } from "../../../hooks/useDataSync";
 
 const AdminOverview = () => {
@@ -31,6 +32,11 @@ const AdminOverview = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mesaToDelete, setMesaToDelete] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showMesaModal, setShowMesaModal] = useState(false);
+  const [selectedMesa, setSelectedMesa] = useState(null);
+  const [orderDetail, setOrderDetail] = useState(null);
+  const [loadingOrder, setLoadingOrder] = useState(false);
+  const [orderError, setOrderError] = useState(null);
   
   // Obtener datos en tiempo real (cada 5 segundos para reflejar cambios inmediatamente)
   const { data: mesas, loading: loadingMesas, refetch: refetchMesas } = useDataSync(getMesas, 5000);
@@ -180,6 +186,59 @@ const AdminOverview = () => {
     setShowDeleteModal(false);
     setMesaToDelete(null);
   };
+
+  const openMesaModal = (mesa) => {
+    setSelectedMesa(mesa);
+    setShowMesaModal(true);
+    setOrderDetail(null);
+    setOrderError(null);
+
+    const orderId =
+      mesa.current_order_id ||
+      mesa.currentOrderId ||
+      mesa.orderId ||
+      mesa.order_identifier ||
+      null;
+
+    // Solo intentar cargar si está ocupada y tenemos id
+    if (orderId && mesa.status && mesa.status.toLowerCase().includes("ocup")) {
+      setLoadingOrder(true);
+      getOrden(orderId)
+        .then((data) => {
+          setOrderDetail(data);
+          setLoadingOrder(false);
+        })
+        .catch((err) => {
+          setOrderError(err.message || "No se pudo cargar el pedido");
+          setLoadingOrder(false);
+        });
+    }
+  };
+
+  const closeMesaModal = () => {
+    setShowMesaModal(false);
+    setSelectedMesa(null);
+    setOrderDetail(null);
+    setOrderError(null);
+  };
+
+  const getMesaStatus = (status) => {
+    const normalized = (status || "").toLowerCase();
+    const map = {
+      available: { label: "Libre", className: "available" },
+      libre: { label: "Libre", className: "available" },
+      occupied: { label: "Ocupada", className: "occupied" },
+      ocupada: { label: "Ocupada", className: "occupied" },
+      reserved: { label: "Reservada", className: "reserved" },
+      reservada: { label: "Reservada", className: "reserved" },
+    };
+    return map[normalized] || map.available;
+  };
+
+  // Orden ascendente por número de mesa (maneja números y texto)
+  const mesasOrdenadas = (mesas || []).slice().sort((a, b) =>
+    String(a.number || "").localeCompare(String(b.number || ""), undefined, { numeric: true, sensitivity: "base" })
+  );
 
 
   if (loadingMesas || loadingCajas) {
@@ -382,50 +441,34 @@ const AdminOverview = () => {
         </div>
 
         {/* Tabla de mesas */}
-        {mesas && mesas.length > 0 ? (
-          <div className="tables-table-container">
-            <table className="tables-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Mesa</th>
-                  <th>Capacidad</th>
-                  <th>Estado</th>
-                  <th className="actions-column">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mesas.map((mesa) => (
-                  <tr key={mesa.id} className="table-row">
-                    <td className="table-id">#{mesa.id}</td>
-                    <td className="table-number">
-                      <div className="table-number-cell">
-                        <TableIcon size={18} />
-                        <span>Mesa {mesa.number}</span>
-                      </div>
-                    </td>
-                    <td className="table-capacity">
-                      <span className="capacity-badge">{mesa.capacity} personas</span>
-                    </td>
-                    <td className="table-status-cell">
-                      <span className={`status-badge-table ${mesa.status}`}>
-                        {mesa.status === 'available' ? 'Disponible' : 
-                         mesa.status === 'occupied' ? 'Ocupada' : 'Reservada'}
-                      </span>
-                    </td>
-                    <td className="table-actions">
-                      <button 
-                        onClick={() => handleDeleteTable(mesa)}
-                        className="btn-delete-table"
-                        title="Eliminar mesa"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {mesasOrdenadas.length > 0 ? (
+          <div className="admin-tables-grid">
+            {mesasOrdenadas.map((mesa) => {
+              const statusInfo = getMesaStatus(mesa.status);
+              return (
+                <div
+                  key={mesa.id}
+                  className={`admin-table-card ${statusInfo.className}`}
+                  title={`Mesa ${mesa.number} · ${statusInfo.label}`}
+                  onClick={() => openMesaModal(mesa)}
+                >
+                  <div className="admin-table-dot" />
+                  <button
+                    className="admin-table-delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTable(mesa);
+                    }}
+                    title="Eliminar mesa"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                  <div className="admin-table-number-big">
+                    {mesa.number}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="empty-state">
@@ -435,6 +478,108 @@ const AdminOverview = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de detalles de mesa */}
+      {showMesaModal && selectedMesa && (
+        <div className="modal-overlay" onClick={closeMesaModal}>
+          <div className="modal-content modal-content-soft" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header modal-header-soft">
+              <div className="modal-icon-info soft">
+                <TableIcon size={28} />
+              </div>
+              <div className="modal-title-stack">
+                <h2 className="modal-title">Mesa {selectedMesa.number}</h2>
+                <p className="modal-subtitle">Detalles rapidos de la mesa</p>
+              </div>
+            </div>
+            <div className="modal-body modal-body-left">
+              <div className="mesa-detail-row">
+                <span className="mesa-detail-label">Estado</span>
+                <span className={`mesa-detail-badge ${getMesaStatus(selectedMesa.status).className}`}>
+                  {getMesaStatus(selectedMesa.status).label}
+                </span>
+              </div>
+              <div className="mesa-detail-row">
+                <span className="mesa-detail-label">Capacidad</span>
+                <span className="mesa-detail-value">{selectedMesa.capacity || 0} personas</span>
+              </div>
+              {selectedMesa.status && selectedMesa.status.toLowerCase().includes('ocup') && (
+                <>
+                  <div className="mesa-detail-row">
+                    <span className="mesa-detail-label">Mesero asignado</span>
+                    <span className="mesa-detail-value">
+                      {selectedMesa.waiter_name || selectedMesa.assigned_waiter || selectedMesa.assignedWaiter || selectedMesa.mesero || "No asignado"}
+                    </span>
+                  </div>
+                  <div className="mesa-detail-row">
+                    <span className="mesa-detail-label">Orden activa</span>
+                    <span className="mesa-detail-value">
+                      {selectedMesa.order_identifier || selectedMesa.orderId || selectedMesa.current_order_id || selectedMesa.currentOrderId || selectedMesa.current_order || "Sin pedido activo"}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {selectedMesa.status && selectedMesa.status.toLowerCase().includes('ocup') && (
+                <div className="mesa-order-panel">
+                  <div className="mesa-order-header">
+                    <span className="mesa-order-title">Pedido activo</span>
+                    {orderDetail?.estado && (
+                      <span className={`mesa-order-status ${orderDetail.estado}`}>
+                        {orderDetail.estado.replace(/_/g, ' ')}
+                      </span>
+                    )}
+                  </div>
+
+                  {loadingOrder && (
+                    <div className="mesa-order-loading">
+                      <RefreshCw className="spin" size={18} />
+                      <span>Cargando pedido...</span>
+                    </div>
+                  )}
+
+                  {orderError && !loadingOrder && (
+                    <div className="mesa-order-error">
+                      {orderError}
+                    </div>
+                  )}
+
+                  {!loadingOrder && !orderError && (
+                    <div className="mesa-order-list">
+                      {(orderDetail?.items || orderDetail?.detalles || []).map((item, idx) => {
+                        const listo = item.listo_en_cocina ?? item.listo ?? false;
+                        return (
+                          <div key={item.id || item.uid || idx} className="mesa-order-item">
+                            <div className="mesa-order-item-main">
+                              <span className="mesa-order-item-name">{item.nombre_platillo || item.nombre || item.item || "Platillo"}</span>
+                              <span className={`mesa-order-chip ${listo ? "listo" : "en-proceso"}`}>
+                                {listo ? "Listo" : "En cocina"}
+                              </span>
+                            </div>
+                            <div className="mesa-order-item-sub">
+                              <span>Cantidad: {item.cantidad || item.quantity || 1}</span>
+                              {item.nota && <span className="mesa-order-note">Nota: {item.nota}</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {(orderDetail?.items || orderDetail?.detalles || []).length === 0 && (
+                        <div className="mesa-order-empty">
+                          No hay platillos cargados para este pedido.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={closeMesaModal}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Historial de Transacciones */}
       <TransactionHistoryModal

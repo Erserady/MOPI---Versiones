@@ -113,6 +113,8 @@ const OrderSection = () => {
           waiterName: orden.waiter_name,
         };
       })
+      // Omitir órdenes sin platillos cocinables (ej. solo bebidas/bar)
+      .filter((order) => Array.isArray(order.items) && order.items.length > 0)
       .sort((a, b) => {
         // Ordenar por fecha de creación (orden cronológico)
         const dateA = new Date(a.createdAt).getTime();

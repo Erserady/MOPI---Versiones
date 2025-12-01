@@ -2,9 +2,8 @@ import Header from "../../common/Header";
 import MainComponent from "../../common/MainComponent";
 import { adminNavigationBar } from "../../contracts/NavigationBar";
 import NavigationBar from "../../common/NavigationBar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
-import AdminInventory from "../../modules/admin_module/components/AdminInventory";
 import AdminProducts from "../../modules/admin_module/components/AdminProducts";
 import AdminStaff from "../../modules/admin_module/components/AdminStaff";
 import AdminOverview from "../../modules/admin_module/components/AdminOverview";
@@ -16,7 +15,16 @@ const AdminDashboard = () => {
   const [currentSection, setcurrentSection] = useState("resume");
   const currentView = "admin-dashboard";
   const { data: adminMeta } = useMetadata("admin");
-  const navItems = (adminMeta?.navigation || adminNavigationBar).filter((n) => n.visible !== false);
+  // Forzar ocultar inventario aunque llegue en metadata o config
+  const rawNav = adminMeta?.navigation || adminNavigationBar;
+  const navItems = rawNav.filter((n) => n.visible !== false && n.section !== "inventory");
+
+  // Si la sección actual es inventario u otra no listada, regresar a la primera disponible
+  useEffect(() => {
+    if (!navItems.find((n) => n.section === currentSection)) {
+      setcurrentSection(navItems[0]?.section || "resume");
+    }
+  }, [navItems, currentSection]);
 
   const handleView = (subview) => {
     // Verificar si la sección está deshabilitada
@@ -47,8 +55,6 @@ const AdminDashboard = () => {
     switch (subview) {
       case "resume":
         return <ErrorBoundary><AdminOverview /></ErrorBoundary>;
-      case "inventory":
-        return <ErrorBoundary><AdminInventory /></ErrorBoundary>;
       case "products":
         return <ErrorBoundary><AdminProducts /></ErrorBoundary>;
       case "staff":

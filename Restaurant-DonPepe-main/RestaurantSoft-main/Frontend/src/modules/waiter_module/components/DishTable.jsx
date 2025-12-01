@@ -62,19 +62,30 @@ const DishTable = ({
             <td className="dish-name">{dish.dishName}</td>
 
             <td className="dish-quantity">
+              {/*
+                Si viene de una lista agregada, usar el índice crudo para actualizar
+                la entrada original del carrito.
+              */}
+              {(() => {
+                const targetIndex = dish._rawIndex ?? index;
+                return (
+                  <>
               <button
                 className="qty-btn"
-                onClick={() => onQuantityChange(index, -1)}
+                onClick={() => onQuantityChange(targetIndex, -1)}
               >
                 -
               </button>
               <span>{dish.dishQuantity}</span>
               <button
                 className="qty-btn"
-                onClick={() => onQuantityChange(index, 1)}
+                onClick={() => onQuantityChange(targetIndex, 1)}
               >
                 +
               </button>
+                  </>
+                );
+              })()}
             </td>
 
             <td className="dish-subtotal">C${dish.subtotal.toFixed(2)}</td>

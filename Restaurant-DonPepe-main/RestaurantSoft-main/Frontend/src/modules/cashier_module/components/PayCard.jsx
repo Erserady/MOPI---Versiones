@@ -7,30 +7,32 @@ import ReceiptPrinter from "./ReceiptPrinter";
 const PayCard = ({ order, onOrderUpdate }) => {
   const formatStatus = (value) => {
     if (!value) return "Desconocido";
-    const textVal = String(value).replace(/_/g, ' ').trim().toLowerCase();
-    return textVal.split(' ')
+    const textVal = String(value).replace(/_/g, " ").trim().toLowerCase();
+    return textVal
+      .split(" ")
       .filter(Boolean)
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   };
 
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
-  
+  const [overrideKitchen, setOverrideKitchen] = useState(false);
+
   const handleOrderCancelled = () => {
-    // Cerrar modal y refrescar la lista
     setDetailsModalOpen(false);
     if (onOrderUpdate) onOrderUpdate();
   };
-  const kitchenBlocked = order.kitchenHold;
+
+  const kitchenBlocked = order.kitchenHold && !overrideKitchen;
   const kitchenBlockedText =
     "Hay platillos en cocina. Espera a que cocina termine antes de cobrar.";
 
   // Agrupar items por nombre para el ticket
   const groupedItems = useMemo(() => {
     if (!order.accounts || order.accounts.length === 0) return [];
-    
+
     const itemsMap = new Map();
     order.accounts.forEach((account) => {
       account.items.forEach((item) => {
@@ -45,8 +47,8 @@ const PayCard = ({ order, onOrderUpdate }) => {
             quantity: item.quantity || 0,
             unitPrice: item.unitPrice || 0,
             total: item.subtotal || 0,
-            nota: item.nota || '',
-            category: item.category || 'Otros'
+            nota: item.nota || "",
+            category: item.category || "Otros",
           });
         }
       });
@@ -56,55 +58,36 @@ const PayCard = ({ order, onOrderUpdate }) => {
   }, [order.accounts]);
 
   const handleCardClick = (e) => {
-    // Solo abrir el modal si no se hizo clic en un botón
-    if (!e.target.closest('button')) {
+    if (!e.target.closest("button") && !e.target.closest("input")) {
       setDetailsModalOpen(true);
     }
   };
 
   const handlePrintTicket = (e) => {
     e.stopPropagation();
-    
-    // Preparar datos del ticket para pre-cuenta
-    const ticketData = {
-      ticketNumber: `PRE-${order.mesaId || order.tableId}`,
-      facturaId: 'PRE-CUENTA',
-      correlativo: String(order.mesaId || order.tableId).padStart(3, '0'),
-      vendorId: 1,
-      tableNumber: order.tableNumber,
-      waiter: order.waiter,
-      waiterName: order.waiter,
-      customerName: '',
-      customerAddress: '',
-      items: groupedItems,
-      paymentMethod: 'cash',
-      total: order.total,
-      cashReceived: 0,
-      change: 0,
-    };
-    
+
     setShowReceipt(true);
   };
 
   return (
-    <article 
-      className="pay-card shadow" 
+    <article
+      className="pay-card shadow"
       onClick={handleCardClick}
-      style={{ cursor: 'pointer' }}
+      style={{ cursor: "pointer" }}
     >
       <section className="pay-card-body">
         <div className="pay-card-header">
           <Receipt size={30} />
           <div className="pay-card-text">
-            <h2 className="pay-card-title">
-              Mesa {order.tableNumber}
-            </h2>
+            <h2 className="pay-card-title">Mesa {order.tableNumber}</h2>
             <p className="pay-card-subtitle">
               <span className="waiter">Mesero:</span> {order.waiter}
             </p>
             <p className="pay-card-subtitle">
               <span className="account">Estado:</span>{" "}
-              {(order.status || order.kitchenStatuses?.[0]?.estado || "desconocido")}
+              {formatStatus(
+                order.status || order.kitchenStatuses?.[0]?.estado || "desconocido"
+              )}
             </p>
             <p className="pay-card-subtitle">
               <span className="account">Cuentas pendientes:</span>{" "}
@@ -115,10 +98,10 @@ const PayCard = ({ order, onOrderUpdate }) => {
             </span>
           </div>
         </div>
-        {kitchenBlocked && (
-          <p className="pay-card-subtitle" style={{ color: "#b45309" }}>
-            ⚠ Pendiente en cocina. No se puede cobrar todavia.
-          </p>
+        {order.kitchenHold && (
+          <div className="pay-card-subtitle" style={{ color: "#b45309" }}>
+            ⚠ Pendiente en cocina. Revisa y marca productos en el detalle antes de cobrar.
+          </div>
         )}
         <div className="pay-card-actions">
           <button
@@ -129,7 +112,7 @@ const PayCard = ({ order, onOrderUpdate }) => {
           >
             <CreditCard size={20} /> Procesar Pago
           </button>
-          <button 
+          <button
             className="shadow ticket"
             onClick={handlePrintTicket}
             title="Imprimir pre-cuenta o ticket"
@@ -142,7 +125,7 @@ const PayCard = ({ order, onOrderUpdate }) => {
         <CircleCheckBig size={30} />
       </div>
       <PayDialog
-        orders={order}
+        orders={{ ...order, kitchenHold: kitchenBlocked }}
         isOpen={isDialogOpen}
         onClose={() => setDialogOpen(false)}
       />
@@ -151,26 +134,35 @@ const PayCard = ({ order, onOrderUpdate }) => {
         isOpen={isDetailsModalOpen}
         onClose={() => setDetailsModalOpen(false)}
         onOrderCancelled={handleOrderCancelled}
+        overrideKitchen={overrideKitchen}
+        onOverrideChange={setOverrideKitchen}
       />
       <ReceiptPrinter
         isOpen={showReceipt}
         onClose={() => setShowReceipt(false)}
-        receiptData={showReceipt ? {
-          ticketNumber: `PRE-${order.mesaId || order.tableId}`,
-          facturaId: 'PRE-CUENTA',
-          correlativo: String(order.mesaId || order.tableId).padStart(3, '0'),
-          vendorId: 1,
-          tableNumber: order.tableNumber,
-          waiter: order.waiter,
-          waiterName: order.waiter,
-          customerName: '',
-          customerAddress: '',
-          items: groupedItems,
-          paymentMethod: 'cash',
-          total: order.total,
-          cashReceived: 0,
-          change: 0,
-        } : null}
+        receiptData={
+          showReceipt
+            ? {
+                ticketNumber: `PRE-${order.mesaId || order.tableId}`,
+                facturaId: "PRE-CUENTA",
+                correlativo: String(order.mesaId || order.tableId).padStart(
+                  3,
+                  "0"
+                ),
+                vendorId: 1,
+                tableNumber: order.tableNumber,
+                waiter: order.waiter,
+                waiterName: order.waiter,
+                customerName: "",
+                customerAddress: "",
+                items: groupedItems,
+                paymentMethod: "cash",
+                total: order.total,
+                cashReceived: 0,
+                change: 0,
+              }
+            : null
+        }
       />
     </article>
   );

@@ -2,7 +2,15 @@ import React, { useState, useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 import "../styles/cashier_modal.css";
 
-const CashierModal = ({ isOpen, onClose, onSave, type, currentCashier = "RexDex", expectedAmount = 0 }) => {
+const CashierModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  type,
+  currentCashier = "RexDex",
+  expectedAmount = 0,
+  expectedCardAmount = 0,
+}) => {
   const [cashData, setCashData] = useState({
     coins1: 0,
     coins5: 0,
@@ -77,6 +85,7 @@ const CashierModal = ({ isOpen, onClose, onSave, type, currentCashier = "RexDex"
   const totalAmount = totalCash + cashData.cardAmount;
   const hasDiscrepancy = type === 'close' && totalAmount < expectedAmount;
   const difference = expectedAmount - totalAmount;
+  const cardDiff = type === 'close' ? (cashData.cardAmount - (expectedCardAmount || 0)) : 0;
 
   return (
     <div className="modal-overlay">
@@ -121,6 +130,12 @@ const CashierModal = ({ isOpen, onClose, onSave, type, currentCashier = "RexDex"
                 className="card-amount-input"
               />
             </div>
+            {type === "close" && (
+              <div className="card-expected">
+                <span>Esperado en tarjetas:</span>
+                <strong>C$ {Number(expectedCardAmount || 0).toFixed(2)}</strong>
+              </div>
+            )}
           </div>
 
           <div className="summary-section">
@@ -132,6 +147,12 @@ const CashierModal = ({ isOpen, onClose, onSave, type, currentCashier = "RexDex"
               <span>Total Tarjetas:</span>
               <strong>C$ {cashData.cardAmount.toFixed(2)}</strong>
             </div>
+            {type === 'close' && (
+              <div className="summary-item" style={{ color: '#1f2937' }}>
+                <span>Esperado en tarjetas:</span>
+                <strong>C$ {Number(expectedCardAmount || 0).toFixed(2)}</strong>
+              </div>
+            )}
             <div className="summary-total">
               <span>Total General:</span>
               <strong>C$ {totalAmount.toFixed(2)}</strong>

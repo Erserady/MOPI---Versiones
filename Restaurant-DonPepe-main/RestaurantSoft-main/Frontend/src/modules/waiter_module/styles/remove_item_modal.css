@@ -236,6 +236,20 @@
     margin-bottom: 0.75rem;
 }
 
+.remove-qty-input {
+    width: 100px;
+    padding: 0.4rem 0.6rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+}
+
+.remove-qty-input:focus {
+    outline: none;
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
 .remove-item-modal__button {
     flex: 1;
     padding: 0.8rem 1.2rem;

@@ -10,6 +10,7 @@ from .serializers import TableSerializer, WaiterOrderSerializer
 from .utils import serialize_normalized_items, sync_cocina_timestamp, parse_items
 from caja.models import RemoveRequest, Caja
 from caja.serializers import RemoveRequestSerializer
+from django.db import transaction
 
 
 class TableViewSet(viewsets.ModelViewSet):
@@ -111,6 +112,12 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
         if item_index < 0 or item_index >= len(items):
             return Response({'error': 'Indice de item fuera de rango'}, status=status.HTTP_400_BAD_REQUEST)
 
+        qty_remove_raw = request.data.get('cantidad_eliminar') or request.data.get('cantidad') or 1
+        try:
+            qty_remove = int(qty_remove_raw)
+        except (TypeError, ValueError):
+            qty_remove = 1
+
         if RemoveRequest.objects.filter(order=order, item_index=item_index, estado='pendiente').exists():
             return Response({'error': 'Ya existe una solicitud pendiente para este item'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -121,7 +128,11 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
             or item_data.get('name')
             or 'Platillo'
         )
-        cantidad = item_data.get('cantidad', 1) or 1
+        cantidad_actual = item_data.get('cantidad', 1) or 1
+        if qty_remove < 1:
+            qty_remove = 1
+        if qty_remove > cantidad_actual:
+            qty_remove = cantidad_actual
         razon = request.data.get('razon') or ''
         if not razon.strip():
             return Response({'error': 'La razon es obligatoria'}, status=status.HTTP_400_BAD_REQUEST)
@@ -132,7 +143,7 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
             order=order,
             item_index=item_index,
             item_nombre=str(item_nombre),
-            cantidad=cantidad,
+            cantidad=qty_remove,
             razon=razon.strip(),
             solicitado_por=solicitado_por,
             estado='pendiente',

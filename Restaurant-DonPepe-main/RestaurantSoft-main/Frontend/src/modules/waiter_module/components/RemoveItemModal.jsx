@@ -8,6 +8,7 @@ import '../styles/remove_item_modal.css';
  */
 const RemoveItemModal = ({ isOpen, onClose, item, onConfirm }) => {
     const [razon, setRazon] = useState('');
+    const [cantidadEliminar, setCantidadEliminar] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -16,6 +17,8 @@ const RemoveItemModal = ({ isOpen, onClose, item, onConfirm }) => {
     const handleSubmit = async () => {
         // Validar razón
         const razonTrimmed = razon.trim();
+        const qty = Number(cantidadEliminar);
+        const maxQty = item.dishQuantity || item.cantidad || 1;
 
         if (razonTrimmed.length === 0) {
             setError('La razón es obligatoria');
@@ -32,14 +35,25 @@ const RemoveItemModal = ({ isOpen, onClose, item, onConfirm }) => {
             return;
         }
 
+        if (!Number.isFinite(qty) || qty < 1) {
+            setError('Ingresa una cantidad válida (mínimo 1)');
+            return;
+        }
+
+        if (qty > maxQty) {
+            setError(`Solo puedes eliminar hasta ${maxQty} unidades`);
+            return;
+        }
+
         setError('');
         setIsSubmitting(true);
 
         try {
-            await onConfirm(razon);
+            await onConfirm(razon, qty);
 
             // Limpiar y cerrar
             setRazon('');
+            setCantidadEliminar(1);
             setError('');
             onClose();
         } catch (err) {
@@ -51,6 +65,7 @@ const RemoveItemModal = ({ isOpen, onClose, item, onConfirm }) => {
 
     const handleCancel = () => {
         setRazon('');
+        setCantidadEliminar(1);
         setError('');
         onClose();
     };
@@ -88,6 +103,20 @@ const RemoveItemModal = ({ isOpen, onClose, item, onConfirm }) => {
                             <span className="label">Cantidad:</span>
                             <strong>{item.dishQuantity || item.cantidad || 1}</strong>
                         </div>
+                        {(item.dishQuantity || item.cantidad || 1) > 1 && (
+                          <div className="info-row">
+                            <span className="label">Cantidad a eliminar:</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max={item.dishQuantity || item.cantidad || 1}
+                              value={cantidadEliminar}
+                              onChange={(e) => setCantidadEliminar(e.target.value)}
+                              className="remove-qty-input"
+                              disabled={isSubmitting}
+                            />
+                          </div>
+                        )}
                         <div className="info-row">
                             <span className="label">Precio unitario:</span>
                             <strong>C$ {(item.unitPrice || item.precio || 0).toFixed(2)}</strong>

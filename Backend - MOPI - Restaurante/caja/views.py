@@ -245,11 +245,24 @@ class RemoveRequestViewSet(viewsets.ModelViewSet):
         if idx < 0 or idx >= len(items):
             return Response({'error': 'Índice de item no válido en el pedido'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Remover el item de la orden y recalcular cantidad
-        try:
-            items.pop(idx)
-        except IndexError:
-            return Response({'error': 'Índice de item fuera de rango'}, status=status.HTTP_400_BAD_REQUEST)
+        # Remover o ajustar cantidad del item y recalcular cantidad total
+        item = items[idx]
+        item_qty = item.get('cantidad', 1) or 1
+        qty_remove = req.cantidad or 1
+        if qty_remove >= item_qty:
+            try:
+                items.pop(idx)
+            except IndexError:
+                return Response({'error': 'Índice de item fuera de rango'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            item['cantidad'] = item_qty - qty_remove
+            # Ajustar subtotal si existe
+            if 'precio' in item:
+                try:
+                    precio = float(item.get('precio', 0))
+                    item['subtotal'] = precio * item['cantidad']
+                except Exception:
+                    pass
 
         try:
             import json

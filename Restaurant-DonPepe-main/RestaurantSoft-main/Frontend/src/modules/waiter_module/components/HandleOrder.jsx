@@ -491,9 +491,10 @@ const HandleOrder = ({
     : [];
 
   const filteredMenu = menu.filter((dish) => {
-    const matchesCategory = dish.category === activeSubcategory;
-    const matchesSearch = searchTerm.trim() === "" ||
-      dish.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const hasSearch = searchTerm.trim() !== "";
+    const matchesCategory = hasSearch ? true : dish.category === activeSubcategory;
+    const matchesSearch =
+      !hasSearch || dish.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesAvailability = !showOnlyAvailable || dish.available;
     return matchesCategory && matchesSearch && matchesAvailability;
   });
@@ -833,46 +834,6 @@ const HandleOrder = ({
           )}
         </div>
       </section>
-
-      <section className="category-dishes">
-        <h4>Historial de eliminaciones</h4>
-        <div className="table-container">
-          {removeHistoryLoading ? (
-            <div style={{ textAlign: "center", padding: "1rem" }}>
-              <RefreshCw className="spin" size={20} />
-              <p style={{ color: "#6b7280" }}>Cargando historial...</p>
-            </div>
-          ) : removeRequests.length > 0 ? (
-            <table className="dish-table shadow">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Cantidad</th>
-                  <th>Razón</th>
-                  <th>Estado</th>
-                  <th>Autorizado por</th>
-                </tr>
-              </thead>
-              <tbody className="tbody-class">
-                {removeRequests.map((req, idx) => (
-                  <tr key={req.id || idx}>
-                    <td>{req.item_nombre || req.dish_name || "Platillo"}</td>
-                    <td>{req.cantidad ?? req.quantity ?? "-"}</td>
-                    <td>{req.razon || req.reason || "Sin razón"}</td>
-                    <td style={{ textTransform: "capitalize" }}>
-                      {req.estado || req.status || "pendiente"}
-                    </td>
-                    <td>{req.autorizado_por || req.approved_by || "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="no-dishes">Sin solicitudes de eliminación.</p>
-          )}
-        </div>
-      </section>
-
       <div className="custom-order-container">
         <h3>Selecciona la categoria</h3>
 
@@ -999,6 +960,7 @@ const HandleOrder = ({
       <section className="category-dishes">
         <h3>Platillos por agregar</h3>
         <div className="table-container">
+
           {cartItems.length > 0 ? (
             <DishTable
               utility="buycar"
@@ -1023,6 +985,46 @@ const HandleOrder = ({
           {isSubmitting ? "Procesando..." : confirmButtonLabel}
         </button>
       )}
+
+
+      <section className="category-dishes">
+        <h4>Historial de eliminaciones</h4>
+        <div className="table-container">
+          {removeHistoryLoading ? (
+            <div style={{ textAlign: "center", padding: "1rem" }}>
+              <RefreshCw className="spin" size={20} />
+              <p style={{ color: "#6b7280" }}>Cargando historial...</p>
+            </div>
+          ) : removeRequests.length > 0 ? (
+            <table className="dish-table shadow">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Cantidad</th>
+                  <th>Razón</th>
+                  <th>Estado</th>
+                  <th>Autorizado por</th>
+                </tr>
+              </thead>
+              <tbody className="tbody-class">
+                {removeRequests.map((req, idx) => (
+                  <tr key={req.id || idx}>
+                    <td>{req.item_nombre || req.dish_name || "Platillo"}</td>
+                    <td>{req.cantidad ?? req.quantity ?? "-"}</td>
+                    <td>{req.razon || req.reason || "Sin razón"}</td>
+                    <td style={{ textTransform: "capitalize" }}>
+                      {req.estado || req.status || "pendiente"}
+                    </td>
+                    <td>{req.autorizado_por || req.approved_by || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="no-dishes">Sin solicitudes de eliminación.</p>
+          )}
+        </div>
+      </section>
 
       {notification && (
         <Notification
@@ -1049,7 +1051,7 @@ const HandleOrder = ({
           setRemoveModalItem(null);
           setRemoveModalIndex(null);
         }}
-        onConfirm={async (reasonText) => {
+        onConfirm={async (reasonText, qtyToRemove = 1) => {
           if (!existingOrder) {
             throw new Error("No hay un pedido actual para esta mesa.");
           }
@@ -1061,7 +1063,8 @@ const HandleOrder = ({
             orderId,
             removeModalIndex,
             reasonText.trim(),
-            getCurrentUserName() || "mesero"
+            getCurrentUserName() || "mesero",
+            qtyToRemove
           );
           showNotification({
             type: "success",

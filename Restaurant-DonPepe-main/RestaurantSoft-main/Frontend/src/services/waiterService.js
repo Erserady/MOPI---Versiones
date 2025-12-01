@@ -155,6 +155,8 @@ export async function requestRemoveItem(orderId, itemIndex, razon, solicitadoPor
     item_index: itemIndex,
     razon,
     solicitado_por: solicitadoPor,
+    // cantidad_eliminar es opcional; backend lo usará para ajustar cantidad
+    cantidad_eliminar: arguments.length > 4 ? arguments[4] : undefined,
   };
 
   // Probamos variantes de endpoint (guion, guion bajo, con/sin slash) para evitar 404 por configuraciones distintas.

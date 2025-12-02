@@ -16,51 +16,17 @@ const KITCHEN_BLOCK_STATES = ["pendiente", "en_preparacion"];
 
 // Categorías de bar/bebidas que no pasan por cocina
 const CATEGORY_EXCLUDE_LIST = [
-  "bebidas",
-  "bebidas alcoholicas",
-  "bebidas alcohólicas",
-  "bebidas no alcoholicas",
-  "bebidas no alcohólicas",
-  "cocteles",
-  "cocteles y vinos",
-  "coctails y vinos",
-  "enlatados y desechables",
   "licores importados",
   "cerveza nacional",
   "cerveza internacional",
+  "coctails y vinos",
+  "cocteles y vinos",
   "ron nacional",
+  "enlatados y desechables",
   "cigarros",
-  "bar",
-  "refrescos",
-  "jugos",
 ];
 
-const PRODUCT_NAME_KEYWORDS = [
-  "cerveza",
-  "beer",
-  "whisky",
-  "vodka",
-  "ron",
-  "gin",
-  "tequila",
-  "trago",
-  "cocktail",
-  "coctel",
-  "vino",
-  "refresco",
-  "soda",
-  "coca",
-  "pepsi",
-  "sprite",
-  "agua",
-  "jugo",
-  "limonada",
-  "naranjada",
-  "bottle",
-  "botella",
-  "lata",
-  "can",
-];
+const PRODUCT_NAME_KEYWORDS = ["hielo", "empaque", "valde", "cafe", "limon"];
 
 const normalizeText = (value) =>
   (value || "")
@@ -127,10 +93,6 @@ const PaySection = () => {
         ? mesa.ordenes_pendientes
         : [];
 
-      const hasKitchenHold = mesaOrders.some((orden) =>
-        KITCHEN_BLOCK_STATES.includes((orden.estado || "").toLowerCase())
-      );
-
       let allItems = [];
       let totalMesa = 0;
 
@@ -168,8 +130,15 @@ const PaySection = () => {
         }
       });
 
+      const hasKitchenHold = mesaOrders.some((orden) =>
+        KITCHEN_BLOCK_STATES.includes((orden.estado || "").toLowerCase())
+      );
+
       const hasOnlyNonCookable =
         allItems.length > 0 && allItems.every((i) => isNonCookableItem(i));
+
+      const hasCookableItems = allItems.some((i) => !isNonCookableItem(i));
+      const shouldHoldForKitchen = hasKitchenHold && hasCookableItems;
 
       // Determinar el estado general - priorizar payment_requested
       const orderStatus = mesaOrders.find(o => o.estado === 'payment_requested')?.estado || 
@@ -188,7 +157,7 @@ const PaySection = () => {
                 mesaOrders[0]?.mesero || 
                 mesaOrders[0]?.cliente || 
                 "Sin asignar",
-        kitchenHold: hasKitchenHold,
+        kitchenHold: shouldHoldForKitchen,
         nonCookableOnly: hasOnlyNonCookable,
         kitchenStatuses: mesaOrders.map((orden) => ({
           id: orden.id,
@@ -395,3 +364,4 @@ const PaySection = () => {
 };
 
 export default PaySection;
+

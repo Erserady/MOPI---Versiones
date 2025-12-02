@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import {
   X,
   Receipt,
@@ -20,53 +20,19 @@ import { getOrderRemoveRequests } from "../../../services/waiterService";
 import AlertModal from "../../../components/AlertModal";
 import ConfirmModal from "../../../components/ConfirmModal";
 
-// Categorías/keywords que NO pasan por cocina (bebidas/bar)
+// Categor├¡as/keywords que NO pasan por cocina (bebidas/bar)
 const CATEGORY_EXCLUDE_LIST = [
-  "bebidas",
-  "bebidas alcoholicas",
-  "bebidas alcohólicas",
-  "bebidas no alcoholicas",
-  "bebidas no alcohólicas",
-  "cocteles",
-  "cocteles y vinos",
-  "coctails y vinos",
-  "enlatados y desechables",
   "licores importados",
   "cerveza nacional",
   "cerveza internacional",
+  "coctails y vinos",
+  "cocteles y vinos",
   "ron nacional",
+  "enlatados y desechables",
   "cigarros",
-  "bar",
-  "refrescos",
-  "jugos",
 ];
 
-const PRODUCT_NAME_KEYWORDS = [
-  "cerveza",
-  "beer",
-  "whisky",
-  "vodka",
-  "ron",
-  "gin",
-  "tequila",
-  "trago",
-  "cocktail",
-  "coctel",
-  "vino",
-  "refresco",
-  "soda",
-  "coca",
-  "pepsi",
-  "sprite",
-  "agua",
-  "jugo",
-  "limonada",
-  "naranjada",
-  "bottle",
-  "botella",
-  "lata",
-  "can",
-];
+const PRODUCT_NAME_KEYWORDS = ["hielo", "empaque", "valde", "cafe", "limon"];
 
 const normalizeText = (value) =>
   (value || "")
@@ -128,6 +94,14 @@ const OrderDetailsModal = ({
   };
 
   const handleCancelOrder = () => {
+    if (preventAccountDeletion) {
+      showAlert(
+        "warning",
+        "No permitido",
+        "No se puede cancelar la cuenta porque ya fue marcada o entregada."
+      );
+      return;
+    }
     setConfirmModal({
       isOpen: true,
       type: "cancel",
@@ -136,13 +110,16 @@ const OrderDetailsModal = ({
   };
 
   const confirmCancelOrder = async () => {
+    if (preventAccountDeletion) {
+      return;
+    }
     try {
       setDeleting(true);
       await deleteOrdenCocina(order.orderId);
       showAlert(
         "success",
-        "¡Pedido Cancelado!",
-        `El pedido de la Mesa ${order.tableNumber} ha sido cancelado exitosamente. La mesa ahora está libre.`,
+        "┬íPedido Cancelado!",
+        `El pedido de la Mesa ${order.tableNumber} ha sido cancelado exitosamente. La mesa ahora est├í libre.`,
         true
       );
     } catch (error) {
@@ -150,7 +127,7 @@ const OrderDetailsModal = ({
       showAlert(
         "error",
         "Error",
-        "No se pudo cancelar el pedido. Por favor, inténtalo de nuevo.",
+        "No se pudo cancelar el pedido. Por favor, int├®ntalo de nuevo.",
         false
       );
     } finally {
@@ -159,14 +136,22 @@ const OrderDetailsModal = ({
   };
 
   const handleRemoveItem = (itemToRemove) => {
+    if (preventAccountDeletion) {
+      showAlert(
+        "warning",
+        "No permitido",
+        "No se pueden eliminar productos porque la cuenta está entregada o marcada en caja."
+      );
+      return;
+    }
     const currentItems = editedItems || items;
     const newItems = currentItems.filter((item) => item.name !== itemToRemove.name);
 
     if (newItems.length === 0) {
       showAlert(
         "warning",
-        "Atención",
-        'No puedes eliminar todos los productos. Si deseas cancelar el pedido completo, usa el botón "Cancelar Pedido".',
+        "Atenci├│n",
+        'No puedes eliminar todos los productos. Si deseas cancelar el pedido completo, usa el bot├│n "Cancelar Pedido".',
         false
       );
       return;
@@ -215,7 +200,7 @@ const OrderDetailsModal = ({
 
       showAlert(
         "success",
-        "¡Cambios Guardados!",
+        "┬íCambios Guardados!",
         "Los productos del pedido han sido actualizados exitosamente.",
         true
       );
@@ -225,7 +210,7 @@ const OrderDetailsModal = ({
       showAlert(
         "error",
         "Error",
-        "No se pudieron guardar los cambios. Por favor, inténtalo de nuevo.",
+        "No se pudieron guardar los cambios. Por favor, int├®ntalo de nuevo.",
         false
       );
     } finally {
@@ -239,12 +224,12 @@ const OrderDetailsModal = ({
       await cambiarEstadoOrden(order.orderId, "prefactura_enviada");
       showAlert(
         "success",
-        "¡Pre-factura Enviada!",
-        "La pre-factura ha sido enviada al mesero correctamente. El mesero podrá visualizarla en su panel de pedidos activos."
+        "┬íPre-factura Enviada!",
+        "La pre-factura ha sido enviada al mesero correctamente. El mesero podr├í visualizarla en su panel de pedidos activos."
       );
     } catch (error) {
       console.error("Error enviando pre-factura:", error);
-      showAlert("error", "Error", "No se pudo enviar la pre-factura. Por favor, inténtalo de nuevo.");
+      showAlert("error", "Error", "No se pudo enviar la pre-factura. Por favor, int├®ntalo de nuevo.");
     } finally {
       setSending(false);
     }
@@ -340,8 +325,15 @@ const OrderDetailsModal = ({
   const items = groupedItems();
   const displayItems = editedItems || items;
 
-  // Flags de entregado para ítems de bar/bebidas
+  // Flags de entregado para ├¡tems de bar/bebidas
   const deliveredFlagsInitialized = useRef(false);
+  const isDeliveredByKitchen =
+    (order?.status || "").toLowerCase() === "entregado" ||
+    (order?.kitchenStatuses || []).some(
+      (k) => (k.estado || "").toLowerCase() === "entregado"
+    );
+  const hasDeliveredCheckbox = Object.values(deliveredFlags || {}).some(Boolean);
+  const preventAccountDeletion = isDeliveredByKitchen || hasDeliveredCheckbox;
 
   useEffect(() => {
     if (isOpen && !deliveredFlagsInitialized.current) {
@@ -393,9 +385,9 @@ const OrderDetailsModal = ({
 
         {/* Body */}
         <div className="transaction-modal-body">
-          {/* Información General */}
+          {/* Informaci├│n General */}
           <div className="transaction-section">
-            <h3 className="transaction-section-title">Información</h3>
+            <h3 className="transaction-section-title">Informaci├│n</h3>
 
             <div
               style={{
@@ -452,11 +444,15 @@ const OrderDetailsModal = ({
                               <input
                                 type="checkbox"
                                 checked={checked}
+                                disabled={checked}
                                 onChange={(e) =>
-                                  setDeliveredFlags((prev) => ({
-                                    ...prev,
-                                    [index]: e.target.checked,
-                                  }))
+                                  setDeliveredFlags((prev) => {
+                                    if (prev[index]) return prev;
+                                    return {
+                                      ...prev,
+                                      [index]: e.target.checked,
+                                    };
+                                  })
                                 }
                               />
                               <span></span>
@@ -550,11 +546,11 @@ const OrderDetailsModal = ({
                               {(req.estado || req.status || "pendiente").toString().toUpperCase()}
                             </span>
                           </div>
-                          <p className="removal-history__reason">{req.razon || req.reason || "Sin razón"}</p>
+                          <p className="removal-history__reason">{req.razon || req.reason || "Sin raz├│n"}</p>
                           <div className="removal-history__meta">
-                            <span>Solicitó: {req.solicitado_por || "mesero"}</span>
-                            {req.autorizado_por && <span>Aprobó: {req.autorizado_por}</span>}
-                            {req.rechazado_por && <span>Rechazó: {req.rechazado_por}</span>}
+                            <span>Solicit├│: {req.solicitado_por || "mesero"}</span>
+                            {req.autorizado_por && <span>Aprob├│: {req.autorizado_por}</span>}
+                            {req.rechazado_por && <span>Rechaz├│: {req.rechazado_por}</span>}
                             {req.created_at && (
                               <span className="removal-history__time">
                                 <Clock size={14} />
@@ -629,27 +625,37 @@ const OrderDetailsModal = ({
 
           <button
             onClick={handleCancelOrder}
-            disabled={deleting || sending}
+            disabled={deleting || sending || preventAccountDeletion}
             style={{
-              background: deleting ? "#9ca3af" : "#ef4444",
+              background:
+                deleting || preventAccountDeletion ? "#9ca3af" : "#ef4444",
               color: "white",
               padding: "0.75rem 1rem",
               borderRadius: "8px",
               border: "none",
               fontSize: "0.875rem",
               fontWeight: "600",
-              cursor: deleting ? "not-allowed" : "pointer",
+              cursor: deleting || preventAccountDeletion ? "not-allowed" : "pointer",
               display: "flex",
               alignItems: "center",
               gap: "0.5rem",
               transition: "all 0.2s",
             }}
             onMouseEnter={(e) => {
-              if (!deleting && !sending) e.target.style.background = "#dc2626";
+              if (!deleting && !sending && !preventAccountDeletion)
+                e.target.style.background = "#dc2626";
             }}
             onMouseLeave={(e) => {
-              if (!deleting && !sending) e.target.style.background = "#ef4444";
+              if (!deleting && !sending && !preventAccountDeletion)
+                e.target.style.background = "#ef4444";
             }}
+            title={
+              preventAccountDeletion
+                ? "No se puede cancelar: pedido entregado o marcado en caja."
+                : deleting
+                ? "Procesando..."
+                : undefined
+            }
           >
             {deleting ? <RefreshCw size={18} className="spin" /> : <Trash2 size={18} />}
             {deleting ? "Cancelando..." : "Cancelar Pedido"}
@@ -673,24 +679,24 @@ const OrderDetailsModal = ({
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
         onConfirm={confirmModal.type === "cancel" ? confirmCancelOrder : confirmRemoveItem}
-        title={confirmModal.type === "cancel" ? "¿Cancelar Pedido?" : "¿Eliminar Producto?"}
+        title={confirmModal.type === "cancel" ? "┬┐Cancelar Pedido?" : "┬┐Eliminar Producto?"}
         message={
           confirmModal.type === "cancel" ? (
             <>
-              <p>¿Estás seguro de que deseas <strong>CANCELAR</strong> este pedido?</p>
+              <p>┬┐Est├ís seguro de que deseas <strong>CANCELAR</strong> este pedido?</p>
               <ul>
-                <li>Se eliminará el pedido de cocina</li>
-                <li>Se liberará la mesa</li>
-                <li>Esta acción NO se puede deshacer</li>
+                <li>Se eliminar├í el pedido de cocina</li>
+                <li>Se liberar├í la mesa</li>
+                <li>Esta acci├│n NO se puede deshacer</li>
               </ul>
             </>
           ) : (
             <p>
-              ¿Estás seguro de que deseas eliminar <strong>"{confirmModal.itemToRemove?.name}"</strong> del pedido?
+              ┬┐Est├ís seguro de que deseas eliminar <strong>"{confirmModal.itemToRemove?.name}"</strong> del pedido?
             </p>
           )
         }
-        confirmText={confirmModal.type === "cancel" ? "Sí, Cancelar Pedido" : "Sí, Eliminar"}
+        confirmText={confirmModal.type === "cancel" ? "S├¡, Cancelar Pedido" : "S├¡, Eliminar"}
         cancelText="No, Volver"
         type="danger"
       />
@@ -699,3 +705,7 @@ const OrderDetailsModal = ({
 };
 
 export default OrderDetailsModal;
+
+
+
+

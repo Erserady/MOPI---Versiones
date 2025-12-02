@@ -79,6 +79,9 @@ const OrderDialog = ({
     !readiness.allReady;
 
   const handleToggleReady = async (item, checked) => {
+    if (item.listo_en_cocina && checked === false) {
+      return; // No permitir desmarcar una vez marcado como listo
+    }
     const snapshot = itemsState.map((i) => ({ ...i }));
     const recordId = order.recordId;
     const itemId = item.item_uid || item.uid || item.id;
@@ -231,6 +234,7 @@ const OrderDialog = ({
                         type="checkbox"
                         checked={!!item.listo_en_cocina}
                         onChange={(e) => handleToggleReady(item, e.target.checked)}
+                        disabled={!!item.listo_en_cocina}
                         aria-label={`Marcar ${item.nombre} como listo`}
                       />
                       <span aria-hidden="true"></span>

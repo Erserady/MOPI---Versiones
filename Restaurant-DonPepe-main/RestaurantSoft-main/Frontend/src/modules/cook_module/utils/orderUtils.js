@@ -76,25 +76,16 @@ export function parseOrderItems(raw) {
   return [];
 }
 
-// Categorías que NO deben llegar a cocina (bebidas/bar/etc.)
+// Categorías que NO deben llegar a cocina (exclusiones puntuales)
 const CATEGORY_EXCLUDE_LIST = [
-  "bebidas",
-  "bebidas alcoholicas",
-  "bebidas alcohólicas",
-  "bebidas no alcoholicas",
-  "bebidas no alcohólicas",
-  "cocteles",
-  "cocteles y vinos",
-  "coctails y vinos",
-  "enlatados y desechables",
   "licores importados",
   "cerveza nacional",
   "cerveza internacional",
+  "coctails y vinos",
+  "cocteles y vinos",
   "ron nacional",
+  "enlatados y desechables",
   "cigarros",
-  "bar",
-  "refrescos",
-  "jugos",
 ];
 const CATEGORY_EXCLUDE_NORMALIZED = CATEGORY_EXCLUDE_LIST.map((value) =>
   value
@@ -122,21 +113,8 @@ const matchesAnyCategory = (value, categories) => {
   return categories.some((category) => normalized === category);
 };
 
-// Lista de keywords en nombres de productos que indican bebidas/licores
-const PRODUCT_NAME_KEYWORDS = [
-  'cerveza', 'beer', 'corona', 'modelo', 'heineken', 'budweiser', 'miller', 'stella', 'victoria',
-  'whisky', 'whiskey', 'vodka', 'tequila', 'ron', 'rum', 'gin', 'brandy', 'cognac',
-  'walker', 'jack daniels', 'johnnie', 'buchanans', 'chivas', 'baileys',
-  'centenario', 'herradura', 'don julio', 'patron', 'jose cuervo',
-  'absolut', 'smirnoff', 'bacardi', 'havana', 'zacapa', 'belmont',
-  'refresco', 'soda', 'coca', 'pepsi', 'sprite', 'fanta', 'squirt',
-  'agua', 'water', 'jugo', 'juice', 'limonada', 'naranjada',
-  'botella', 'bottle', 'lata', 'can',
-  'oz', // indicador de medida para bebidas
-  'litro', 'lt', 'ml',
-  'cigarro', 'cigar', 'tabaco', 'marlboro', 'camel',
-  'desechable', 'enlatado', 'hi-c', 'del valle'
-];
+// Palabras clave para productos especiales que tampoco van a cocina
+const PRODUCT_NAME_KEYWORDS = ["hielo", "empaque", "valde", "cafe", "limon"];
 
 const containsAnyKeyword = (name, keywords) => {
   if (!name) return false;

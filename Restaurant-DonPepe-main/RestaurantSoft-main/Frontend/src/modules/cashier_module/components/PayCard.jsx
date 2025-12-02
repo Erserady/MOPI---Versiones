@@ -25,9 +25,11 @@ const PayCard = ({ order, onOrderUpdate }) => {
     if (onOrderUpdate) onOrderUpdate();
   };
 
-  const kitchenBlocked = order.kitchenHold && !overrideKitchen;
-  const kitchenBlockedText =
-    "Hay platillos en cocina. Espera a que cocina termine antes de cobrar.";
+  const nonCookableBlocked = order.nonCookableOnly && !overrideKitchen;
+  const kitchenBlocked = !!order.kitchenHold || nonCookableBlocked;
+  const kitchenBlockedText = nonCookableBlocked
+    ? "Marca los productos de bar/bebidas como entregados para poder cobrar."
+    : "Hay platillos en cocina. Espera a que cocina termine antes de cobrar.";
 
   // Agrupar items por nombre para el ticket
   const groupedItems = useMemo(() => {
@@ -98,9 +100,9 @@ const PayCard = ({ order, onOrderUpdate }) => {
             </span>
           </div>
         </div>
-        {order.kitchenHold && (
-          <div className="pay-card-subtitle" style={{ color: "#b45309" }}>
-            ⚠ Pendiente en cocina. Revisa y marca productos en el detalle antes de cobrar.
+        {kitchenBlocked && (
+          <div className="pay-card-subtitle" style={{ color: "#dc2626" }}>
+            Atención: Pedido no entregado
           </div>
         )}
         <div className="pay-card-actions">

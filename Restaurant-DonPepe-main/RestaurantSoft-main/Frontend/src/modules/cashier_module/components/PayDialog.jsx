@@ -190,7 +190,11 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
             {orders.kitchenHold && (
               <div className="alert alert-warning">
                 <AlertCircle size={20} />
-                <p>Hay platillos pendientes en cocina. Espera a que estén listos antes de cobrar.</p>
+                <p>
+                  {orders.nonCookableOnly
+                    ? "Marca las bebidas en caja como entregadas para poder cobrar."
+                    : "Hay platillos pendientes en cocina. Espera a que estén listos antes de cobrar."}
+                </p>
               </div>
             )}
 

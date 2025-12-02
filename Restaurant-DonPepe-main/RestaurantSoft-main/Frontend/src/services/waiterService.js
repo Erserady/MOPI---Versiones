@@ -115,6 +115,29 @@ export async function updateOrden(id, data) {
   return res.json();
 }
 
+export async function overrideOrderPrices(orderId, overrides = []) {
+  const res = await apiFetch(
+    `${API_BASE_URL}/api/mesero/mesero-orders/${orderId}/override-prices/`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ overrides }),
+    }
+  );
+
+  if (!res.ok) {
+    let errorMessage = 'Error actualizando precio de item';
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.error || errorData.detail || errorMessage;
+    } catch (e) {
+      errorMessage = `Error ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(errorMessage);
+  }
+
+  return res.json();
+}
+
 export async function deleteOrden(id) {
   const res = await apiFetch(`${API_BASE_URL}/api/mesero/mesero-orders/${id}/`, {
     method: 'DELETE',

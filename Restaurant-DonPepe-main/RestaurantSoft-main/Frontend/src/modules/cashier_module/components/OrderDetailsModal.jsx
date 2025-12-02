@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Receipt,
@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Send,
   Trash2,
+  Pencil,
   AlertTriangle,
   RefreshCw,
   Clock,
@@ -14,49 +15,19 @@ import "../styles/transaction_detail_modal.css";
 import {
   cambiarEstadoOrden,
   deleteOrdenCocina,
-  updateOrdenCocina,
 } from "../../../services/cookService";
+import { updateOrden } from "../../../services/waiterService";
 import { getOrderRemoveRequests } from "../../../services/waiterService";
 import AlertModal from "../../../components/AlertModal";
 import ConfirmModal from "../../../components/ConfirmModal";
-
-// Categor├¡as/keywords que NO pasan por cocina (bebidas/bar)
-const CATEGORY_EXCLUDE_LIST = [
-  "licores importados",
-  "cerveza nacional",
-  "cerveza internacional",
-  "coctails y vinos",
-  "cocteles y vinos",
-  "ron nacional",
-  "enlatados y desechables",
-  "cigarros",
-];
-
-const PRODUCT_NAME_KEYWORDS = ["hielo", "empaque", "valde", "cafe", "limon"];
-
-const normalizeText = (value) =>
-  (value || "")
-    .toString()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-
-const isNonCookableItem = (item = {}) => {
-  const category = normalizeText(item.category);
-  if (CATEGORY_EXCLUDE_LIST.some((c) => normalizeText(c) === category)) return true;
-  const name = normalizeText(item.name);
-  if (!name) return false;
-  return PRODUCT_NAME_KEYWORDS.some((kw) => name.includes(normalizeText(kw)));
-};
 
 const OrderDetailsModal = ({
   isOpen,
   onClose,
   order,
   onOrderCancelled,
-  overrideKitchen = false,
-  onOverrideChange = () => { },
+  onOrderUpdated = () => {},
+  hasDeliveredBarItems = false,
 }) => {
   const [sending, setSending] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -66,18 +37,21 @@ const OrderDetailsModal = ({
     title: "",
     message: "",
   });
+  const [editPriceModalOpen, setEditPriceModalOpen] = useState(false);
   const [editedItems, setEditedItems] = useState(null);
+  const [baseItems, setBaseItems] = useState([]);
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     type: "cancel",
     itemToRemove: null,
+    itemIndex: null,
+    indexesToRemove: [],
   });
   const [removals, setRemovals] = useState([]);
   const [removalsLoading, setRemovalsLoading] = useState(false);
   const [removalsError, setRemovalsError] = useState(null);
   const [removalsLoaded, setRemovalsLoaded] = useState(false);
   const [removalsKey, setRemovalsKey] = useState(null);
-  const [deliveredFlags, setDeliveredFlags] = useState({});
 
   const formatCurrency = (value) => `C$ ${parseFloat(value || 0).toFixed(2)}`;
 
@@ -118,8 +92,8 @@ const OrderDetailsModal = ({
       await deleteOrdenCocina(order.orderId);
       showAlert(
         "success",
-        "┬íPedido Cancelado!",
-        `El pedido de la Mesa ${order.tableNumber} ha sido cancelado exitosamente. La mesa ahora est├í libre.`,
+        "Pedido Cancelado",
+        `El pedido de la Mesa ${order.tableNumber} ha sido cancelado exitosamente. La mesa ahora esta libre.`,
         true
       );
     } catch (error) {
@@ -127,7 +101,7 @@ const OrderDetailsModal = ({
       showAlert(
         "error",
         "Error",
-        "No se pudo cancelar el pedido. Por favor, int├®ntalo de nuevo.",
+        "No se pudo cancelar el pedido. Por favor, intentalo de nuevo.",
         false
       );
     } finally {
@@ -135,41 +109,34 @@ const OrderDetailsModal = ({
     }
   };
 
-  const handleRemoveItem = (itemToRemove) => {
+  const handleRemoveItem = (itemToRemove, itemIndex, indexesToRemove = []) => {
     if (preventAccountDeletion) {
       showAlert(
         "warning",
         "No permitido",
-        "No se pueden eliminar productos porque la cuenta está entregada o marcada en caja."
+        "No se pueden eliminar productos porque la cuenta esta entregada o marcada en caja."
       );
       return;
     }
-    const currentItems = editedItems || items;
-    const newItems = currentItems.filter((item) => item.name !== itemToRemove.name);
-
-    if (newItems.length === 0) {
-      showAlert(
-        "warning",
-        "Atenci├│n",
-        'No puedes eliminar todos los productos. Si deseas cancelar el pedido completo, usa el bot├│n "Cancelar Pedido".',
-        false
-      );
-      return;
-    }
+    const indexes = indexesToRemove.length > 0 ? indexesToRemove : [itemIndex];
 
     setConfirmModal({
       isOpen: true,
       type: "removeItem",
       itemToRemove,
+      itemIndex,
+      indexesToRemove: indexes,
     });
   };
 
   const confirmRemoveItem = () => {
     const itemToRemove = confirmModal.itemToRemove;
-    if (!itemToRemove) return;
-
-    const currentItems = editedItems || items;
-    const newItems = currentItems.filter((item) => item.name !== itemToRemove.name);
+    const indexes = Array.isArray(confirmModal.indexesToRemove)
+      ? confirmModal.indexesToRemove
+      : [];
+    if (!itemToRemove || indexes.length === 0) return;
+    const currentItems = editedItems || baseItems;
+    const newItems = currentItems.filter((_, idx) => !indexes.includes(idx));
 
     setEditedItems(newItems);
     showAlert(
@@ -180,6 +147,45 @@ const OrderDetailsModal = ({
     );
   };
 
+  const handlePriceChange = (itemIndex, value) => {
+    if (preventAccountDeletion) {
+      showAlert(
+        "warning",
+        "No permitido",
+        "No puedes editar precios porque la cuenta ya fue marcada o entregada."
+      );
+      return;
+    }
+    const parsed = value === "" ? 0 : parseFloat(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      showAlert("warning", "Precio invalido", "Ingresa un numero mayor o igual a 0.", false);
+      return;
+    }
+
+    const source = editedItems ? [...editedItems] : [...baseItems];
+    const target = { ...source[itemIndex] };
+    target.unitPrice = parsed;
+    target.total = parsed * (target.quantity || 1);
+    source[itemIndex] = target;
+    setEditedItems(source);
+  };
+
+  const handleOpenEditPriceModal = () => {
+    if (preventAccountDeletion) {
+      showAlert(
+        "warning",
+        "No permitido",
+        "No puedes editar precios porque la cuenta ya fue marcada o entregada."
+      );
+      return;
+    }
+    setEditPriceModalOpen(true);
+  };
+
+  const handleCloseEditPriceModal = () => {
+    setEditPriceModalOpen(false);
+  };
+
   const handleSaveChanges = async () => {
     if (!editedItems) {
       showAlert("info", "Sin Cambios", "No hay cambios para guardar.", false);
@@ -188,29 +194,52 @@ const OrderDetailsModal = ({
 
     try {
       setSending(true);
-      const newPedido = editedItems.map((item) => ({
-        nombre: item.name,
-        precio: item.unitPrice,
-        cantidad: item.quantity,
-      }));
+      const sourceItems = editedItems || baseItems;
+      const newPedido = buildPedidoPayload(sourceItems);
+      const cantidadTotal = newPedido.reduce(
+        (acc, it) => acc + Number(it.cantidad || 0),
+        0
+      );
+      const mesaId = order?.mesaId || order?.tableId || order?.mesa_id;
+      const waiterId = order?.waiter_id || order?.waiterId;
+      const targetOrderIds =
+        (Array.isArray(order?.orderIds) && order.orderIds.length > 0
+          ? order.orderIds
+          : order?.orderId
+            ? [order.orderId]
+            : order?.id
+              ? [order.id]
+              : []).filter(Boolean);
 
-      await updateOrdenCocina(order.orderId, {
+      if (targetOrderIds.length === 0) {
+        throw new Error("No se encontro el identificador de la orden.");
+      }
+
+      const payload = {
         pedido: JSON.stringify(newPedido),
-      });
+        cantidad: cantidadTotal,
+        nota: `Total: C$${currentTotal.toFixed(2)}`,
+      };
+      if (mesaId) payload.mesa_id = mesaId;
+      if (waiterId) payload.waiter_id = waiterId;
+
+      await Promise.all(targetOrderIds.map((oid) => updateOrden(oid, { ...payload, order_id: oid })));
 
       showAlert(
         "success",
-        "┬íCambios Guardados!",
+        "Cambios Guardados",
         "Los productos del pedido han sido actualizados exitosamente.",
-        true
+        false
       );
+      setBaseItems(sourceItems);
       setEditedItems(null);
+      onOrderUpdated();
     } catch (error) {
       console.error("Error guardando cambios:", error);
       showAlert(
         "error",
         "Error",
-        "No se pudieron guardar los cambios. Por favor, int├®ntalo de nuevo.",
+        "No se pudieron guardar los cambios. Por favor, intentalo de nuevo.",
         false
       );
     } finally {
@@ -224,12 +253,12 @@ const OrderDetailsModal = ({
       await cambiarEstadoOrden(order.orderId, "prefactura_enviada");
       showAlert(
         "success",
-        "┬íPre-factura Enviada!",
-        "La pre-factura ha sido enviada al mesero correctamente. El mesero podr├í visualizarla en su panel de pedidos activos."
+        "Pre-factura Enviada",
+        "La pre-factura ha sido enviada al mesero correctamente. El mesero podra visualizarla en su panel de pedidos activos."
       );
     } catch (error) {
       console.error("Error enviando pre-factura:", error);
-      showAlert("error", "Error", "No se pudo enviar la pre-factura. Por favor, int├®ntalo de nuevo.");
+      showAlert("error", "Error", "No se pudo enviar la pre-factura. Por favor, intentalo de nuevo.");
     } finally {
       setSending(false);
     }
@@ -294,78 +323,94 @@ const OrderDetailsModal = ({
     }
   }, [isOpen, order?.orderId, order?.orderIds, removalsLoaded, removalsKey]);
 
-  // Agrupar items (seguro si no hay order/accounts)
-  const groupedItems = () => {
-    const itemsMap = new Map();
+  // Expandir items por unidad para editar/eliminar de forma individual
+  const buildItems = () => {
     if (!order?.accounts) return [];
-
+    const rows = [];
     order.accounts.forEach((account) => {
       (account.items || []).forEach((item) => {
-        const key = item.name;
-        if (itemsMap.has(key)) {
-          const existing = itemsMap.get(key);
-          existing.quantity += item.quantity || 0;
-          existing.total += item.subtotal || 0;
-        } else {
-          itemsMap.set(key, {
+        const qty = Number(item.quantity || item.cantidad || 0);
+        const price = Number(item.unitPrice || item.precio || 0);
+        const count = Math.max(1, qty || 1);
+        for (let i = 0; i < count; i += 1) {
+          rows.push({
             name: item.name,
-            quantity: item.quantity || 0,
-            unitPrice: item.unitPrice || 0,
-            total: item.subtotal || 0,
+            quantity: 1,
+            unitPrice: price,
+            total: price,
             nota: item.nota || "",
             category: item.category || "otros",
           });
         }
       });
     });
-
-    return Array.from(itemsMap.values());
+    return rows;
   };
 
-  const items = groupedItems();
-  const displayItems = editedItems || items;
+  const aggregateItems = (list = []) => {
+    const map = new Map();
+    list.forEach((item, idx) => {
+      const key = `${item.name || "item"}__${item.unitPrice || 0}__${item.nota || ""}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          name: item.name,
+          unitPrice: item.unitPrice,
+          nota: item.nota || "",
+          category: item.category,
+          indexes: [],
+          quantity: 0,
+          total: 0,
+        });
+      }
+      const entry = map.get(key);
+      entry.indexes.push(idx);
+      entry.quantity += 1;
+      entry.total += Number(item.total || item.unitPrice || 0);
+    });
+    return Array.from(map.values());
+  };
 
-  // Flags de entregado para ├¡tems de bar/bebidas
-  const deliveredFlagsInitialized = useRef(false);
+  const buildPedidoPayload = (list = []) => {
+    const map = new Map();
+    list.forEach((item) => {
+      const name = (item.name || "item").trim();
+      const note = (item.nota || "").trim();
+      const price = Number(item.unitPrice || 0);
+      const key = `${name.toLowerCase()}|${price}|${note.toLowerCase()}`;
+      const entry = map.get(key) || {
+        nombre: name,
+        precio: price,
+        cantidad: 0,
+        nota: note,
+        categoria: item.category || item.categoria || null,
+      };
+      entry.precio = price;
+      entry.cantidad += item.quantity || 1;
+      entry.nota = note;
+      map.set(key, entry);
+    });
+    return Array.from(map.values());
+  };
+
+  useEffect(() => {
+    if (!order?.orderId) return;
+    setBaseItems(buildItems());
+    setEditedItems(null);
+  }, [order?.orderId]);
+
+  const workingItems = editedItems || baseItems;
+  const aggregatedItems = aggregateItems(workingItems);
+  const currentTotal = workingItems.reduce(
+    (acc, it) => acc + Number(it.total || it.unitPrice || 0),
+    0
+  );
+
   const isDeliveredByKitchen =
     (order?.status || "").toLowerCase() === "entregado" ||
     (order?.kitchenStatuses || []).some(
       (k) => (k.estado || "").toLowerCase() === "entregado"
     );
-  const hasDeliveredCheckbox = Object.values(deliveredFlags || {}).some(Boolean);
-  const preventAccountDeletion = isDeliveredByKitchen || hasDeliveredCheckbox;
-
-  useEffect(() => {
-    if (isOpen && !deliveredFlagsInitialized.current) {
-      const initial = {};
-      displayItems.forEach((item, idx) => {
-        if (isNonCookableItem(item)) {
-          initial[idx] = overrideKitchen;
-        }
-      });
-      setDeliveredFlags(initial);
-      deliveredFlagsInitialized.current = true;
-    }
-
-    // Reset flag when modal closes
-    if (!isOpen) {
-      deliveredFlagsInitialized.current = false;
-    }
-  }, [isOpen, overrideKitchen]);
-
-  useEffect(() => {
-    const nonCookableIndexes = displayItems
-      .map((item, idx) => (isNonCookableItem(item) ? idx : null))
-      .filter((v) => v !== null);
-
-    if (nonCookableIndexes.length === 0) {
-      onOverrideChange(false);
-      return;
-    }
-
-    const allChecked = nonCookableIndexes.every((idx) => deliveredFlags[idx]);
-    onOverrideChange(allChecked);
-  }, [deliveredFlags, displayItems, onOverrideChange]);
+  const preventAccountDeletion = isDeliveredByKitchen || hasDeliveredBarItems;
 
   if (!isOpen || !order) return null;
 
@@ -385,9 +430,9 @@ const OrderDetailsModal = ({
 
         {/* Body */}
         <div className="transaction-modal-body">
-          {/* Informaci├│n General */}
+          {/* Informacion General */}
           <div className="transaction-section">
-            <h3 className="transaction-section-title">Informaci├│n</h3>
+            <h3 className="transaction-section-title">Informacion</h3>
 
             <div
               style={{
@@ -409,7 +454,7 @@ const OrderDetailsModal = ({
               </div>
               <div>
                 <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.25rem" }}>Total</p>
-                <p style={{ fontSize: "1.25rem", fontWeight: "bold", color: "#059669" }}>{formatCurrency(order.total)}</p>
+                <p style={{ fontSize: "1.25rem", fontWeight: "bold", color: "#059669" }}>{formatCurrency(currentTotal)}</p>
               </div>
             </div>
           </div>
@@ -422,93 +467,68 @@ const OrderDetailsModal = ({
             </h3>
 
             <div className="transaction-products-list">
-              {displayItems.map((item, index) => {
-                const nonCookable = isNonCookableItem(item);
-                const checked = !!deliveredFlags[index];
-                return (
-                  <div key={index}>
-                    <div className="transaction-product-item" style={{ position: "relative" }}>
-                      <div className="transaction-product-info">
-                        <span className="transaction-product-name">{item.name}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                          <span className="transaction-product-quantity">x{item.quantity}</span>
-                          <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                            @ {formatCurrency(item.unitPrice)}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        {nonCookable && (
-                          <div className="dish-ready-toggle small">
-                            <label>
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                disabled={checked}
-                                onChange={(e) =>
-                                  setDeliveredFlags((prev) => {
-                                    if (prev[index]) return prev;
-                                    return {
-                                      ...prev,
-                                      [index]: e.target.checked,
-                                    };
-                                  })
-                                }
-                              />
-                              <span></span>
-                            </label>
-                          </div>
-                        )}
-                        <span className="transaction-product-price">{formatCurrency(item.total)}</span>
-                        <button
-                          onClick={() => handleRemoveItem(item)}
-                          style={{
-                            background: "#fee2e2",
-                            color: "#dc2626",
-                            border: "1px solid #fecaca",
-                            borderRadius: "6px",
-                            padding: "0.375rem",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            transition: "all 0.2s",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = "#fecaca";
-                            e.target.style.transform = "scale(1.05)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = "#fee2e2";
-                            e.target.style.transform = "scale(1)";
-                          }}
-                          title="Eliminar producto"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+              {aggregatedItems.map((item, index) => (
+                <div key={index}>
+                  <div className="transaction-product-item" style={{ position: "relative" }}>
+                    <div className="transaction-product-info">
+                      <span className="transaction-product-name">{item.name}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span className="transaction-product-quantity">x{item.quantity}</span>
+                        <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                          @ {formatCurrency(item.unitPrice)}
+                        </span>
                       </div>
                     </div>
-                    {item.nota && (
-                      <div
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      <span className="transaction-product-price">{formatCurrency(item.total)}</span>
+                      <button
+                        onClick={() => handleRemoveItem(item, index, item.indexes)}
                         style={{
-                          marginLeft: "1rem",
-                          marginTop: "-0.5rem",
-                          marginBottom: "0.75rem",
-                          padding: "0.5rem 0.75rem",
-                          background: "#fffbeb",
-                          borderLeft: "3px solid #fbbf24",
-                          borderRadius: "4px",
+                          background: "#fee2e2",
+                          color: "#dc2626",
+                          border: "1px solid #fecaca",
+                          borderRadius: "6px",
+                          padding: "0.375rem",
+                          cursor: "pointer",
                           display: "flex",
-                          alignItems: "flex-start",
-                          gap: "0.5rem",
+                          alignItems: "center",
+                          transition: "all 0.2s",
                         }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = "#fecaca";
+                          e.target.style.transform = "scale(1.05)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = "#fee2e2";
+                          e.target.style.transform = "scale(1)";
+                        }}
+                        title="Eliminar producto"
                       >
-                        <MessageSquare size={14} style={{ marginTop: "0.15rem", color: "#f59e0b", flexShrink: 0 }} />
-                        <span style={{ fontSize: "0.875rem", color: "#92400e" }}>{item.nota}</span>
-                      </div>
-                    )}
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-                );
-              })}
+                  {item.nota && (
+                    <div
+                      style={{
+                        marginLeft: "1rem",
+                        marginTop: "-0.5rem",
+                        marginBottom: "0.75rem",
+                        padding: "0.5rem 0.75rem",
+                        background: "#fffbeb",
+                        borderLeft: "3px solid #fbbf24",
+                        borderRadius: "4px",
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      <MessageSquare size={14} style={{ marginTop: "0.15rem", color: "#f59e0b", flexShrink: 0 }} />
+                      <span style={{ fontSize: "0.875rem", color: "#92400e" }}>{item.nota}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Historial de eliminaciones - no se imprime */}
@@ -546,11 +566,11 @@ const OrderDetailsModal = ({
                               {(req.estado || req.status || "pendiente").toString().toUpperCase()}
                             </span>
                           </div>
-                          <p className="removal-history__reason">{req.razon || req.reason || "Sin raz├│n"}</p>
+                          <p className="removal-history__reason">{req.razon || req.reason || "Sin razon"}</p>
                           <div className="removal-history__meta">
-                            <span>Solicit├│: {req.solicitado_por || "mesero"}</span>
-                            {req.autorizado_por && <span>Aprob├│: {req.autorizado_por}</span>}
-                            {req.rechazado_por && <span>Rechaz├│: {req.rechazado_por}</span>}
+                            <span>Solicito: {req.solicitado_por || "mesero"}</span>
+                            {req.autorizado_por && <span>Aprobo: {req.autorizado_por}</span>}
+                            {req.rechazado_por && <span>Rechazo: {req.rechazado_por}</span>}
                             {req.created_at && (
                               <span className="removal-history__time">
                                 <Clock size={14} />
@@ -575,11 +595,11 @@ const OrderDetailsModal = ({
             <div className="transaction-totals">
               <div className="transaction-total-item" style={{ padding: "0.75rem 0", borderTop: "2px dashed #e5e7eb" }}>
                 <span style={{ color: "#6b7280" }}>Subtotal:</span>
-                <span style={{ color: "#6b7280" }}>{formatCurrency(order.total)}</span>
+                <span style={{ color: "#6b7280" }}>{formatCurrency(currentTotal)}</span>
               </div>
               <div className="transaction-total-item transaction-total-final">
                 <span>Total a Pagar:</span>
-                <span>{formatCurrency(order.total)}</span>
+                <span>{formatCurrency(currentTotal)}</span>
               </div>
             </div>
           </div>
@@ -622,6 +642,23 @@ const OrderDetailsModal = ({
               {sending ? "Enviando..." : "Enviar Pre-factura al Mesero"}
             </button>
           )}
+
+          <button
+            className="transaction-modal-btn-primary"
+            onClick={handleOpenEditPriceModal}
+            disabled={sending || deleting || preventAccountDeletion}
+            style={{
+              background: "#0ea5e9",
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+            title="Editar precios por producto"
+          >
+            <Pencil size={18} />
+            Editar precio
+          </button>
 
           <button
             onClick={handleCancelOrder}
@@ -667,6 +704,72 @@ const OrderDetailsModal = ({
         </div>
       </div>
 
+      {editPriceModalOpen && (
+        <div className="transaction-modal-overlay" onClick={handleCloseEditPriceModal}>
+          <div
+            className="transaction-modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "720px", width: "100%" }}
+          >
+            <div className="transaction-modal-header">
+              <div className="transaction-modal-title-group">
+                <Pencil size={24} />
+                <h3>Editar precios de productos</h3>
+              </div>
+              <button className="transaction-modal-close" onClick={handleCloseEditPriceModal}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="transaction-modal-body" style={{ maxHeight: "60vh", overflowY: "auto" }}>
+              <p style={{ marginBottom: "0.75rem", color: "#6b7280" }}>
+                Ajusta el precio de cada unidad. Los cambios se reflejan en la cuenta; recuerda guardarlos con
+                <strong> "Guardar Cambios"</strong>. Esto solo afecta esta factura; el precio base del producto no se modifica.
+              </p>
+              <div className="transaction-products-list">
+                {workingItems.map((item, idx) => (
+                  <div key={`${item.name}-${idx}`} className="transaction-product-item" style={{ alignItems: "center" }}>
+                    <div className="transaction-product-info">
+                      <span className="transaction-product-name">
+                        {item.name} <span style={{ color: "#6b7280", fontWeight: 500 }}>(#{idx + 1})</span>
+                      </span>
+                      {item.nota && (
+                        <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>Nota: {item.nota}</span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                      <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>Precio:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={
+                          item.unitPrice === undefined || item.unitPrice === null
+                            ? ""
+                            : Number(item.unitPrice)
+                        }
+                        onChange={(e) => handlePriceChange(idx, e.target.value)}
+                        style={{
+                          width: "120px",
+                          padding: "0.45rem",
+                          borderRadius: "6px",
+                          border: "1px solid #d1d5db",
+                          fontWeight: 600,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="transaction-modal-footer" style={{ justifyContent: "flex-end", gap: "0.5rem" }}>
+              <button className="transaction-modal-btn-close" onClick={handleCloseEditPriceModal}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <AlertModal
         isOpen={alert.isOpen}
         onClose={closeAlert}
@@ -679,24 +782,24 @@ const OrderDetailsModal = ({
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
         onConfirm={confirmModal.type === "cancel" ? confirmCancelOrder : confirmRemoveItem}
-        title={confirmModal.type === "cancel" ? "┬┐Cancelar Pedido?" : "┬┐Eliminar Producto?"}
+        title={confirmModal.type === "cancel" ? "Cancelar Pedido?" : "Eliminar Producto?"}
         message={
           confirmModal.type === "cancel" ? (
             <>
-              <p>┬┐Est├ís seguro de que deseas <strong>CANCELAR</strong> este pedido?</p>
+              <p>Estas seguro de que deseas <strong>CANCELAR</strong> este pedido?</p>
               <ul>
-                <li>Se eliminar├í el pedido de cocina</li>
-                <li>Se liberar├í la mesa</li>
-                <li>Esta acci├│n NO se puede deshacer</li>
+                <li>Se eliminara el pedido de cocina</li>
+                <li>Se liberara la mesa</li>
+                <li>Esta accion NO se puede deshacer</li>
               </ul>
             </>
           ) : (
             <p>
-              ┬┐Est├ís seguro de que deseas eliminar <strong>"{confirmModal.itemToRemove?.name}"</strong> del pedido?
+              Estas seguro de que deseas eliminar <strong>"{confirmModal.itemToRemove?.name}"</strong> del pedido?
             </p>
           )
         }
-        confirmText={confirmModal.type === "cancel" ? "S├¡, Cancelar Pedido" : "S├¡, Eliminar"}
+        confirmText={confirmModal.type === "cancel" ? "Si, Cancelar Pedido" : "Si, Eliminar"}
         cancelText="No, Volver"
         type="danger"
       />
@@ -705,6 +808,8 @@ const OrderDetailsModal = ({
 };
 
 export default OrderDetailsModal;
+
+
 
 
 

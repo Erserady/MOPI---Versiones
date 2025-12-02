@@ -104,6 +104,11 @@ const PaySection = () => {
             const cantidad = Number(item.cantidad) || 0;
             const precio = Number(item.precio) || 0;
             const subtotal = cantidad * precio;
+            const itemUid =
+              item.item_uid ||
+              item.uid ||
+              item.id ||
+              `${orden.id || mesa.mesa_id}-${allItems.length}`;
 
             allItems.push({
               type: item.categoria || item.category || "Principal",
@@ -111,9 +116,13 @@ const PaySection = () => {
               name: item.nombre,
               quantity: cantidad,
               unitPrice: precio,
+              originalUnitPrice: precio,
               subtotal,
               nota: item.nota || "",
               category: item.categoria || item.category || "Principal",
+              itemUid,
+              orderDbId: orden.id,
+              orderIdentifier: orden.order_id,
             });
             totalMesa += subtotal;
           });

@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { X, CreditCard, Banknote, Receipt, AlertCircle, CheckCircle, Calculator, UtensilsCrossed, MessageSquare } from "lucide-react";
 import { createFactura, createPago, getCajas } from "../../../services/cashierService";
-import { updateMesa } from "../../../services/waiterService";
+import { overrideOrderPrices, updateMesa } from "../../../services/waiterService";
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
 import ReceiptPrinter from "./ReceiptPrinter";
@@ -14,35 +14,126 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
   const [error, setError] = useState(null);
   const [receiptData, setReceiptData] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [itemOverrides, setItemOverrides] = useState({});
   const { notification, showNotification, hideNotification} = useNotification();
 
-  // Agrupar items por nombre para mostrar resumen
-  const groupedItems = useMemo(() => {
+  useEffect(() => {
+    if (isOpen) {
+      setItemOverrides({});
+      setCashReceived("");
+      setPaymentMethod("cash");
+      setError(null);
+    }
+  }, [isOpen, orders]);
+
+  const baseItems = useMemo(() => {
     if (!orders.accounts || orders.accounts.length === 0) return [];
-    
-    const itemsMap = new Map();
+    const items = [];
     orders.accounts.forEach((account) => {
-      account.items.forEach((item) => {
-        const key = item.name;
-        if (itemsMap.has(key)) {
-          const existing = itemsMap.get(key);
-          existing.quantity += item.quantity || 0;
-          existing.total += item.subtotal || 0;
-        } else {
-          itemsMap.set(key, {
-            name: item.name,
-            quantity: item.quantity || 0,
-            unitPrice: item.unitPrice || 0,
-            total: item.subtotal || 0,
-            nota: item.nota || '',
-            category: item.category || 'Otros'
-          });
-        }
+      (account.items || []).forEach((item, idx) => {
+        const basePrice = Number(
+          item.unitPrice ?? item.originalUnitPrice ?? item.precio ?? 0
+        );
+        const originalPrice =
+          Number(item.originalUnitPrice ?? basePrice ?? 0) || 0;
+        const uid =
+          item.itemUid ||
+          item.item_uid ||
+          item.uid ||
+          item.id ||
+          `${account.accountId || orders.id || "acc"}-${idx}-${item.name || "item"}`;
+
+        items.push({
+          ...item,
+          itemUid: uid,
+          orderDbId:
+            item.orderDbId ||
+            item.order_id ||
+            orders.orderIds?.[0] ||
+            orders.orderId ||
+            orders.id,
+          orderIdentifier:
+            item.orderIdentifier ||
+            item.orderId ||
+            item.order_id ||
+            orders.orderId,
+          quantity: Number(item.quantity) || 0,
+          basePrice,
+          originalUnitPrice: originalPrice,
+          unitPrice: basePrice,
+          subtotal: (Number(item.quantity) || 0) * basePrice,
+        });
+      });
+    });
+    return items;
+  }, [orders.accounts, orders.orderIds, orders.orderId, orders.id]);
+
+  const displayItems = useMemo(() => {
+    return baseItems.map((item) => {
+      const overrideRaw = itemOverrides[item.itemUid];
+      const overridePrice =
+        overrideRaw === "" || overrideRaw === undefined
+          ? undefined
+          : parseFloat(overrideRaw);
+      const unitPrice = Number.isFinite(overridePrice)
+        ? overridePrice
+        : item.basePrice;
+      const quantity = Number(item.quantity) || 0;
+      return {
+        ...item,
+        unitPrice,
+        subtotal: unitPrice * quantity,
+      };
+    });
+  }, [baseItems, itemOverrides]);
+
+  const paymentTotal = useMemo(
+    () =>
+      displayItems.reduce(
+        (acc, item) => acc + (Number(item.subtotal) || 0),
+        0
+      ),
+    [displayItems]
+  );
+
+  const applyPriceOverrides = async () => {
+    const overridesByOrder = {};
+
+    displayItems.forEach((item) => {
+      const rawOverride = itemOverrides[item.itemUid];
+      if (rawOverride === undefined || rawOverride === null || rawOverride === "") {
+        return;
+      }
+      const parsed = parseFloat(rawOverride);
+      if (!Number.isFinite(parsed)) return;
+      const basePrice =
+        Number(item.originalUnitPrice ?? item.basePrice ?? item.unitPrice ?? 0) || 0;
+      if (Math.abs(parsed - basePrice) < 0.0001) {
+        return;
+      }
+
+      const orderTargetId =
+        item.orderDbId || (orders.orderIds && orders.orderIds[0]) || orders.orderId;
+      if (!orderTargetId) return;
+
+      if (!overridesByOrder[orderTargetId]) {
+        overridesByOrder[orderTargetId] = [];
+      }
+      overridesByOrder[orderTargetId].push({
+        item_uid: item.itemUid,
+        nuevo_precio: parsed,
       });
     });
 
-    return Array.from(itemsMap.values());
-  }, [orders.accounts]);
+    const orderIds = Object.keys(overridesByOrder);
+    for (const orderId of orderIds) {
+      await overrideOrderPrices(orderId, overridesByOrder[orderId]);
+    }
+  };
+
+  const formatCurrency = (value) => `C$ ${parseFloat(value || 0).toFixed(2)}`;
+  const cash = parseFloat(cashReceived) || 0;
+  const change = paymentMethod === 'cash' ? Math.max(0, cash - paymentTotal) : 0;
 
   const handleProcessPayment = async () => {
     if (orders.kitchenHold) {
@@ -50,18 +141,30 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
       return;
     }
 
+    const totalToCharge = Number(paymentTotal) || 0;
+    const invalidOverride = Object.values(itemOverrides || {}).some((val) => {
+      if (val === undefined || val === null || val === "") return false;
+      const parsed = parseFloat(val);
+      return !Number.isFinite(parsed) || parsed < 0;
+    });
+    if (invalidOverride) {
+      setError("Revisa los precios manuales: no pueden ser negativos ni vacios.");
+      return;
+    }
+
     try {
       setIsProcessing(true);
       setError(null);
 
-      // Validar si es pago en efectivo y hay monto
-      if (paymentMethod === 'cash' && (!cashReceived || parseFloat(cashReceived) < parseFloat(orders.total))) {
+      if (
+        paymentMethod === "cash" &&
+        (!cashReceived || parseFloat(cashReceived) < totalToCharge)
+      ) {
         setError('El monto en efectivo debe ser mayor o igual al total');
         setIsProcessing(false);
         return;
       }
 
-      // Obtener caja abierta
       const cajas = await getCajas();
       const cajaAbierta = cajas.find(c => c.estado === 'abierta');
       
@@ -80,7 +183,8 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
         return;
       }
 
-      // Crear factura
+      await applyPriceOverrides();
+
       const facturaData = {
         table_id: mesaId,
         order_ids: orderIds,
@@ -89,32 +193,37 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
 
       const factura = await createFactura(facturaData);
 
-      // Crear pago
+      const facturaTotal = parseFloat(factura.total);
+      const totalPago = Number.isFinite(facturaTotal) ? facturaTotal : totalToCharge;
       const pagoData = {
         factura: factura.id,
-        monto: parseFloat(orders.total || factura.total),
+        monto: totalPago,
         metodo_pago: paymentMethod === 'cash' ? 'efectivo' : 'tarjeta',
         caja: cajaAbierta.id,
       };
 
       await createPago(pagoData);
 
-      // Actualizar estado de la mesa a "available"
       let mesaActualizada = false;
       if (mesaId) {
         try {
           await updateMesa(mesaId, { status: 'available', assigned_waiter: null });
           mesaActualizada = true;
         } catch (mesaError) {
-          console.warn('⚠️ Error al actualizar mesa:', mesaError.message);
+          console.warn('Aviso: Error al actualizar mesa:', mesaError.message);
         }
       }
 
-      // Calcular cambio
-      const total = parseFloat(orders.total || factura.total);
-      const cambio = paymentMethod === 'cash' ? parseFloat(cashReceived) - total : 0;
+      const cambio = paymentMethod === 'cash' ? parseFloat(cashReceived || 0) - totalPago : 0;
 
-      // Preparar datos del ticket
+      const receiptItems = displayItems.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal: item.subtotal,
+        nota: item.nota,
+        category: item.category,
+      }));
       const ticketData = {
         ticketNumber: factura.numero_factura || factura.id,
         facturaId: factura.id,
@@ -125,26 +234,23 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
         waiterName: orders.waiter,
         customerName: orders.customerName || '',
         customerAddress: orders.customerAddress || '',
-        items: groupedItems,
+        items: receiptItems,
         paymentMethod: paymentMethod,
-        total: total,
-        cashReceived: paymentMethod === 'cash' ? parseFloat(cashReceived) : total,
+        total: totalPago,
+        cashReceived: paymentMethod === 'cash' ? parseFloat(cashReceived) : totalPago,
         change: cambio,
       };
 
-      // Guardar datos del ticket y abrir el diálogo de impresión
       setReceiptData(ticketData);
       setShowReceipt(true);
 
-      // Notificar éxito
       showNotification({
         type: 'success',
         title: 'Pago procesado exitosamente',
-        message: `Total: C$${total.toFixed(2)} | Cambio: C$${cambio.toFixed(2)}${!mesaActualizada ? ' (Actualice mesa manualmente)' : ''}`,
+        message: `Total: C$${totalPago.toFixed(2)} | Cambio: C$${cambio.toFixed(2)}${!mesaActualizada ? ' (Actualice mesa manualmente)' : ''}`,
         duration: 5000
       });
       
-      // Cerrar el diálogo de pago después de un breve delay
       setTimeout(() => {
         onClose();
       }, 500);
@@ -157,18 +263,12 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
     }
   };
 
-  const formatCurrency = (value) => `C$ ${parseFloat(value || 0).toFixed(2)}`;
-  const total = parseFloat(orders.total);
-  const cash = parseFloat(cashReceived) || 0;
-  const change = paymentMethod === 'cash' ? Math.max(0, cash - total) : 0;
-
   if (!isOpen) return null;
 
   return (
     <>
       <div className="pay-dialog-overlay" onClick={onClose}>
         <div className="pay-dialog-container" onClick={(e) => e.stopPropagation()}>
-          {/* Header */}
           <div className="pay-dialog-header">
             <div className="header-left">
               <div className="header-icon-wrapper">
@@ -184,21 +284,18 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* Body */}
           <div className="pay-dialog-body">
-            {/* Alerta de cocina */}
             {orders.kitchenHold && (
-              <div className="alert alert-warning">
+                  <div className="alert alert-warning">
                 <AlertCircle size={20} />
                 <p>
                   {orders.nonCookableOnly
-                    ? "Marca las bebidas en caja como entregadas para poder cobrar."
-                    : "Hay platillos pendientes en cocina. Espera a que estén listos antes de cobrar."}
+                    ? "Marca las bebidas en \"Bebidas pendientes\" como entregadas para poder cobrar."
+                    : "Hay platillos pendientes en cocina. Espera a que esten listos antes de cobrar."}
                 </p>
               </div>
             )}
 
-            {/* Error message */}
             {error && (
               <div className="alert alert-error">
                 <AlertCircle size={20} />
@@ -206,43 +303,93 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
               </div>
             )}
 
-            {/* Resumen de productos */}
             <div className="section-card">
               <div className="section-header">
                 <UtensilsCrossed size={20} />
                 <h3>Resumen de Consumo</h3>
               </div>
               <div className="items-list">
-                {groupedItems.map((item, index) => (
-                  <div key={index} className="item-row">
-                    <div className="item-info">
-                      <span className="item-name">{item.name}</span>
-                      <div className="item-details">
-                        <span className="item-qty">x{item.quantity}</span>
-                        <span className="item-price-unit">@ {formatCurrency(item.unitPrice)}</span>
-                      </div>
-                      {item.nota && (
-                        <div className="item-note">
-                          <MessageSquare size={12} />
-                          <span>{item.nota}</span>
+                {displayItems.map((item) => {
+                  const currentValue = itemOverrides[item.itemUid];
+                  const inputValue =
+                    currentValue === undefined ? item.unitPrice : currentValue;
+                  const overrideDiff =
+                    currentValue !== undefined &&
+                    currentValue !== "" &&
+                    Number.isFinite(parseFloat(currentValue)) &&
+                    Math.abs(parseFloat(currentValue) - (item.originalUnitPrice ?? item.basePrice ?? 0)) > 0.0001;
+                  return (
+                    <div key={item.itemUid} className="item-row">
+                      <div className="item-info">
+                        <span className="item-name">{item.name}</span>
+                        <div className="item-details">
+                          <span className="item-qty">x{item.quantity}</span>
+                          <span className="item-price-unit">Original: {formatCurrency(item.originalUnitPrice)}</span>
                         </div>
-                      )}
+                        {item.nota && (
+                          <div className="item-note">
+                            <MessageSquare size={12} />
+                            <span>{item.nota}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="item-editor">
+                        <label className="price-label">Precio a cobrar</label>
+                        <div className="cash-input-wrapper">
+                          <span className="currency-symbol">C$</span>
+                          <input
+                            type="number"
+                            className="cash-input"
+                            value={inputValue}
+                            min="0"
+                            step="0.01"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "") {
+                                setItemOverrides((prev) => ({ ...prev, [item.itemUid]: "" }));
+                                return;
+                              }
+                              if (parseFloat(val) < 0) return;
+                              setItemOverrides((prev) => ({ ...prev, [item.itemUid]: val }));
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "e" || e.key === "E" || e.key === "+" || e.key === "-") {
+                                e.preventDefault();
+                              }
+                            }}
+                          />
+                        </div>
+                        {overrideDiff && (
+                          <button
+                            type="button"
+                            className="payment-method-btn"
+                            onClick={() => {
+                              setItemOverrides((prev) => {
+                                const next = { ...prev };
+                                delete next[item.itemUid];
+                                return next;
+                              });
+                            }}
+                          >
+                            Restablecer
+                          </button>
+                        )}
+                      </div>
+                      <span className="item-total">{formatCurrency(item.subtotal)}</span>
                     </div>
-                    <span className="item-total">{formatCurrency(item.total)}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="section-total">
                 <span>Subtotal</span>
-                <span className="total-amount">{formatCurrency(total)}</span>
+                <span className="total-amount">{formatCurrency(paymentTotal)}</span>
               </div>
             </div>
 
-            {/* Método de pago */}
             <div className="section-card">
               <div className="section-header">
                 <CreditCard size={20} />
-                <h3>Método de Pago</h3>
+                <h3>Metodo de Pago</h3>
               </div>
               <div className="payment-methods">
                 <button
@@ -268,7 +415,6 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Input de efectivo */}
             {paymentMethod === 'cash' && (
               <div className="section-card">
                 <div className="section-header">
@@ -290,28 +436,27 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
                     }}
                   />
                 </div>
-                {cashReceived && cash >= total && (
+                {cashReceived && cash >= paymentTotal && (
                   <div className="change-display">
                     <CheckCircle size={18} />
                     <span>Cambio: {formatCurrency(change)}</span>
                   </div>
                 )}
-                {cashReceived && cash < total && (
+                {cashReceived && cash < paymentTotal && (
                   <div className="insufficient-display">
                     <AlertCircle size={18} />
-                    <span>Monto insuficiente: falta {formatCurrency(total - cash)}</span>
+                    <span>Monto insuficiente: falta {formatCurrency(paymentTotal - cash)}</span>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Resumen final */}
             <div className="final-summary">
               <div className="summary-row">
                 <span className="summary-label">Total a Pagar</span>
-                <span className="summary-value total">{formatCurrency(total)}</span>
+                <span className="summary-value total">{formatCurrency(paymentTotal)}</span>
               </div>
-              {paymentMethod === 'cash' && cashReceived && cash >= total && (
+              {paymentMethod === 'cash' && cashReceived && cash >= paymentTotal && (
                 <>
                   <div className="summary-row">
                     <span className="summary-label">Efectivo Recibido</span>
@@ -326,7 +471,6 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Footer */}
           <div className="pay-dialog-footer">
             <button className="btn-secondary" onClick={onClose}>
               Cancelar
@@ -337,7 +481,7 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
               disabled={
                 isProcessing || 
                 orders.kitchenHold || 
-                (paymentMethod === 'cash' && (!cashReceived || cash < total))
+                (paymentMethod === 'cash' && (!cashReceived || cash < paymentTotal))
               }
             >
               {isProcessing ? (
@@ -366,7 +510,6 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
         />
       )}
 
-      {/* Ticket de impresión */}
       <ReceiptPrinter
         isOpen={showReceipt}
         onClose={() => setShowReceipt(false)}

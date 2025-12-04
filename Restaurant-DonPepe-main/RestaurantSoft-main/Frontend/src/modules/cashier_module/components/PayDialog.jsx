@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useMemo, useState } from "react";
 import { X, CreditCard, Banknote, Receipt, AlertCircle, CheckCircle, Calculator, UtensilsCrossed, MessageSquare } from "lucide-react";
 import { createFactura, createPago, getCajas } from "../../../services/cashierService";
-import { overrideOrderPrices, updateMesa } from "../../../services/waiterService";
+import { updateMesa } from "../../../services/waiterService";
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
 import ReceiptPrinter from "./ReceiptPrinter";
@@ -14,17 +14,15 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
   const [error, setError] = useState(null);
   const [receiptData, setReceiptData] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [itemOverrides, setItemOverrides] = useState({});
   const { notification, showNotification, hideNotification} = useNotification();
 
   useEffect(() => {
     if (isOpen) {
-      setItemOverrides({});
       setCashReceived("");
       setPaymentMethod("cash");
       setError(null);
     }
-  }, [isOpen, orders]);
+  }, [isOpen]);
 
   const baseItems = useMemo(() => {
     if (!orders.accounts || orders.accounts.length === 0) return [];
@@ -70,14 +68,7 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
 
   const displayItems = useMemo(() => {
     return baseItems.map((item) => {
-      const overrideRaw = itemOverrides[item.itemUid];
-      const overridePrice =
-        overrideRaw === "" || overrideRaw === undefined
-          ? undefined
-          : parseFloat(overrideRaw);
-      const unitPrice = Number.isFinite(overridePrice)
-        ? overridePrice
-        : item.basePrice;
+      const unitPrice = item.basePrice;
       const quantity = Number(item.quantity) || 0;
       return {
         ...item,
@@ -85,7 +76,7 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
         subtotal: unitPrice * quantity,
       };
     });
-  }, [baseItems, itemOverrides]);
+  }, [baseItems]);
 
   const paymentTotal = useMemo(
     () =>
@@ -95,41 +86,6 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
       ),
     [displayItems]
   );
-
-  const applyPriceOverrides = async () => {
-    const overridesByOrder = {};
-
-    displayItems.forEach((item) => {
-      const rawOverride = itemOverrides[item.itemUid];
-      if (rawOverride === undefined || rawOverride === null || rawOverride === "") {
-        return;
-      }
-      const parsed = parseFloat(rawOverride);
-      if (!Number.isFinite(parsed)) return;
-      const basePrice =
-        Number(item.originalUnitPrice ?? item.basePrice ?? item.unitPrice ?? 0) || 0;
-      if (Math.abs(parsed - basePrice) < 0.0001) {
-        return;
-      }
-
-      const orderTargetId =
-        item.orderDbId || (orders.orderIds && orders.orderIds[0]) || orders.orderId;
-      if (!orderTargetId) return;
-
-      if (!overridesByOrder[orderTargetId]) {
-        overridesByOrder[orderTargetId] = [];
-      }
-      overridesByOrder[orderTargetId].push({
-        item_uid: item.itemUid,
-        nuevo_precio: parsed,
-      });
-    });
-
-    const orderIds = Object.keys(overridesByOrder);
-    for (const orderId of orderIds) {
-      await overrideOrderPrices(orderId, overridesByOrder[orderId]);
-    }
-  };
 
   const formatCurrency = (value) => `C$ ${parseFloat(value || 0).toFixed(2)}`;
   const cash = parseFloat(cashReceived) || 0;
@@ -142,16 +98,6 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
     }
 
     const totalToCharge = Number(paymentTotal) || 0;
-    const invalidOverride = Object.values(itemOverrides || {}).some((val) => {
-      if (val === undefined || val === null || val === "") return false;
-      const parsed = parseFloat(val);
-      return !Number.isFinite(parsed) || parsed < 0;
-    });
-    if (invalidOverride) {
-      setError("Revisa los precios manuales: no pueden ser negativos ni vacios.");
-      return;
-    }
-
     try {
       setIsProcessing(true);
       setError(null);
@@ -182,8 +128,6 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
         setIsProcessing(false);
         return;
       }
-
-      await applyPriceOverrides();
 
       const facturaData = {
         table_id: mesaId,
@@ -309,76 +253,24 @@ const PayDialog = ({ orders, isOpen, onClose }) => {
                 <h3>Resumen de Consumo</h3>
               </div>
               <div className="items-list">
-                {displayItems.map((item) => {
-                  const currentValue = itemOverrides[item.itemUid];
-                  const inputValue =
-                    currentValue === undefined ? item.unitPrice : currentValue;
-                  const overrideDiff =
-                    currentValue !== undefined &&
-                    currentValue !== "" &&
-                    Number.isFinite(parseFloat(currentValue)) &&
-                    Math.abs(parseFloat(currentValue) - (item.originalUnitPrice ?? item.basePrice ?? 0)) > 0.0001;
-                  return (
-                    <div key={item.itemUid} className="item-row">
-                      <div className="item-info">
-                        <span className="item-name">{item.name}</span>
-                        <div className="item-details">
-                          <span className="item-qty">x{item.quantity}</span>
-                          <span className="item-price-unit">Original: {formatCurrency(item.originalUnitPrice)}</span>
-                        </div>
-                        {item.nota && (
-                          <div className="item-note">
-                            <MessageSquare size={12} />
-                            <span>{item.nota}</span>
-                          </div>
-                        )}
+                {displayItems.map((item) => (
+                  <div key={item.itemUid} className="item-row">
+                    <div className="item-info">
+                      <span className="item-name">{item.name}</span>
+                      <div className="item-details">
+                        <span className="item-qty">x{item.quantity}</span>
+                        <span className="item-price-unit">Precio: {formatCurrency(item.unitPrice)}</span>
                       </div>
-                      <div className="item-editor">
-                        <label className="price-label">Precio a cobrar</label>
-                        <div className="cash-input-wrapper">
-                          <span className="currency-symbol">C$</span>
-                          <input
-                            type="number"
-                            className="cash-input"
-                            value={inputValue}
-                            min="0"
-                            step="0.01"
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === "") {
-                                setItemOverrides((prev) => ({ ...prev, [item.itemUid]: "" }));
-                                return;
-                              }
-                              if (parseFloat(val) < 0) return;
-                              setItemOverrides((prev) => ({ ...prev, [item.itemUid]: val }));
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "e" || e.key === "E" || e.key === "+" || e.key === "-") {
-                                e.preventDefault();
-                              }
-                            }}
-                          />
+                      {item.nota && (
+                        <div className="item-note">
+                          <MessageSquare size={12} />
+                          <span>{item.nota}</span>
                         </div>
-                        {overrideDiff && (
-                          <button
-                            type="button"
-                            className="payment-method-btn"
-                            onClick={() => {
-                              setItemOverrides((prev) => {
-                                const next = { ...prev };
-                                delete next[item.itemUid];
-                                return next;
-                              });
-                            }}
-                          >
-                            Restablecer
-                          </button>
-                        )}
-                      </div>
-                      <span className="item-total">{formatCurrency(item.subtotal)}</span>
+                      )}
                     </div>
-                  );
-                })}
+                    <span className="item-total">{formatCurrency(item.subtotal)}</span>
+                  </div>
+                ))}
               </div>
               <div className="section-total">
                 <span>Subtotal</span>

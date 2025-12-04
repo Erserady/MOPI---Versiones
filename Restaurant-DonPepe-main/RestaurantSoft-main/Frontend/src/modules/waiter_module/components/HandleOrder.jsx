@@ -1,5 +1,5 @@
 ﻿import { useImmer } from "use-immer";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import DishTable from "./DishTable";
 import { getPlatos } from "../../../services/adminMenuService";
 import {
@@ -12,10 +12,22 @@ import {
 import { useNotification } from "../../../hooks/useNotification";
 import Notification from "../../../common/Notification";
 import CommentModal from "./CommentModal";
-import { RefreshCw, ChefHat, Search, Filter, X, Lock } from "lucide-react";
+import {
+  RefreshCw,
+  ChefHat,
+  Search,
+  Filter,
+  X,
+  Lock,
+  MessageSquare,
+  Trash2,
+  Minus,
+  Plus,
+} from "lucide-react";
 import { useLocation, useParams } from "react-router-dom";
 import { getCurrentUserId, getCurrentUserName } from "../../../utils/auth";
 import RemoveItemModal from "./RemoveItemModal";
+import "../styles/dish_section.css";
 
 const APPENDABLE_ORDER_STATUSES = [
   "pendiente",
@@ -291,6 +303,10 @@ const HandleOrder = ({
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [removeModalItem, setRemoveModalItem] = useState(null);
   const [removeModalIndex, setRemoveModalIndex] = useState(null);
+  const [cartPosition, setCartPosition] = useState({ x: null, y: null });
+  const [draggingCart, setDraggingCart] = useState(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const cartRef = useRef(null);
   const { showNotification, hideNotification, notification } =
     useNotification();
 
@@ -537,6 +553,91 @@ const HandleOrder = ({
 
     loadMenuData();
   }, []);
+
+  // Posición inicial del panel flotante
+  useEffect(() => {
+    if (cartPosition.x !== null && cartPosition.y !== null) return;
+    if (typeof window === "undefined") return;
+    setCartPosition({
+      x: window.innerWidth - 380 - 18,
+      y: 90,
+    });
+  }, [cartPosition.x, cartPosition.y]);
+
+  // Drag (mouse y touch) del panel flotante
+  useEffect(() => {
+    const getPoint = (ev) => {
+      if (ev.touches && ev.touches[0]) return ev.touches[0];
+      if (ev.changedTouches && ev.changedTouches[0]) return ev.changedTouches[0];
+      return ev;
+    };
+
+    const handleMove = (ev) => {
+      if (!draggingCart || !cartRef.current) return;
+      const point = getPoint(ev);
+      if (!point) return;
+      const rect = cartRef.current.getBoundingClientRect();
+      const { x, y } = dragOffsetRef.current;
+      const nextX = point.clientX - x;
+      const nextY = point.clientY - y;
+      const maxX = Math.max(8, window.innerWidth - rect.width - 8);
+      const maxY = Math.max(8, window.innerHeight - rect.height - 8);
+      setCartPosition({
+        x: Math.min(Math.max(8, nextX), maxX),
+        y: Math.min(Math.max(8, nextY), maxY),
+      });
+      if (ev.cancelable) ev.preventDefault();
+    };
+
+    const handleUp = () => setDraggingCart(false);
+
+    if (draggingCart) {
+      document.addEventListener("mousemove", handleMove);
+      document.addEventListener("mouseup", handleUp);
+      document.addEventListener("touchmove", handleMove, { passive: false });
+      document.addEventListener("touchend", handleUp);
+    }
+    return () => {
+      document.removeEventListener("mousemove", handleMove);
+      document.removeEventListener("mouseup", handleUp);
+      document.removeEventListener("touchmove", handleMove);
+      document.removeEventListener("touchend", handleUp);
+    };
+  }, [draggingCart]);
+
+  useEffect(() => {
+    if (cartPosition.x !== null && cartPosition.y !== null) return;
+    if (typeof window === "undefined") return;
+    setCartPosition({
+      x: window.innerWidth - 380 - 18,
+      y: 90,
+    });
+  }, [cartPosition.x, cartPosition.y]);
+
+  useEffect(() => {
+    const handleMove = (e) => {
+      if (!draggingCart || !cartRef.current) return;
+      const rect = cartRef.current.getBoundingClientRect();
+      const { x, y } = dragOffsetRef.current;
+      const nextX = e.clientX - x;
+      const nextY = e.clientY - y;
+      const maxX = Math.max(8, window.innerWidth - rect.width - 8);
+      const maxY = Math.max(8, window.innerHeight - rect.height - 8);
+      setCartPosition({
+        x: Math.min(Math.max(8, nextX), maxX),
+        y: Math.min(Math.max(8, nextY), maxY),
+      });
+    };
+    const handleUp = () => setDraggingCart(false);
+    if (draggingCart) {
+      document.addEventListener("mousemove", handleMove);
+      document.addEventListener("mouseup", handleUp);
+    }
+    return () => {
+      document.removeEventListener("mousemove", handleMove);
+      document.removeEventListener("mouseup", handleUp);
+    };
+  }, [draggingCart]);
 
   const availableSubcategories =
     menu?.map((item) => item.category).filter(Boolean) || [];
@@ -841,6 +942,127 @@ const HandleOrder = ({
 
   return (
     <section style={{ padding: "1rem" }}>
+      <div
+        className={`cart-sticky ${draggingCart ? "dragging" : ""}`}
+        ref={cartRef}
+        style={{
+          top: cartPosition.y ?? 90,
+          left: cartPosition.x ?? "auto",
+          right: cartPosition.x === null ? 18 : "auto",
+        }}
+      >
+        <div
+          className="cart-sticky__header"
+          onMouseDown={(e) => {
+            if (!cartRef.current) return;
+            const rect = cartRef.current.getBoundingClientRect();
+            dragOffsetRef.current = {
+              x: e.clientX - rect.left,
+              y: e.clientY - rect.top,
+            };
+            setDraggingCart(true);
+          }}
+          onMouseUp={() => setDraggingCart(false)}
+          onTouchStart={(e) => {
+            if (!cartRef.current) return;
+            const touch = e.touches?.[0];
+            if (!touch) return;
+            const rect = cartRef.current.getBoundingClientRect();
+            dragOffsetRef.current = {
+              x: touch.clientX - rect.left,
+              y: touch.clientY - rect.top,
+            };
+            setDraggingCart(true);
+          }}
+          onTouchEnd={() => setDraggingCart(false)}
+        >
+          <h4>Platillos por agregar</h4>
+          <span className="cart-sticky__pill">
+            {aggregatedCartItems.reduce(
+              (acc, item) => acc + (Number(item.dishQuantity) || 0),
+              0
+            )}{" "}
+            items · C$
+            {aggregatedCartItems
+              .reduce(
+                (acc, item) =>
+                  acc +
+                  (Number(item.subtotal) ||
+                    (Number(item.unitPrice || 0) *
+                      (Number(item.dishQuantity) || 0))),
+                0
+              )
+              .toFixed(2)}
+          </span>
+        </div>
+        <div className="cart-sticky__body">
+          {aggregatedCartItems.length > 0 ? (
+            aggregatedCartItems.map((item) => (
+              <div key={item.dishName + item.description} className="cart-sticky__item">
+                <div className="cart-sticky__item-main">
+                  <div className="cart-sticky__title-row">
+                    <p className="cart-sticky__item-name">{item.dishName}</p>
+                  </div>
+                  {item.description && (
+                    <small className="cart-sticky__item-note">Nota: {item.description}</small>
+                  )}
+                  <div className="cart-sticky__item-meta">
+                    <div className="cart-sticky__quantity">
+                      <button
+                        onClick={() => handleQuantityChange(item._rawIndex, -1)}
+                        aria-label="Disminuir cantidad"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="cart-sticky__chip">x{item.dishQuantity}</span>
+                      <button
+                        onClick={() => handleQuantityChange(item._rawIndex, 1)}
+                        aria-label="Aumentar cantidad"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                    <span className="cart-sticky__price">
+                      C$
+                      {(Number(item.subtotal) ||
+                        (Number(item.unitPrice || 0) * (Number(item.dishQuantity) || 0))
+                      ).toFixed(2)}
+                    </span>
+                    <div className="cart-sticky__icon-actions">
+                      <button
+                        onClick={() => handleComment(item)}
+                        aria-label="Agregar comentario"
+                        title="Agregar comentario"
+                      >
+                        <MessageSquare size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleRemoveFromCart(item)}
+                        aria-label="Eliminar platillo"
+                        title="Eliminar platillo"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="cart-sticky__empty">Aun no hay platillos agregados.</p>
+          )}
+        </div>
+        {cartItems.length > 0 && (
+          <button
+            className="cart-sticky__confirm"
+            onClick={handleConfirmOrder}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Procesando..." : confirmButtonLabel}
+          </button>
+        )}
+      </div>
+
       <h3>
         Mesa {displayNumber || "?"} | Pedido actual: C$
         {existingTotal.toFixed(2)}
@@ -1029,36 +1251,6 @@ const HandleOrder = ({
           )}
         </div>
       </section>
-
-      <section className="category-dishes">
-        <h3>Platillos por agregar</h3>
-        <div className="table-container">
-
-          {aggregatedCartItems.length > 0 ? (
-            <DishTable
-              utility="buycar"
-              data={aggregatedCartItems}
-              onQuantityChange={handleQuantityChange}
-              onRemove={handleRemoveFromCart}
-              onComment={handleComment}
-              headers={["Nombre", "Cantidad", "Subtotal", "Acciones"]}
-            />
-          ) : (
-            <p className="no-dishes">Aun no hay platillos agregados.</p>
-          )}
-        </div>
-      </section>
-
-      {cartItems.length > 0 && (
-        <button
-          className="confirm-btn"
-          onClick={handleConfirmOrder}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Procesando..." : confirmButtonLabel}
-        </button>
-      )}
-
 
       <section className="category-dishes">
         <h4>Historial de eliminaciones</h4>

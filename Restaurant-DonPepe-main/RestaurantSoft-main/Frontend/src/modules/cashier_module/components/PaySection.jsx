@@ -112,7 +112,7 @@ const PaySection = () => {
 
             allItems.push({
               type: item.categoria || item.category || "Principal",
-              ready: true,
+              ready: item.listo_en_cocina === true,
               name: item.nombre,
               quantity: cantidad,
               unitPrice: precio,

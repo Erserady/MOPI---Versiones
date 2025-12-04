@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Receipt, Printer, CreditCard, CircleCheckBig, Clock, X } from "lucide-react";
+import { Receipt, Printer, CreditCard, CircleCheckBig, Wine, X } from "lucide-react";
 import PayDialog from "./PayDialog";
 import OrderDetailsModal from "./OrderDetailsModal";
 import ReceiptPrinter from "./ReceiptPrinter";
+import { actualizarEstadoPlatillo } from "../../../services/cookService";
 
 // Categorias/keywords que NO pasan por cocina (bebidas/bar)
 const CATEGORY_EXCLUDE_LIST = [
@@ -51,58 +52,168 @@ const PayCard = ({ order, onOrderUpdate }) => {
   const [showReceipt, setShowReceipt] = useState(false);
   const [overrideKitchen, setOverrideKitchen] = useState(false);
   const [showPendingDrinks, setShowPendingDrinks] = useState(false);
+  // deliveredBeverages guarda estado entregado por refId (itemUid)
   const [deliveredBeverages, setDeliveredBeverages] = useState({});
+  const storageKey = useMemo(() => {
+    const base =
+      order?.id ||
+      order?.orderId ||
+      order?.tableId ||
+      order?.tableNumber ||
+      "unknown";
+    return `deliveredBeverages:${base}`;
+  }, [order?.id, order?.orderId, order?.tableId, order?.tableNumber]);
+
+  // Hidratar desde sessionStorage
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          setDeliveredBeverages(parsed);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [storageKey]);
 
   const handleOrderCancelled = () => {
     setDetailsModalOpen(false);
     if (onOrderUpdate) onOrderUpdate();
   };
 
-  const nonCookableItems = useMemo(() => {
-    const grouped = new Map();
-    (order.accounts || []).forEach((account) => {
-      (account.items || []).forEach((item) => {
+  // Lista base de items de bar (sin agrupar)
+  const rawNonCookableItems = useMemo(() => {
+    const items = [];
+    (order.accounts || []).forEach((account, accIdx) => {
+      (account.items || []).forEach((item, idx) => {
         if (!isNonCookableItem(item)) return;
         const name = item.name || item.nombre || "Bebida";
         const price = Number(item.unitPrice ?? item.precio ?? 0);
         const note = item.nota || "";
         const category = item.category || item.categoria || "Bebidas";
-        const key = `${normalizeText(name)}|${price}|${normalizeText(category)}|${normalizeText(note)}`;
-        if (!grouped.has(key)) {
-          grouped.set(key, {
-            key,
-            name,
-            category,
-            unitPrice: price,
-            note,
-            quantity: 0,
-          });
-        }
-        const entry = grouped.get(key);
-        entry.quantity += Number(item.quantity || item.cantidad || 0) || 1;
+        const orderKey = item.orderDbId || item.orderIdentifier || item.orderId || `ord-${accIdx}`;
+        const uid =
+          item.itemUid ||
+          item.item_uid ||
+          item.uid ||
+          item.id ||
+          `${orderKey}-${idx}`;
+        const key = `${orderKey}|${uid}`;
+        const qty = Number(item.quantity || item.cantidad || item.qty || 1) || 1;
+        items.push({
+          key,
+          baseKey: key,
+          name,
+          category,
+          unitPrice: price,
+          note,
+          totalQty: qty,
+          refs: [
+            {
+              orderId: item.orderDbId,
+              itemUid: uid,
+              ready: item.ready === true,
+            },
+          ],
+          backendReady: item.ready === true,
+          refId: uid,
+          orderKey,
+          note,
+          price,
+        });
       });
     });
-    const result = Array.from(grouped.values()).map((item) => ({
-      ...item,
-      key: `${item.key}|q${item.quantity}`,
-    }));
-    return result;
+    return items;
   }, [order.accounts]);
+
+  // Genera filas para UI separando pendientes vs entregadas por cantidad
+  const nonCookableItems = useMemo(() => {
+    const buildKey = (d) =>
+      `${normalizeText(d.name)}|${d.price}|${normalizeText(d.category)}|${normalizeText(d.note)}`;
+
+    const pendingMap = new Map();
+    const deliveredMap = new Map();
+    rawNonCookableItems.forEach((item) => {
+      const refId = item.refId;
+      const isDelivered = item.backendReady || deliveredBeverages[refId];
+      const gKey = buildKey(item);
+
+      if (isDelivered) {
+        if (!deliveredMap.has(gKey)) {
+          deliveredMap.set(gKey, {
+            key: `${gKey}|ready`,
+            name: item.name,
+            category: item.category,
+            unitPrice: item.unitPrice,
+            note: item.note,
+            quantity: 0,
+            refs: [],
+            allReady: true,
+            baseKey: item.baseKey,
+          });
+        }
+        const g = deliveredMap.get(gKey);
+        g.quantity += item.totalQty;
+        g.refs.push(...item.refs);
+      } else {
+        if (!pendingMap.has(gKey)) {
+          pendingMap.set(gKey, {
+            key: `${gKey}|pending`,
+            name: item.name,
+            category: item.category,
+            unitPrice: item.unitPrice,
+            note: item.note,
+            quantity: 0,
+            refs: [],
+            refIds: [],
+            allReady: false,
+            baseKey: item.baseKey,
+          });
+        }
+        const g = pendingMap.get(gKey);
+        g.quantity += item.totalQty;
+        g.refs.push(...item.refs);
+        g.refIds.push(item.refId);
+      }
+    });
+
+    const rows = [...pendingMap.values(), ...deliveredMap.values()];
+    return rows.sort((a, b) => Number(a.allReady) - Number(b.allReady));
+  }, [rawNonCookableItems, deliveredBeverages]);
+
+  const pendingGroups = useMemo(
+    () => nonCookableItems.filter((item) => !item.allReady),
+    [nonCookableItems]
+  );
+  const deliveredGroups = useMemo(
+    () => nonCookableItems.filter((item) => item.allReady),
+    [nonCookableItems]
+  );
 
   useEffect(() => {
     setDeliveredBeverages((prev) => {
       const next = {};
-      nonCookableItems.forEach((item) => {
-        next[item.key] = prev[item.key] || false;
+      rawNonCookableItems.forEach((item) => {
+        const backendReady = item.backendReady ? true : false;
+        const prevVal = prev[item.refId] ?? false;
+        next[item.refId] = backendReady || prevVal;
       });
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(next));
+      } catch (e) {
+        // ignore
+      }
       return next;
     });
-  }, [nonCookableItems]);
+  }, [rawNonCookableItems, storageKey]);
 
   useEffect(() => {
     const allDelivered =
       nonCookableItems.length > 0 &&
-      nonCookableItems.every((item) => deliveredBeverages[item.key]);
+      nonCookableItems.every((item) => item.allReady || deliveredBeverages[item.key]);
     setOverrideKitchen(allDelivered);
     if (!nonCookableItems.length) {
       setShowPendingDrinks(false);
@@ -110,9 +221,12 @@ const PayCard = ({ order, onOrderUpdate }) => {
   }, [deliveredBeverages, nonCookableItems]);
 
   const hasNonCookableItems = nonCookableItems.length > 0;
-  const anyBeverageDelivered = Object.values(deliveredBeverages).some(Boolean);
+  const anyBeverageDelivered = rawNonCookableItems.some(
+    (item) => item.backendReady || deliveredBeverages[item.refId]
+  );
   const allBeveragesDelivered =
-    hasNonCookableItems && nonCookableItems.every((item) => deliveredBeverages[item.key]);
+    rawNonCookableItems.length > 0 &&
+    rawNonCookableItems.every((item) => item.backendReady || deliveredBeverages[item.refId]);
 
   const nonCookableBlocked = order.nonCookableOnly && !overrideKitchen;
   const kitchenBlocked = !!order.kitchenHold || nonCookableBlocked;
@@ -160,19 +274,59 @@ const PayCard = ({ order, onOrderUpdate }) => {
     setShowReceipt(true);
   };
 
-  const handleToggleBeverage = (key) => {
+  const persistBeverageRefs = async (refs) => {
+    const targets = (refs || []).filter((ref) => ref.orderId && ref.itemUid);
+    if (!targets.length) return false;
+    try {
+      await Promise.all(
+        targets.map((ref) => actualizarEstadoPlatillo(ref.orderId, ref.itemUid, true))
+      );
+      return true;
+    } catch (err) {
+      console.error("No se pudo marcar bebida como entregada en backend:", err);
+      return false;
+    }
+  };
+
+  const handleToggleBeverage = async (key) => {
+    const beverage = nonCookableItems.find((i) => i.key === key);
+    if (!beverage) return;
+    const refsToPersist = (beverage.refs || []).filter((ref) => !ref.ready);
+    const success = await persistBeverageRefs(refsToPersist);
+    if (!success) return;
+
     setDeliveredBeverages((prev) => {
-      if (prev[key]) return prev;
-      return { ...prev, [key]: true };
+      const next = { ...prev };
+      (beverage.refIds || beverage.refs || []).forEach((idOrRef) => {
+        const refId = typeof idOrRef === "string" ? idOrRef : idOrRef.itemUid || idOrRef.orderId;
+        if (refId) next[refId] = true;
+      });
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(next));
+      } catch (e) {
+        // ignore
+      }
+      return next;
     });
   };
 
-  const handleMarkAllBeverages = () => {
+  const handleMarkAllBeverages = async () => {
+    const allRefs = nonCookableItems.flatMap((item) =>
+      (item.refs || []).filter((ref) => !ref.ready)
+    );
+    const success = await persistBeverageRefs(allRefs);
+    if (!success && allRefs.length) return;
+
     const next = {};
-    nonCookableItems.forEach((item) => {
-      next[item.key] = true;
+    rawNonCookableItems.forEach((item) => {
+      next[item.refId] = true;
     });
     setDeliveredBeverages(next);
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(next));
+    } catch (e) {
+      // ignore
+    }
   };
 
   return (
@@ -184,27 +338,53 @@ const PayCard = ({ order, onOrderUpdate }) => {
       >
         <section className="pay-card-body">
           <div className="pay-card-header">
-            <Receipt size={30} />
-            <div className="pay-card-text">
-              <h2 className="pay-card-title">Mesa {order.tableNumber}</h2>
-              <p className="pay-card-subtitle">
-                <span className="waiter">Mesero:</span> {order.waiter}
-              </p>
-              <p className="pay-card-subtitle">
-                <span className="account">Estado:</span>{" "}
-                {formatStatus(
-                  order.status || order.kitchenStatuses?.[0]?.estado || "desconocido"
-                )}
-              </p>
-              <p className="pay-card-subtitle">
-                <span className="account">Cuentas pendientes:</span>{" "}
-                {order.accounts.filter((item) => item.isPaid == false).length}{" "}
-              </p>
-              <span className="pay-card-total">
-                <span className="total">Total:</span> C${order.total.toFixed(2)}
-              </span>
+            <div className="pay-card-header__left">
+              <Receipt size={30} />
+              <div className="pay-card-text">
+                <h2 className="pay-card-title">Mesa {order.tableNumber}</h2>
+                <p className="pay-card-subtitle">
+                  <span className="waiter">Mesero:</span> {order.waiter}
+                </p>
+                <p className="pay-card-subtitle">
+                  <span className="account">Estado:</span>{" "}
+                  {formatStatus(
+                    order.status || order.kitchenStatuses?.[0]?.estado || "desconocido"
+                  )}
+                </p>
+                <p className="pay-card-subtitle">
+                  <span className="account">Cuentas pendientes:</span>{" "}
+                  {order.accounts.filter((item) => item.isPaid == false).length}{" "}
+                </p>
+                <span className="pay-card-total">
+                  <span className="total">Total:</span> C${order.total.toFixed(2)}
+                </span>
+              </div>
             </div>
-          </div>
+            {hasNonCookableItems && (
+              <button
+                className={`shadow pending-drinks compact ${allBeveragesDelivered ? "delivered" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPendingDrinks(true);
+                }}
+                aria-label={
+                  allBeveragesDelivered
+                    ? "Bebidas entregadas"
+                    : "Bebidas pendientes por entregar"
+                }
+                title={
+              allBeveragesDelivered
+                ? "Bebidas entregadas"
+                : "Bebidas pendientes por entregar"
+            }
+          >
+            <span className="pending-drinks__icon-set" aria-hidden="true">
+              <Wine size={18} className="pending-drinks__icon glass glass--left" />
+              <Wine size={18} className="pending-drinks__icon glass glass--right" />
+            </span>
+          </button>
+        )}
+      </div>
           {kitchenBlocked && (
             <div className="pay-card-subtitle" style={{ color: "#dc2626" }}>
               Atencion: Pedido no entregado
@@ -228,24 +408,6 @@ const PayCard = ({ order, onOrderUpdate }) => {
                 <Printer size={20} /> Imprimir Ticket
               </button>
             </div>
-            {hasNonCookableItems && (
-              <button
-                className="shadow pending-drinks"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPendingDrinks(true);
-                }}
-                title={
-                  allBeveragesDelivered
-                    ? "Todas las bebidas ya fueron marcadas como entregadas."
-                    : "Marca las bebidas/bar que ya entregaste."
-                }
-              >
-                <Clock size={18} />
-                Bebidas pendientes
-                {allBeveragesDelivered && <CircleCheckBig size={16} />}
-              </button>
-            )}
           </div>
         </section>
         <div className="check-paid" style={{ display: "none" }}>
@@ -255,50 +417,133 @@ const PayCard = ({ order, onOrderUpdate }) => {
 
       {showPendingDrinks && (
         <div className="pending-drinks-overlay" onClick={() => setShowPendingDrinks(false)}>
-          <div
-            className="pending-drinks-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="pending-drinks-header">
+          <div className="beverage-modal" onClick={(e) => e.stopPropagation()}>
+            <header className="beverage-modal__header">
               <div>
-                <h3>Bebidas pendientes</h3>
-                <p>Marca las bebidas de bar como entregadas para desbloquear el cobro.</p>
+                <p className="beverage-modal__eyebrow">Control de bar</p>
+                <h3>{allBeveragesDelivered ? "Bebidas" : "Bebidas pendientes"}</h3>
+                <span
+                  className={`beverage-modal__status ${
+                    allBeveragesDelivered ? "" : "pending"
+                  }`}
+                >
+                  {allBeveragesDelivered ? "Todo entregado" : "Faltan bebidas"}
+                </span>
+                <p className="beverage-modal__subtitle">
+                  {allBeveragesDelivered
+                    ? "Todas las bebidas están registradas como entregadas."
+                    : "Marca las bebidas de bar como entregadas para desbloquear el cobro."}
+                </p>
               </div>
-              <button className="pending-drinks-close" onClick={() => setShowPendingDrinks(false)}>
+              <button
+                className="beverage-modal__close"
+                onClick={() => setShowPendingDrinks(false)}
+                aria-label="Cerrar"
+              >
                 <X size={18} />
               </button>
-            </div>
-            <div className="pending-drinks-list">
-              {nonCookableItems.map((item) => (
-                <label key={item.key} className="pending-drinks-item">
-                  <div className="pending-drinks-info">
-                    <span className="pending-drinks-name">{item.name}</span>
-                    <div className="pending-drinks-meta">
-                      <span className="pending-drinks-qty">x{item.quantity}</span>
-                      <span className="pending-drinks-tag">{item.category}</span>
-                    </div>
-                    {item.note && <small className="pending-drinks-note">Nota: {item.note}</small>}
+            </header>
+
+            <div className="beverage-modal__body">
+              <section className="beverage-panel">
+                <div className="beverage-panel__head">
+                  <div>
+                    <p className="beverage-panel__eyebrow">Pendientes</p>
+                    <h4 className="beverage-panel__title">Por entregar</h4>
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={!!deliveredBeverages[item.key]}
-                    disabled={!!deliveredBeverages[item.key]}
-                    onChange={() => handleToggleBeverage(item.key)}
-                  />
-                </label>
-              ))}
+                  <span
+                    className={`badge ${
+                      pendingGroups.length ? "badge--warning" : "badge--success"
+                    }`}
+                  >
+                    {pendingGroups.length} items
+                  </span>
+                </div>
+
+                {pendingGroups.length ? (
+                  <div className="beverage-list">
+                    {pendingGroups.map((item) => (
+                      <div key={item.key} className="beverage-row">
+                        <div className="beverage-row__info">
+                          <span className="beverage-row__title">{item.name}</span>
+                          <div className="beverage-row__meta">
+                            <span className="badge badge--warning">x{item.quantity}</span>
+                            <span className="badge badge--cat">{item.category}</span>
+                            {item.note && (
+                              <span className="beverage-row__note">Nota: {item.note}</span>
+                            )}
+                          </div>
+                        </div>
+                        <label className="beverage-row__toggle">
+                          <input
+                            type="checkbox"
+                            checked={false}
+                            onChange={() => handleToggleBeverage(item.key)}
+                          />
+                          Entregar
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="beverage-empty">
+                    No hay bebidas pendientes de entrega en este momento.
+                  </div>
+                )}
+              </section>
+
+              <section className="beverage-panel muted">
+                <div className="beverage-panel__head">
+                  <div>
+                    <p className="beverage-panel__eyebrow">Entregadas</p>
+                    <h4 className="beverage-panel__title">Historial reciente</h4>
+                  </div>
+                  <span className="badge badge--success">
+                    {deliveredGroups.length} items
+                  </span>
+                </div>
+
+                {deliveredGroups.length ? (
+                  <div className="beverage-list">
+                    {deliveredGroups.map((item) => (
+                      <div key={item.key} className="beverage-row is-delivered">
+                        <div className="beverage-row__info">
+                          <span className="beverage-row__title">{item.name}</span>
+                          <div className="beverage-row__meta">
+                            <span className="badge badge--success">x{item.quantity}</span>
+                            <span className="badge badge--cat">{item.category}</span>
+                            {item.note && (
+                              <span className="beverage-row__note">Nota: {item.note}</span>
+                            )}
+                          </div>
+                        </div>
+                        <label className="beverage-row__toggle" aria-label="Entregado">
+                          <input type="checkbox" checked readOnly />
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="beverage-empty">
+                    Aún no hay bebidas marcadas como entregadas.
+                  </div>
+                )}
+              </section>
             </div>
-            <div className="pending-drinks-footer">
-              <button className="pending-drinks-secondary" onClick={() => setShowPendingDrinks(false)}>
-                Cerrar
-              </button>
-              <button
-                className="pending-drinks-primary"
-                onClick={handleMarkAllBeverages}
-                disabled={allBeveragesDelivered}
-              >
-                {allBeveragesDelivered ? "Todo entregado" : "Marcar todo entregado"}
-              </button>
+
+            <div className="beverage-modal__footer">
+              <div className="beverage-modal__actions">
+                <button className="btn-ghost" onClick={() => setShowPendingDrinks(false)}>
+                  Cerrar
+                </button>
+                <button
+                  className="btn-cta"
+                  onClick={handleMarkAllBeverages}
+                  disabled={pendingGroups.length === 0}
+                >
+                  {allBeveragesDelivered ? "Todo entregado" : "Marcar todo entregado"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

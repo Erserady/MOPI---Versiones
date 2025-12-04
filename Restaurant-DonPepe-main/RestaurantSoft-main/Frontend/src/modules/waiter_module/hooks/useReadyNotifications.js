@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const READY_STATUS = "entregado";
+const READY_STATUS = "listo";
 const PREPARING_STATUS = "en_preparacion";
 const MAX_NOTIFICATIONS = 15;
 
@@ -32,7 +32,7 @@ const buildNotification = (order, cacheKey, notificationType) => {
   const timestamp = Date.now();
 
   const messages = {
-    entregado: `La cocina marco la orden ${orderLabel} de la mesa ${mesaLabel} como entregada.`,
+    listo: `La cocina marcó la orden ${orderLabel} de la mesa ${mesaLabel} como lista.`,
     en_preparacion: `La cocina comenzo a preparar la orden ${orderLabel} de la mesa ${mesaLabel}.`,
   };
 

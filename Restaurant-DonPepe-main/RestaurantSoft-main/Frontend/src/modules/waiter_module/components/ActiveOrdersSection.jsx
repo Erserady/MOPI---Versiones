@@ -2,16 +2,16 @@ import React, { useEffect, useState } from "react";
 import { getOrdenes } from "../../../services/waiterService";
 import { getCurrentUserId } from "../../../utils/auth";
 import { cambiarEstadoOrden } from "../../../services/cookService";
-import { Receipt, DollarSign, Eye } from "lucide-react";
+import { Receipt, DollarSign, Eye, UtensilsCrossed, Wine } from "lucide-react";
 import AlertModal from "../../../components/AlertModal";
 import PreFacturaModal from "./PreFacturaModal";
 import { useNavigate } from "react-router-dom";
 
 const estadoColors = {
-  pendiente: "#CD5C5C",
-  entregado: "#FFA500",
-  listo: "#57c84dff",
-  en_preparacion: "#FF6B35",
+  pendiente: "#ef4444", // rojo
+  en_preparacion: "#f59e0b", // amarillo
+  listo: "#3b82f6", // azul
+  entregado: "#22c55e", // verde
   servido: "#20B2AA",
   payment_requested: "#f59e0b",
   prefactura_enviada: "#6366f1",
@@ -21,12 +21,12 @@ const estadoColors = {
 
 const estadoLabels = {
   pendiente: "Pendiente",
-  entregado: "Entregado",
+  en_preparacion: "En cocina",
   listo: "Listo",
-  en_preparacion: "🔥 Preparando",
+  entregado: "Entregado",
   servido: "Servido",
-  payment_requested: "💰 Cuenta Solicitada",
-  prefactura_enviada: "📋 Pre-factura Enviada",
+  payment_requested: "Cuenta solicitada",
+  prefactura_enviada: "Pre-factura enviada",
   facturado: "Facturado",
   pagado: "Pagado",
 };
@@ -56,6 +56,90 @@ const ActiveOrdersSection = ({ orders: externalOrders = null, embedded = false }
     } catch {
       return [];
     }
+  };
+
+  const normalizeText = (value) =>
+    (value || "")
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  const isNonCookableItem = (item = {}) => {
+    const COOKABLE_NAME_WHITELIST = [
+      "filete de tacon alto",
+      "filete de tacón alto",
+      "filete minon",
+      "filete miñon",
+      "filete mion",
+      "filete criollo",
+      "puyaso a la parrilla",
+      "new york asado",
+      "filete de res a la pimienta",
+    ];
+
+    if (item.preparable_en_cocina === false) return true;
+    if (item.preparable_en_cocina === true) return false;
+
+    const category = normalizeText(item.categoria || item.category || item.tipo || "");
+    const CATEGORY_EXCLUDE_LIST = [
+      "licores importados",
+      "cerveza nacional",
+      "cerveza internacional",
+      "coctails y vinos",
+      "cocteles y vinos",
+      "ron nacional",
+      "enlatados y desechables",
+      "cigarros",
+    ];
+    if (CATEGORY_EXCLUDE_LIST.some((c) => normalizeText(c) === category)) return true;
+
+    const name = normalizeText(item.nombre || item.name || item.dishName || "");
+    if (COOKABLE_NAME_WHITELIST.includes(name)) return false;
+
+    const PRODUCT_NAME_KEYWORDS = ["hielo", "empaque", "valde", "cafe", "limon"];
+    if (!name) return false;
+    return PRODUCT_NAME_KEYWORDS.some((kw) => name.includes(normalizeText(kw)));
+  };
+
+  const getDeliveryStatus = (items = []) => {
+    const cookable = [];
+    const beverages = [];
+
+    items.forEach((item) => {
+      if (isNonCookableItem(item)) {
+        beverages.push(item);
+      } else {
+        cookable.push(item);
+      }
+    });
+
+    const allFoodReady =
+      cookable.length > 0 && cookable.every((i) => i.listo_en_cocina === true);
+    const drinkDelivered = (item) => {
+      if (Object.prototype.hasOwnProperty.call(item, "entregado_en_caja")) {
+        return item.entregado_en_caja === true;
+      }
+      if (Object.prototype.hasOwnProperty.call(item, "entregado_por_caja")) {
+        return item.entregado_por_caja === true;
+      }
+      if (Object.prototype.hasOwnProperty.call(item, "entregado")) {
+        return item.entregado === true;
+      }
+      if (Object.prototype.hasOwnProperty.call(item, "listo_en_cocina")) {
+        return item.listo_en_cocina === true;
+      }
+      return false;
+    };
+    const allDrinksReady = beverages.length > 0 && beverages.every((i) => drinkDelivered(i));
+
+    return {
+      hasFood: cookable.length > 0,
+      hasDrinks: beverages.length > 0,
+      foodReady: cookable.length === 0 ? false : allFoodReady,
+      drinksReady: beverages.length === 0 ? false : allDrinksReady,
+    };
   };
 
   // Procesar órdenes (desde prop o fetch)
@@ -153,7 +237,56 @@ const ActiveOrdersSection = ({ orders: externalOrders = null, embedded = false }
       ) : (
         orders.map((order) => {
             const items = parsePedido(order.pedido);
-            const estadoColor = estadoColors[order.estado] || "#cccccc"; // fallback
+            const { hasFood, hasDrinks, foodReady, drinksReady } = getDeliveryStatus(items);
+
+            const baseEstado = order.estado || "pendiente";
+            const billingStates = ["payment_requested", "prefactura_enviada", "facturado", "pagado"];
+            const onlyDrinks = hasDrinks && !hasFood;
+            const onlyFood = hasFood && !hasDrinks;
+            const bothTypes = hasFood && hasDrinks;
+
+            let visualBorderState = baseEstado;
+            if (!billingStates.includes(baseEstado)) {
+              if (onlyDrinks) {
+                // Bebidas pasan de pendiente (rojo) a listo (azul) al entregarse
+                visualBorderState = drinksReady ? "listo" : "pendiente";
+              } else if (onlyFood) {
+                // Cocina solo: cuando todo está listo/entregado, mostrar azul
+                if (foodReady) {
+                  visualBorderState = "listo";
+                } else {
+                  visualBorderState = baseEstado;
+                }
+              } else if (bothTypes) {
+                const allDelivered = foodReady && drinksReady;
+                if (allDelivered) {
+                  // Todo entregado: azul
+                  visualBorderState = "listo";
+                } else {
+                  // Mientras falte bebida no subir a azul/verde
+                  if (baseEstado === "listo" || baseEstado === "entregado") {
+                    visualBorderState = "en_preparacion";
+                  } else {
+                    visualBorderState = baseEstado;
+                  }
+                }
+              }
+            }
+
+            const bebidasLabel = !hasDrinks
+              ? "Bebidas: No aplica"
+              : drinksReady
+              ? "Bebidas: Entregado"
+              : "Bebidas: Pendiente";
+            const bebidasColor = !hasDrinks
+              ? "#94a3b8"
+              : drinksReady
+              ? "#16a34a"
+              : "#dc2626";
+
+            const estadoColor = estadoColors[visualBorderState] || "#cccccc"; // fallback
+            const estadoLabel = estadoLabels[baseEstado] || capitalizeFirstLetter(baseEstado);
+            const estadoTextColor = estadoColors[baseEstado] || "#cccccc";
             {
               /**Quitar linea de filtro si se desea ver facturados */
             }
@@ -171,6 +304,7 @@ const ActiveOrdersSection = ({ orders: externalOrders = null, embedded = false }
                   gap: "12px",
                   border: `3px solid ${estadoColor}`,
                   cursor: "pointer",
+                  position: "relative",
                 }}
                 onClick={() => {
                   const mesaId =
@@ -200,9 +334,21 @@ const ActiveOrdersSection = ({ orders: externalOrders = null, embedded = false }
                     Mesa {order.mesa ?? order.tableNumber ?? order.mesa_id ?? order.order_id}
                   </h3>
 
-                  <p style={{ margin: "4px 0", color: estadoColor, fontWeight: "700", fontSize: "14px" }}>
-                    Estado: <b>{estadoLabels[order.estado] || capitalizeFirstLetter(order.estado)}</b>
-                  </p>
+                  {hasFood && (
+                    <p style={{ margin: "4px 0", color: estadoTextColor, fontSize: "14px" }}>
+                      <span style={{ fontWeight: "700" }}>Estado:</span>{" "}
+                      <span style={{ fontWeight: "500" }}>{estadoLabel}</span>
+                    </p>
+                  )}
+
+                  {hasDrinks && (
+                    <p style={{ margin: "4px 0", color: bebidasColor, fontSize: "14px" }}>
+                      <span style={{ fontWeight: "700" }}>Bebidas:</span>{" "}
+                      <span style={{ fontWeight: "500" }}>
+                        {bebidasLabel.replace("Bebidas: ", "")}
+                      </span>
+                    </p>
+                  )}
 
                   <p style={{ margin: "0", color: "#6b6b6b" }}>
                     Mesero: {order.waiterName ?? "—"}
@@ -211,6 +357,81 @@ const ActiveOrdersSection = ({ orders: externalOrders = null, embedded = false }
                   <p style={{ margin: "0", color: "#333", fontWeight: "600" }}>
                     {order.nota}
                   </p>
+                </div>
+
+                <div style={{ position: "absolute", top: "12px", right: "12px", display: "flex", gap: "6px" }}>
+                  <div
+                    title={hasFood ? (foodReady ? "Platillos listos/entregados" : "Platillos pendientes") : "Sin platillos de cocina"}
+                    style={{
+                      position: "relative",
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "10px",
+                      background: !hasFood
+                        ? "rgba(239,68,68,0.12)"
+                        : foodReady
+                        ? "rgba(16,185,129,0.12)"
+                        : "rgba(148,163,184,0.22)",
+                      color: !hasFood
+                        ? "#dc2626"
+                        : foodReady
+                        ? "#16a34a"
+                        : "#94a3b8",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1px solid rgba(15,23,42,0.08)",
+                    }}
+                  >
+                    <UtensilsCrossed size={16} />
+                    {!hasFood && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          width: "38px",
+                          height: "2px",
+                          background: "rgba(220,38,38,0.8)",
+                          transform: "rotate(-20deg)",
+                        }}
+                      ></span>
+                    )}
+                  </div>
+                  <div
+                    title={hasDrinks ? (drinksReady ? "Bebidas/bar entregadas" : "Bebidas/bar pendientes") : "Sin bebidas de bar"}
+                    style={{
+                      position: "relative",
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "10px",
+                      background: !hasDrinks
+                        ? "rgba(239,68,68,0.12)"
+                        : drinksReady
+                        ? "rgba(16,185,129,0.12)"
+                        : "rgba(148,163,184,0.22)",
+                      color: !hasDrinks
+                        ? "#dc2626"
+                        : drinksReady
+                        ? "#16a34a"
+                        : "#94a3b8",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1px solid rgba(15,23,42,0.08)",
+                    }}
+                  >
+                    <Wine size={16} />
+                    {!hasDrinks && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          width: "38px",
+                          height: "2px",
+                          background: "rgba(220,38,38,0.8)",
+                          transform: "rotate(-20deg)",
+                        }}
+                      ></span>
+                    )}
+                  </div>
                 </div>
 
                 <div

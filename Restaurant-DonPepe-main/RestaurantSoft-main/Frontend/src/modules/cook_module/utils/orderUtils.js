@@ -116,6 +116,19 @@ const matchesAnyCategory = (value, categories) => {
 // Palabras clave para productos especiales que tampoco van a cocina
 const PRODUCT_NAME_KEYWORDS = ["hielo", "empaque", "valde", "cafe", "limon"];
 
+// Nombres que deben ir a cocina aunque parezcan excluidos
+const COOKABLE_NAME_WHITELIST = [
+  "filete de tacon alto",
+  "filete de tacón alto",
+  "filete minon",
+  "filete miñon",
+  "filete mion",
+  "filete criollo",
+  "puyaso a la parrilla",
+  "new york asado",
+  "filete de res a la pimienta",
+];
+
 const containsAnyKeyword = (name, keywords) => {
   if (!name) return false;
   const normalized = normalizeText(name);
@@ -144,6 +157,12 @@ const shouldFilterItem = (item = {}) => {
 
   // 2. Si no hay categoría, filtrar por nombre del producto
   const productName = item.nombre || item.name || item.dishName || '';
+
+  // Lista blanca: nunca filtrar si está en whitelist
+  if (normalizeText(productName) && COOKABLE_NAME_WHITELIST.includes(normalizeText(productName))) {
+    return false;
+  }
+
   if (containsAnyKeyword(productName, PRODUCT_NAME_KEYWORDS)) {
     return true;
   }

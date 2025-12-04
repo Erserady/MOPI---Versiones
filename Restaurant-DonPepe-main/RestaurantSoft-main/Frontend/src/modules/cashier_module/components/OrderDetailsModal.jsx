@@ -148,14 +148,6 @@ const OrderDetailsModal = ({
   };
 
   const handlePriceChange = (itemIndex, value) => {
-    if (preventAccountDeletion) {
-      showAlert(
-        "warning",
-        "No permitido",
-        "No puedes editar precios porque la cuenta ya fue marcada o entregada."
-      );
-      return;
-    }
     const parsed = value === "" ? 0 : parseFloat(value);
     if (!Number.isFinite(parsed) || parsed < 0) {
       showAlert("warning", "Precio invalido", "Ingresa un numero mayor o igual a 0.", false);
@@ -171,14 +163,6 @@ const OrderDetailsModal = ({
   };
 
   const handleOpenEditPriceModal = () => {
-    if (preventAccountDeletion) {
-      showAlert(
-        "warning",
-        "No permitido",
-        "No puedes editar precios porque la cuenta ya fue marcada o entregada."
-      );
-      return;
-    }
     setEditPriceModalOpen(true);
   };
 
@@ -646,7 +630,7 @@ const OrderDetailsModal = ({
           <button
             className="transaction-modal-btn-primary"
             onClick={handleOpenEditPriceModal}
-            disabled={sending || deleting || preventAccountDeletion}
+            disabled={sending || deleting}
             style={{
               background: "#0ea5e9",
               color: "white",

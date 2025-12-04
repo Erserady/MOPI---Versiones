@@ -157,6 +157,18 @@ const OrderSection = () => {
           readyCount: items.filter((item) => item.listo_en_cocina).length,
           createdAt: orden.created_at,
           waiterName: orden.waiter_name,
+          items: items.map((item) => ({
+            nombre: item.nombre || item.name || "Platillo",
+            cantidad: item.cantidad || 1,
+            nota:
+              item.nota ||
+              item.note ||
+              item.description ||
+              item.comentarios ||
+              item.observaciones ||
+              "",
+            listo: !!item.listo_en_cocina,
+          })),
         };
       })
       .sort((a, b) => {
@@ -165,6 +177,51 @@ const OrderSection = () => {
         return db - da;
       });
   }, [ordenesHistoricas]);
+
+  const historyDishes = useMemo(() => {
+    return historyToday.flatMap((orden) =>
+      (orden.items || []).map((item, idx) => ({
+        id: `${orden.id}-${idx}`,
+        orderNumber: orden.orderNumber,
+        tableNumber: orden.tableNumber,
+        waiterName: orden.waiterName,
+        createdAt: orden.createdAt,
+        estado: orden.status,
+        ...item,
+      }))
+    );
+  }, [historyToday]);
+
+  const orderGroupColorMap = useMemo(() => {
+    const palette = [
+      "#6366f1",
+      "#ec4899",
+      "#14b8a6",
+      "#f59e0b",
+      "#3b82f6",
+      "#a855f7",
+      "#10b981",
+      "#ef4444",
+    ];
+    const map = {};
+    let idx = 0;
+    historyDishes.forEach((row) => {
+      const key = row.orderNumber || row.tableNumber || row.id;
+      if (!map[key]) {
+        map[key] = palette[idx % palette.length];
+        idx += 1;
+      }
+    });
+    return map;
+  }, [historyDishes]);
+
+  const orderGroupCounts = useMemo(() => {
+    return historyDishes.reduce((acc, row) => {
+      const key = row.orderNumber || row.tableNumber || "—";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+  }, [historyDishes]);
 
   // Agrupar platillos de todas las órdenes
   const dishGroups = useMemo(() => {
@@ -484,15 +541,15 @@ const OrderSection = () => {
                 <ListChecks size={24} />
                 <div>
                   <h2>Historial</h2>
-                  <p>Pedidos del día (reinicia con nueva caja)</p>
+                  <p>Platillos servidos hoy (reinicia con nueva caja)</p>
                 </div>
               </div>
-              <span className="section-badge">{historyToday.length} pedidos</span>
+              <span className="section-badge">{historyDishes.length} platillos</span>
             </div>
 
-            {historyToday.length === 0 ? (
+            {historyDishes.length === 0 ? (
               <div className="kitchen-board__empty">
-                <p>No hay pedidos registrados hoy.</p>
+                <p>No hay platillos registrados hoy.</p>
               </div>
             ) : (
               <div className="history-table-wrapper">
@@ -502,24 +559,45 @@ const OrderSection = () => {
                       <th>Hora</th>
                       <th>Mesa</th>
                       <th>Orden</th>
+                      <th>Platillo</th>
+                      <th>Cant.</th>
                       <th>Estado</th>
-                      <th>Platillos</th>
+                      <th>Comentario</th>
                       <th>Mesero</th>
                     </tr>
                   </thead>
                   <tbody className="tbody-class">
-                    {historyToday.map((orden) => (
-                      <tr key={orden.id}>
-                        <td>{formatDateTime(orden.createdAt)}</td>
-                        <td>{orden.tableNumber || "Sin mesa"}</td>
-                        <td>{orden.orderNumber || "—"}</td>
-                        <td style={{ textTransform: "capitalize" }}>
-                          {STATUS_LABELS[orden.status] || orden.status}
-                        </td>
+                    {historyDishes.map((row) => (
+                      <tr
+                        key={row.id}
+                        style={{
+                          borderLeft: `5px solid ${orderGroupColorMap[row.orderNumber || row.tableNumber || row.id]}`,
+                          background: "linear-gradient(90deg, rgba(15,23,42,0.04), rgba(15,23,42,0.01))",
+                        }}
+                      >
+                        <td>{formatDateTime(row.createdAt)}</td>
+                        <td>{row.tableNumber || "Sin mesa"}</td>
                         <td>
-                          {orden.readyCount}/{orden.itemsCount} listos
+                          <span
+                            className="order-group-chip"
+                            style={{
+                              background: `${orderGroupColorMap[row.orderNumber || row.tableNumber || row.id]}20`,
+                              color: orderGroupColorMap[row.orderNumber || row.tableNumber || row.id],
+                            }}
+                          >
+                            {row.orderNumber || "Orden"}
+                            <small>{orderGroupCounts[row.orderNumber || row.tableNumber || "—"] || 1} platillos</small>
+                          </span>
                         </td>
-                        <td>{orden.waiterName || "N/D"}</td>
+                        <td>{row.nombre}</td>
+                        <td>{row.cantidad}</td>
+                        <td style={{ textTransform: "capitalize" }}>
+                          {row.listo ? "Listo" : (STATUS_LABELS[row.estado] || row.estado)}
+                        </td>
+                        <td style={{ maxWidth: "280px", whiteSpace: "pre-wrap" }}>
+                          {row.nota ? row.nota : "—"}
+                        </td>
+                        <td>{row.waiterName || "N/D"}</td>
                       </tr>
                     ))}
                   </tbody>

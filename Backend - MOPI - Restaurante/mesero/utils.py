@@ -83,6 +83,12 @@ PRODUCT_NAME_KEYWORDS = [
     "del valle",
 ]
 
+# Lista blanca de nombres que SIEMPRE van a cocina aunque parezcan bebida/categoria excluida
+COOKABLE_NAME_WHITELIST = [
+    "filete de tacon alto",
+    "filete de tacón alto",
+]
+
 
 def _normalize_text(value):
     if not value:
@@ -114,6 +120,13 @@ def is_cookable_item(item):
     if not isinstance(item, dict):
         return True
 
+    name = item.get("nombre") or item.get("name") or item.get("dishName") or ""
+    normalized_name = _normalize_text(name)
+
+    # Si el nombre está en la lista blanca, siempre es cocinable
+    if normalized_name in COOKABLE_NAME_WHITELIST:
+        return True
+
     category_candidates = [
         item.get("categoria"),
         item.get("category"),
@@ -124,7 +137,6 @@ def is_cookable_item(item):
     if any(_matches_any_category(cat) for cat in category_candidates if cat):
         return False
 
-    name = item.get("nombre") or item.get("name") or item.get("dishName") or ""
     if _contains_any_keyword(name):
         return False
 
@@ -163,6 +175,22 @@ def _extract_qty(item):
             except (TypeError, ValueError):
                 continue
     return 0
+
+
+def _set_qty(target, base, qty):
+    """
+    Asigna la cantidad respetando la clave original utilizada en el payload.
+    """
+    if "cantidad" in base:
+        target["cantidad"] = qty
+    elif "quantity" in base:
+        target["quantity"] = qty
+    elif "dishQuantity" in base:
+        target["dishQuantity"] = qty
+    elif "qty" in base:
+        target["qty"] = qty
+    else:
+        target["cantidad"] = qty
 
 
 def _item_content_key(item):
@@ -241,6 +269,40 @@ def merge_items_preserving_ready(new_items_raw, previous_items_raw, stable_seed=
             prev_qty = _extract_qty(prev)
             new_qty = _extract_qty(base)
             uid_val = prev.get("item_uid") or prev.get("uid") or prev.get("id")
+            if prev.get("listo_en_cocina") and new_qty > prev_qty:
+                # Si el item anterior ya estaba entregado/listo y ahora llega mayor cantidad,
+                # separamos la parte entregada y la nueva parte pendiente para no mezclar estados.
+                if uid_val:
+                    preserved = {**base, "item_uid": str(uid_val), "listo_en_cocina": True}
+                else:
+                    preserved = {**base, "listo_en_cocina": True}
+                _set_qty(preserved, base, prev_qty if prev_qty > 0 else 0)
+                merged_items.append(preserved)
+
+                extra_qty = max(new_qty - prev_qty, 0)
+                if extra_qty > 0:
+                    new_item = {**base}
+                    new_item.pop("item_uid", None)
+                    # Genera un nuevo UID para que no se mezcle con el entregado previo.
+                    new_item["item_uid"] = f"itm-{uuid.uuid4().hex}"
+                    _set_qty(new_item, base, extra_qty)
+                    new_item["listo_en_cocina"] = False
+                    merged_items.append(new_item)
+                continue
+
+            if prev.get("listo_en_cocina") and 0 < new_qty < prev_qty:
+                # Caso inverso: llega una cantidad menor; se asume nuevo pedido separado
+                # y no debemos arrastrar el estado listo ni el uid anterior.
+                merged = {**base}
+                merged.pop("item_uid", None)
+                merged.pop("uid", None)
+                merged.pop("id", None)
+                merged["item_uid"] = f"itm-{uuid.uuid4().hex}"
+                _set_qty(merged, base, new_qty)
+                merged["listo_en_cocina"] = False
+                merged_items.append(merged)
+                continue
+
             if uid_val:
                 merged.setdefault("item_uid", str(uid_val))
 
@@ -248,6 +310,8 @@ def merge_items_preserving_ready(new_items_raw, previous_items_raw, stable_seed=
                 # Si la cantidad no aumenta, mantener listo_en_cocina
                 if prev_qty <= 0 or prev_qty >= new_qty:
                     merged["listo_en_cocina"] = True
+                else:
+                    _set_qty(merged, base, new_qty)
 
             # Si reabrimos una orden previamente lista/entregada, ocultar platillos ya listos en cocina
             if omit_previous_ready and prev.get("listo_en_cocina"):
@@ -296,8 +360,12 @@ def normalize_order_items(raw_items, reset_ready=False, stable=False, stable_see
         if cookable:
             ready = False if reset_ready else bool(ready_flag)
         else:
-            # Bebidas/otros no cocinables se consideran listos para no bloquear
-            ready = True if ready_flag is None else bool(ready_flag)
+            # Bebidas/otros no cocinables NO se marcan listos por defecto;
+            # solo se marcarán al registrarse su entrega en caja.
+            if reset_ready:
+                ready = False
+            else:
+                ready = False if ready_flag is None else bool(ready_flag)
 
         normalized_item = {
             **base,

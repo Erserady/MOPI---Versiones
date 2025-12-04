@@ -61,7 +61,10 @@ class KitchenWaiterOrderSerializer(serializers.ModelSerializer):
         return obj.cliente or None
 
     def get_items(self, obj):
-        return normalize_order_items(obj.pedido, stable=True, stable_seed=obj.id)
+        items = normalize_order_items(obj.pedido, stable=True, stable_seed=obj.id)
+        # Si un platillo viene marcado para omitirse en cocina, no lo regresamos en el feed
+        # (caso de reabrir una orden ya entregada).
+        return [item for item in items if not item.get("omit_in_kitchen")]
 
     def get_elapsed_seconds(self, obj):
         if obj.en_cocina_since:

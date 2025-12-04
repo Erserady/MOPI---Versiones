@@ -4,12 +4,13 @@ import PriorityOrderCard from "./PriorityOrderCard";
 import DishGroupCard from "./DishGroupCard";
 import "../styles/order_section.css";
 import { useDataSync } from "../../../hooks/useDataSync";
-import { getOrdenesActivas, cambiarEstadoOrden } from "../../../services/cookService";
+import { getOrdenesActivas, getOrdenesCocina, cambiarEstadoOrden } from "../../../services/cookService";
 import {
   STATUS_LABELS,
   extractTableLabel,
   parseOrderItems,
   filterCookableItems,
+  formatDateTime,
 } from "../utils/orderUtils";
 import { CustomAlertContainer, AlertService } from "./CustomAlert";
 
@@ -60,10 +61,12 @@ const SUMMARY_LAYOUT = [
 
 const OrderSection = () => {
   const { data: ordenesData, loading, error, refetch } = useDataSync(getOrdenesActivas, 3000);
+  const { data: ordenesHistoricas } = useDataSync(getOrdenesCocina, 10000);
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [lastSyncTs, setLastSyncTs] = useState(null);
   const [nowTick, setNowTick] = useState(Date.now());
   const [showDishGroups, setShowDishGroups] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     const ticker = setInterval(() => setNowTick(Date.now()), 1000);
@@ -81,7 +84,7 @@ const OrderSection = () => {
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission().then(permission => {
         if (permission === "granted") {
-          console.log("✅ Permisos de notificación concedidos");
+          console.log("Listo. Permisos de notificación concedidos");
         }
       });
     }
@@ -92,7 +95,7 @@ const OrderSection = () => {
     if (!Array.isArray(ordenesData)) return [];
 
     const formatted = ordenesData
-      .map((orden, index) => {
+      .map((orden) => {
         const items = filterCookableItems(parseOrderItems(orden.items ?? orden.pedido));
         const fallbackTable =
           orden.mesa_label ||
@@ -128,6 +131,40 @@ const OrderSection = () => {
       priority: index + 1,
     }));
   }, [ordenesData]);
+
+  const historyToday = useMemo(() => {
+    if (!Array.isArray(ordenesHistoricas)) return [];
+    const today = new Date();
+    const sameDay = (value) => {
+      const d = new Date(value);
+      return (
+        d.getFullYear() === today.getFullYear() &&
+        d.getMonth() === today.getMonth() &&
+        d.getDate() === today.getDate()
+      );
+    };
+
+    return ordenesHistoricas
+      .filter((orden) => sameDay(orden.created_at || orden.updated_at))
+      .map((orden) => {
+        const items = filterCookableItems(parseOrderItems(orden.items ?? orden.pedido));
+        return {
+          id: orden.id,
+          orderNumber: orden.order_id || orden.pedido_id || orden.numero,
+          tableNumber: orden.mesa_label || orden.mesa_id || extractTableLabel(orden.pedido, "N/A"),
+          status: orden.estado,
+          itemsCount: items.reduce((acc, item) => acc + (item.cantidad || 1), 0),
+          readyCount: items.filter((item) => item.listo_en_cocina).length,
+          createdAt: orden.created_at,
+          waiterName: orden.waiter_name,
+        };
+      })
+      .sort((a, b) => {
+        const da = new Date(a.createdAt).getTime();
+        const db = new Date(b.createdAt).getTime();
+        return db - da;
+      });
+  }, [ordenesHistoricas]);
 
   // Agrupar platillos de todas las órdenes
   const dishGroups = useMemo(() => {
@@ -356,62 +393,141 @@ const OrderSection = () => {
       <CustomAlertContainer />
       <div className="kitchen-board">
         <div className="kitchen-board__hero">
-          <div>
+          <div className="hero-left">
             <p className="eyebrow hero-eyebrow">🔥 Panel de Cocina</p>
-            <h1>Monitoreo de pedidos</h1>
+            <h1>{showHistory ? "Historial" : "Monitoreo de pedidos"}</h1>
+            <p className="kitchen-board__subtitle">
+              {showHistory
+                ? "Consulta el historial diario, se limpia al abrir nueva caja."
+                : "Monitorea pedidos activos y el progreso en cocina."}
+            </p>
           </div>
-        </div>
-
-        <div className="kitchen-stats">
-          {summaryCards.map(({ id, title, description, value, Icon, accent }) => (
-            <article key={id} className={`kitchen-stat-card kitchen-stat-card--${accent}`}>
-              <div className="kitchen-stat-card__icon">
-                <Icon size={20} />
-              </div>
-              <div>
-                <p className="kitchen-stat-card__title">{title}</p>
-                <p className="kitchen-stat-card__value">{value}</p>
-                <p className="kitchen-stat-card__description">{description}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="kitchen-board__controls">
-          <div className="kitchen-board__filters">
-            {STATUS_FILTERS.map((filter) => (
-              <button
-                key={filter.id}
-                className={`kitchen-filter-pill ${selectedFilter === filter.id ? "active" : ""}`}
-                onClick={() => setSelectedFilter(filter.id)}
-              >
-                <span>{filter.label}</span>
-                <small>{statusCounters[filter.id] ?? 0}</small>
-              </button>
-            ))}
-          </div>
-          <div className="kitchen-board__controls-right">
-            <div className="kitchen-sla-legend">
-              {SLA_LEGEND.map((item) => (
-                <div key={item.id} className={`kitchen-legend-pill ${item.tone}`}>
-                  <span className="legend-dot" />
-                  <span className="legend-label">{item.label}</span>
-                </div>
-              ))}
-            </div>
-
+          <div className="kitchen-view-tabs">
             <button
-              className={`toggle-groups-button ${showDishGroups ? 'active' : ''}`}
-              onClick={() => setShowDishGroups(!showDishGroups)}
-              title={showDishGroups ? "Ocultar platillos agrupados" : "Mostrar platillos agrupados"}
+              className={`kitchen-tab ${!showHistory ? "active" : ""}`}
+              onClick={() => setShowHistory(false)}
             >
-              <ChefHat size={18} />
-              <span>{showDishGroups ? 'Ocultar' : 'Agrupar'} Platillos</span>
+              <Flame size={18} />
+              <span>Monitoreo de pedidos</span>
+            </button>
+            <button
+              className={`kitchen-tab ${showHistory ? "active" : ""}`}
+              onClick={() => setShowHistory(true)}
+            >
+              <ListChecks size={18} />
+              <span>Historial</span>
             </button>
           </div>
         </div>
 
-        {boardContent}
+        {!showHistory && (
+          <>
+            <div className="kitchen-stats">
+              {summaryCards.map(({ id, title, description, value, Icon, accent }) => (
+                <article key={id} className={`kitchen-stat-card kitchen-stat-card--${accent}`}>
+                  <div className="kitchen-stat-card__icon">
+                    <Icon size={20} />
+                  </div>
+                  <div>
+                    <p className="kitchen-stat-card__title">{title}</p>
+                    <p className="kitchen-stat-card__value">{value}</p>
+                    <p className="kitchen-stat-card__description">{description}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="kitchen-board__controls">
+              <div className="kitchen-board__filters">
+                {STATUS_FILTERS.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className={`kitchen-filter-pill ${selectedFilter === filter.id ? "active" : ""}`}
+                    onClick={() => setSelectedFilter(filter.id)}
+                  >
+                    <span>{filter.label}</span>
+                    <small>{statusCounters[filter.id] ?? 0}</small>
+                  </button>
+                ))}
+              </div>
+              <div className="kitchen-board__controls-right">
+                <div className="kitchen-sla-legend">
+                  {SLA_LEGEND.map((item) => (
+                    <div key={item.id} className={`kitchen-legend-pill ${item.tone}`}>
+                      <span className="legend-dot" />
+                      <span className="legend-label">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  className={`toggle-groups-button ${showDishGroups ? 'active' : ''}`}
+                  onClick={() => setShowDishGroups(!showDishGroups)}
+                  title={showDishGroups ? "Ocultar platillos agrupados" : "Mostrar platillos agrupados"}
+                >
+                  <ChefHat size={18} />
+                  <span>{showDishGroups ? 'Ocultar' : 'Agrupar'} Platillos</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="view-anim in">
+              {boardContent}
+            </div>
+          </>
+        )}
+
+        {showHistory && (
+          <section className="kitchen-section history-section view-anim in">
+            <div className="section-header">
+              <div className="section-header-content">
+                <ListChecks size={24} />
+                <div>
+                  <h2>Historial</h2>
+                  <p>Pedidos del día (reinicia con nueva caja)</p>
+                </div>
+              </div>
+              <span className="section-badge">{historyToday.length} pedidos</span>
+            </div>
+
+            {historyToday.length === 0 ? (
+              <div className="kitchen-board__empty">
+                <p>No hay pedidos registrados hoy.</p>
+              </div>
+            ) : (
+              <div className="history-table-wrapper">
+                <table className="dish-table shadow">
+                  <thead>
+                    <tr>
+                      <th>Hora</th>
+                      <th>Mesa</th>
+                      <th>Orden</th>
+                      <th>Estado</th>
+                      <th>Platillos</th>
+                      <th>Mesero</th>
+                    </tr>
+                  </thead>
+                  <tbody className="tbody-class">
+                    {historyToday.map((orden) => (
+                      <tr key={orden.id}>
+                        <td>{formatDateTime(orden.createdAt)}</td>
+                        <td>{orden.tableNumber || "Sin mesa"}</td>
+                        <td>{orden.orderNumber || "—"}</td>
+                        <td style={{ textTransform: "capitalize" }}>
+                          {STATUS_LABELS[orden.status] || orden.status}
+                        </td>
+                        <td>
+                          {orden.readyCount}/{orden.itemsCount} listos
+                        </td>
+                        <td>{orden.waiterName || "N/D"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </>
   );

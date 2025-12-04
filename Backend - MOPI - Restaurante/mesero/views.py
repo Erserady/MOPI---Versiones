@@ -7,7 +7,12 @@ from django.db import transaction
 
 from .models import Table, WaiterOrder
 from .serializers import TableSerializer, WaiterOrderSerializer
-from .utils import serialize_normalized_items, sync_cocina_timestamp, parse_items
+from .utils import (
+    serialize_normalized_items,
+    sync_cocina_timestamp,
+    parse_items,
+    merge_items_preserving_ready,
+)
 from caja.models import RemoveRequest, Caja
 from caja.serializers import RemoveRequestSerializer
 from django.db import transaction
@@ -91,7 +96,12 @@ class WaiterOrderViewSet(viewsets.ModelViewSet):
             serializer.validated_data['en_cocina_since'] = None
 
         if pedido_changed:
-            serializer.validated_data['pedido'] = serialize_normalized_items(new_pedido, reset_ready=True)
+            serializer.validated_data['pedido'] = merge_items_preserving_ready(
+                new_pedido,
+                previous_pedido,
+                stable_seed=serializer.instance.id,
+                previous_state=previous_state,
+            )
         instance = serializer.save()
         sync_cocina_timestamp(instance, previous_state=previous_state)
 

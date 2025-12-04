@@ -148,6 +148,122 @@ def parse_items(raw):
     return []
 
 
+def _safe_price(value):
+    try:
+        return f"{float(value):.2f}"
+    except (TypeError, ValueError):
+        return ""
+
+
+def _extract_qty(item):
+    for key in ("cantidad", "quantity", "dishQuantity", "qty"):
+        if key in item:
+            try:
+                return int(item.get(key) or 0)
+            except (TypeError, ValueError):
+                continue
+    return 0
+
+
+def _item_content_key(item):
+    """
+    Llave deterministica basada en contenido (nombre/precio/nota/categoria),
+    sirve para empatar items aunque el payload no traiga item_uid.
+    """
+    if not isinstance(item, dict):
+        return None
+
+    name = _normalize_text(
+        item.get("nombre") or item.get("name") or item.get("dishName")
+    )
+    note = _normalize_text(
+        item.get("nota") or item.get("note") or item.get("description")
+    )
+    category = _normalize_text(
+        item.get("categoria") or item.get("category") or item.get("dishCategory")
+    )
+    price = _safe_price(item.get("precio") or item.get("price") or item.get("unitPrice"))
+
+    return f"{name}|{price}|{note}|{category}"
+
+
+def _item_keys(item):
+    """
+    Devuelve posibles llaves para el item: uid si existe y llave de contenido.
+    """
+    keys = []
+    if not isinstance(item, dict):
+        return keys
+
+    uid = item.get("item_uid") or item.get("uid") or item.get("id")
+    if uid:
+        keys.append(f"uid:{uid}")
+
+    content_key = _item_content_key(item)
+    if content_key:
+        keys.append(f"content:{content_key}")
+
+    return keys
+
+
+def merge_items_preserving_ready(new_items_raw, previous_items_raw, stable_seed=None, previous_state=None):
+    """
+    Combina los items nuevos con los existentes conservando item_uid y listo_en_cocina
+    cuando el platillo ya estaba listo y la cantidad no incrementa.
+    - Si la orden estaba marcada como lista/entregada y se agregan platillos nuevos,
+      los platillos antiguos se marcan para omitirse en cocina (no deben re-aparecer).
+    """
+    new_items = parse_items(new_items_raw)
+    if not new_items:
+        return serialize_normalized_items(new_items_raw, reset_ready=True)
+
+    previous_items = normalize_order_items(previous_items_raw, stable=True, stable_seed=stable_seed)
+    previous_map = {}
+    for prev in previous_items:
+        for key in _item_keys(prev):
+            if key:
+                previous_map[key] = prev
+
+    omit_previous_ready = previous_state in ("listo", "entregado", "servido")
+
+    merged_items = []
+    for item in new_items:
+        base = item if isinstance(item, dict) else {}
+        merged = {**base}
+
+        prev = None
+        for key in _item_keys(base):
+            if key in previous_map:
+                prev = previous_map[key]
+                break
+
+        if prev:
+            prev_qty = _extract_qty(prev)
+            new_qty = _extract_qty(base)
+            uid_val = prev.get("item_uid") or prev.get("uid") or prev.get("id")
+            if uid_val:
+                merged.setdefault("item_uid", str(uid_val))
+
+            if prev.get("listo_en_cocina"):
+                # Si la cantidad no aumenta, mantener listo_en_cocina
+                if prev_qty <= 0 or prev_qty >= new_qty:
+                    merged["listo_en_cocina"] = True
+
+            # Si reabrimos una orden previamente lista/entregada, ocultar platillos ya listos en cocina
+            if omit_previous_ready and prev.get("listo_en_cocina"):
+                merged["omit_in_kitchen"] = True
+
+        merged_items.append(merged)
+
+    normalized = normalize_order_items(
+        merged_items,
+        reset_ready=False,
+        stable=True,
+        stable_seed=stable_seed,
+    )
+    return json.dumps(normalized)
+
+
 def normalize_order_items(raw_items, reset_ready=False, stable=False, stable_seed=None):
     """
     Asegura que cada item tenga:

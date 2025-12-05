@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Receipt, Printer, CreditCard, CircleCheckBig, Wine, X } from "lucide-react";
+import { Receipt, Printer, CreditCard, CircleCheckBig, Wine, X, GlassWater } from "lucide-react";
 import PayDialog from "./PayDialog";
 import OrderDetailsModal from "./OrderDetailsModal";
 import ReceiptPrinter from "./ReceiptPrinter";
@@ -197,8 +197,10 @@ const PayCard = ({ order, onOrderUpdate }) => {
     setDeliveredBeverages((prev) => {
       const next = {};
       rawNonCookableItems.forEach((item) => {
-        const backendReady = item.backendReady ? true : false;
-        const prevVal = prev[item.refId] ?? false;
+        const backendReady = item.backendReady === true;
+        const prevVal = prev[item.refId] === true;
+        // Si alguna vez estuvo entregado en esta sesion o backend lo marca entregado,
+        // lo mantenemos como entregado para evitar rebotes por respuestas atrasadas.
         next[item.refId] = backendReady || prevVal;
       });
       try {
@@ -341,7 +343,41 @@ const PayCard = ({ order, onOrderUpdate }) => {
             <div className="pay-card-header__left">
               <Receipt size={30} />
               <div className="pay-card-text">
-                <h2 className="pay-card-title">Mesa {order.tableNumber}</h2>
+                <div className="pay-card-title-row">
+                  <h2 className="pay-card-title">Mesa {order.tableNumber}</h2>
+                  {hasNonCookableItems && (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className={`pending-drinks-card ${allBeveragesDelivered ? "delivered" : "pending"}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPendingDrinks(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setShowPendingDrinks(true);
+                        }
+                      }}
+                      aria-label={
+                        allBeveragesDelivered
+                          ? "Bebidas entregadas"
+                          : "Bebidas pendientes por entregar"
+                      }
+                      title={
+                        allBeveragesDelivered
+                          ? "Bebidas entregadas"
+                          : "Bebidas pendientes por entregar"
+                      }
+                    >
+                      <GlassWater size={16} className="pending-drinks-card__icon" />
+                      <span className="pending-drinks-card__label">
+                        {allBeveragesDelivered ? "Bebidas" : "Pendientes"}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <p className="pay-card-subtitle">
                   <span className="waiter">Mesero:</span> {order.waiter}
                 </p>
@@ -360,31 +396,7 @@ const PayCard = ({ order, onOrderUpdate }) => {
                 </span>
               </div>
             </div>
-            {hasNonCookableItems && (
-              <button
-                className={`shadow pending-drinks compact ${allBeveragesDelivered ? "delivered" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPendingDrinks(true);
-                }}
-                aria-label={
-                  allBeveragesDelivered
-                    ? "Bebidas entregadas"
-                    : "Bebidas pendientes por entregar"
-                }
-                title={
-              allBeveragesDelivered
-                ? "Bebidas entregadas"
-                : "Bebidas pendientes por entregar"
-            }
-          >
-            <span className="pending-drinks__icon-set" aria-hidden="true">
-              <Wine size={18} className="pending-drinks__icon glass glass--left" />
-              <Wine size={18} className="pending-drinks__icon glass glass--right" />
-            </span>
-          </button>
-        )}
-      </div>
+          </div>
           {kitchenBlocked && (
             <div className="pay-card-subtitle" style={{ color: "#dc2626" }}>
               Atencion: Pedido no entregado
@@ -423,9 +435,8 @@ const PayCard = ({ order, onOrderUpdate }) => {
                 <p className="beverage-modal__eyebrow">Control de bar</p>
                 <h3>{allBeveragesDelivered ? "Bebidas" : "Bebidas pendientes"}</h3>
                 <span
-                  className={`beverage-modal__status ${
-                    allBeveragesDelivered ? "" : "pending"
-                  }`}
+                  className={`beverage-modal__status ${allBeveragesDelivered ? "" : "pending"
+                    }`}
                 >
                   {allBeveragesDelivered ? "Todo entregado" : "Faltan bebidas"}
                 </span>
@@ -452,9 +463,8 @@ const PayCard = ({ order, onOrderUpdate }) => {
                     <h4 className="beverage-panel__title">Por entregar</h4>
                   </div>
                   <span
-                    className={`badge ${
-                      pendingGroups.length ? "badge--warning" : "badge--success"
-                    }`}
+                    className={`badge ${pendingGroups.length ? "badge--warning" : "badge--success"
+                      }`}
                   >
                     {pendingGroups.length} items
                   </span>
@@ -568,24 +578,24 @@ const PayCard = ({ order, onOrderUpdate }) => {
         receiptData={
           showReceipt
             ? {
-                ticketNumber: `PRE-${order.mesaId || order.tableId}`,
-                facturaId: "PRE-CUENTA",
-                correlativo: String(order.mesaId || order.tableId).padStart(
-                  3,
-                  "0"
-                ),
-                vendorId: 1,
-                tableNumber: order.tableNumber,
-                waiter: order.waiter,
-                waiterName: order.waiter,
-                customerName: "",
-                customerAddress: "",
-                items: groupedItems,
-                paymentMethod: "cash",
-                total: order.total,
-                cashReceived: 0,
-                change: 0,
-              }
+              ticketNumber: `PRE-${order.mesaId || order.tableId}`,
+              facturaId: "PRE-CUENTA",
+              correlativo: String(order.mesaId || order.tableId).padStart(
+                3,
+                "0"
+              ),
+              vendorId: 1,
+              tableNumber: order.tableNumber,
+              waiter: order.waiter,
+              waiterName: order.waiter,
+              customerName: "",
+              customerAddress: "",
+              items: groupedItems,
+              paymentMethod: "cash",
+              total: order.total,
+              cashReceived: 0,
+              change: 0,
+            }
             : null
         }
       />

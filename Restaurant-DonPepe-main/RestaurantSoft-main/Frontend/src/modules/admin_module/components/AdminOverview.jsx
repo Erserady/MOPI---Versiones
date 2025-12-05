@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -6,6 +6,7 @@ import {
   Plus, 
   Trash2, 
   Table as TableIcon,
+  UserCircle,
   ArrowUpRight,
   ArrowDownRight,
   Wallet,
@@ -27,6 +28,7 @@ const AdminOverview = () => {
   // Estados locales
   const [newTableNumber, setNewTableNumber] = useState("");
   const [newTableCapacity, setNewTableCapacity] = useState(4);
+  const [newTableSection, setNewTableSection] = useState("Restaurante");
   const [isAddingTable, setIsAddingTable] = useState(false);
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -133,10 +135,12 @@ const AdminOverview = () => {
       await createMesa({
         number: newTableNumber.trim(),
         capacity: parseInt(newTableCapacity) || 4,
-        status: 'available'
+        status: 'available',
+        ubicacion: newTableSection,
       });
       setNewTableNumber('');
       setNewTableCapacity(4);
+      setNewTableSection('Restaurante');
       await refetchMesas();
     } catch (err) {
       setError('Error al crear la mesa: ' + err.message);
@@ -222,6 +226,23 @@ const AdminOverview = () => {
     setOrderError(null);
   };
 
+  const getMesaWaiterName = (mesa) => {
+    if (!mesa) return null;
+
+    const candidates = [
+      mesa.current_order?.waiter_name,
+      mesa.waiter_name,
+      mesa.waiterName,
+      mesa.assigned_waiter_name,
+      mesa.assigned_waiter,
+      mesa.assignedWaiter,
+      mesa.mesero,
+      mesa.waiter,
+    ];
+
+    return candidates.find(Boolean) || null;
+  };
+
   const getMesaStatus = (status) => {
     const normalized = (status || "").toLowerCase();
     const map = {
@@ -235,10 +256,55 @@ const AdminOverview = () => {
     return map[normalized] || map.available;
   };
 
+  const getMesaSection = (mesa) => {
+    const raw = (mesa?.ubicacion || mesa?.location || "").toString().toLowerCase();
+    if (raw.includes("patio")) return "Patio";
+    return "Restaurante";
+  };
+
   // Orden ascendente por número de mesa (maneja números y texto)
   const mesasOrdenadas = (mesas || []).slice().sort((a, b) =>
     String(a.number || "").localeCompare(String(b.number || ""), undefined, { numeric: true, sensitivity: "base" })
   );
+
+  const mesaStats = useMemo(() => {
+    const list = mesas || [];
+    let libres = 0;
+    let ocupadas = 0;
+    let reservadas = 0;
+
+    list.forEach((mesa) => {
+      const statusClass = getMesaStatus(mesa.status).className;
+      if (statusClass === "available") libres += 1;
+      else if (statusClass === "occupied") ocupadas += 1;
+      else if (statusClass === "reserved") reservadas += 1;
+    });
+
+    return {
+      total: list.length,
+      libres,
+      ocupadas,
+      reservadas,
+    };
+  }, [mesas]);
+
+  const mesaSectionStats = useMemo(() => {
+    const base = {
+      Restaurante: { total: 0, libres: 0, ocupadas: 0, reservadas: 0 },
+      Patio: { total: 0, libres: 0, ocupadas: 0, reservadas: 0 },
+    };
+
+    (mesas || []).forEach((mesa) => {
+      const section = getMesaSection(mesa);
+      const statusClass = getMesaStatus(mesa.status).className;
+      base[section].total += 1;
+      if (statusClass === "available") base[section].libres += 1;
+      else if (statusClass === "occupied") base[section].ocupadas += 1;
+      else if (statusClass === "reserved") base[section].reservadas += 1;
+    });
+
+    return base;
+  }, [mesas]);
 
 
   if (loadingMesas || loadingCajas) {
@@ -402,6 +468,45 @@ const AdminOverview = () => {
           </div>
           <span className="section-count">{mesas?.length || 0} mesas</span>
         </div>
+        <div className="admin-table-stats">
+          <div className="admin-table-stat total">
+            <span className="label">Total</span>
+            <span className="value">{mesaStats.total}</span>
+          </div>
+          <div className="admin-table-stat available">
+            <span className="label">Libres</span>
+            <span className="value">{mesaStats.libres}</span>
+          </div>
+          <div className="admin-table-stat occupied">
+            <span className="label">Ocupadas</span>
+            <span className="value">{mesaStats.ocupadas}</span>
+          </div>
+          {mesaStats.reservadas > 0 && (
+            <div className="admin-table-stat reserved">
+              <span className="label">Reservadas</span>
+              <span className="value">{mesaStats.reservadas}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="admin-table-section-cards">
+          {["Restaurante", "Patio"].map((section) => {
+            const stats = mesaSectionStats[section] || { total: 0, libres: 0, ocupadas: 0, reservadas: 0 };
+            return (
+              <div key={section} className="admin-table-section-card">
+                <div className="section-card-header">
+                  <span className="section-name">{section}</span>
+                  <span className="section-total">{stats.total} mesas</span>
+                </div>
+                <div className="section-card-stats">
+                  <span className="chip available">Libres {stats.libres}</span>
+                  <span className="chip occupied">Ocupadas {stats.ocupadas}</span>
+                  <span className="chip reserved">Reservadas {stats.reservadas}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
         {/* Formulario para agregar mesa */}
         <div className="add-table-form">
@@ -429,6 +534,18 @@ const AdminOverview = () => {
                 className="form-input"
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="tableSection">Sección</label>
+              <select
+                id="tableSection"
+                className="form-input"
+                value={newTableSection}
+                onChange={(e) => setNewTableSection(e.target.value)}
+              >
+                <option value="Restaurante">Restaurante</option>
+                <option value="Patio">Patio</option>
+              </select>
+            </div>
             <button 
               onClick={handleAddTable} 
               disabled={isAddingTable}
@@ -440,43 +557,64 @@ const AdminOverview = () => {
           </div>
         </div>
 
-        {/* Tabla de mesas */}
-        {mesasOrdenadas.length > 0 ? (
-          <div className="admin-tables-grid">
-            {mesasOrdenadas.map((mesa) => {
-              const statusInfo = getMesaStatus(mesa.status);
-              return (
-                <div
-                  key={mesa.id}
-                  className={`admin-table-card ${statusInfo.className}`}
-                  title={`Mesa ${mesa.number} · ${statusInfo.label}`}
-                  onClick={() => openMesaModal(mesa)}
-                >
-                  <div className="admin-table-dot" />
-                  <button
-                    className="admin-table-delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTable(mesa);
-                    }}
-                    title="Eliminar mesa"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                  <div className="admin-table-number-big">
-                    {mesa.number}
-                  </div>
+        <div className="admin-table-section-list">
+          {["Restaurante", "Patio"].map((section, idx) => {
+            const mesasSeccion = mesasOrdenadas.filter((mesa) => getMesaSection(mesa) === section);
+            return (
+              <div key={section} className="admin-table-section-block">
+                <div className="admin-section-header">
+                  <h3>{section}</h3>
+                  <span className="section-count-inline">{mesasSeccion.length} mesas</span>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <TableIcon size={48} strokeWidth={1.5} />
-            <p>No hay mesas registradas</p>
-            <small>Agrega la primera mesa usando el formulario superior</small>
-          </div>
-        )}
+                {mesasSeccion.length > 0 ? (
+                  <div className="admin-tables-grid">
+                    {mesasSeccion.map((mesa) => {
+                      const statusInfo = getMesaStatus(mesa.status);
+                      const assignedWaiter = getMesaWaiterName(mesa);
+                      const waiterShortName = assignedWaiter?.split(" ")[0] || assignedWaiter;
+                      const isOccupied = statusInfo.className === "occupied";
+                      return (
+                        <div
+                          key={mesa.id}
+                          className={`admin-table-card ${statusInfo.className}`}
+                          title={`Mesa ${mesa.number} · ${statusInfo.label}`}
+                          onClick={() => openMesaModal(mesa)}
+                        >
+                          <div className="admin-table-dot" />
+                          <button
+                            className="admin-table-delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTable(mesa);
+                            }}
+                            title="Eliminar mesa"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          <div className="admin-table-number-big">
+                            {mesa.number}
+                          </div>
+                          {isOccupied && assignedWaiter && (
+                            <div className="admin-table-waiter-tag" title={`Atendida por ${assignedWaiter}`}>
+                              <UserCircle size={14} />
+                              <span>{waiterShortName}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="empty-state small">
+                    <p>Sin mesas en {section}</p>
+                  </div>
+                )}
+                {idx === 0 && <div className="admin-section-divider" />}
+              </div>
+            );
+          })}
+        </div>
+
       </div>
 
       {/* Modal de detalles de mesa */}
@@ -508,7 +646,7 @@ const AdminOverview = () => {
                   <div className="mesa-detail-row">
                     <span className="mesa-detail-label">Mesero asignado</span>
                     <span className="mesa-detail-value">
-                      {selectedMesa.waiter_name || selectedMesa.assigned_waiter || selectedMesa.assignedWaiter || selectedMesa.mesero || "No asignado"}
+                      {getMesaWaiterName(selectedMesa) || "No asignado"}
                     </span>
                   </div>
                   <div className="mesa-detail-row">

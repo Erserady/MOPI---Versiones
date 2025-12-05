@@ -24,6 +24,7 @@
       h2 {
         font-size: 20px;
       }
+
       svg {
         color: green;
       }
@@ -35,20 +36,36 @@
       gap: 10px;
     }
 
-    .pay-card-text {
+      .pay-card-text {
+        .pay-card-title-row {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          width: 100%;
+        }
+
+        .pay-card-title-row .pending-drinks-card {
+          margin-left: auto;
+          align-self: flex-start;
+        }
+
       .waiter {
         color: rgb(16, 84, 180);
         font-weight: 600;
       }
+
       .total {
         color: rgb(14, 100, 9);
         font-weight: 600;
       }
+
       .account {
         color: rgb(143, 120, 19);
         font-weight: 600;
       }
     }
+
     .pay-card-actions {
       display: flex;
       flex-direction: column;
@@ -74,14 +91,17 @@
         gap: 6px;
         font-weight: 600;
       }
+
       .paid {
         background-color: rgb(181, 220, 181);
+
         &:hover {
           background-color: green;
           color: white;
           transition: 0.7s;
         }
       }
+
       .ticket {
         background-color: rgb(212, 212, 212);
 
@@ -92,95 +112,84 @@
         }
       }
 
-      .pending-drinks {
-        width: 90%;
-        max-width: 270px;
-        background-color: #fff7ed;
-        border: 1px solid #fb923c;
-        color: #9a3412;
-        padding: 8px 10px;
-        border-radius: 8px;
-        box-shadow: 0 6px 16px rgba(249, 115, 22, 0.12);
-        transition: all 0.2s ease;
-        svg {
-          color: inherit;
-        }
-        &:hover {
-          background-color: #ffedd5;
-          transform: translateY(-1px);
-        }
 
-        &.delivered {
-          background-color: #e0e7ff;
-          border: 1px solid #3b82f6;
-          color: #1d4ed8;
-          box-shadow: 0 6px 18px rgba(59, 130, 246, 0.18);
-          &:hover {
-            background-color: #dbeafe;
-          }
-        }
-      }
-
-      .pending-drinks.compact {
-        width: auto;
-        max-width: none;
-        padding: 6px;
-        border-radius: 9999px;
+      /* Tarjeta de bebidas pendientes - colores planos para contrastar */
+      .pending-drinks-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        background: #f8fafc;
+        color: #0f172a;
+        transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
         min-height: 36px;
-        min-width: 36px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #f97316;
-        background: linear-gradient(145deg, #ffedd5, #ffd8a8);
-        box-shadow: 0 6px 14px rgba(249, 115, 22, 0.18);
       }
 
-      .pending-drinks__icon-set {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        padding: 6px 7px;
-        border-radius: 9999px;
-        background: rgba(249, 115, 22, 0.18);
-        transition: background 0.2s ease, box-shadow 0.2s ease;
+      .pending-drinks-card__icon {
+        width: 18px;
+        height: 18px;
+        transition: transform 0.22s ease;
       }
 
-      .pending-drinks.compact .pending-drinks__icon {
+      .pending-drinks-card__label {
+        font-size: 0.95rem;
+      }
+
+      .pending-drinks-card:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
+      }
+
+      .pending-drinks-card:hover .pending-drinks-card__icon {
+        transform: translateY(-1px) scale(1.05);
+      }
+
+      /* Estado con pendientes - naranja plano */
+      .pending-drinks-card.pending {
+        background: #fff7ed;
         color: #f97316;
-        transition: color 0.2s ease, transform 0.2s ease;
+        border-color: #f59e0b;
+        box-shadow: 0 8px 18px rgba(234, 88, 12, 0.18);
       }
 
-      .pending-drinks.compact .glass--left {
-        transform: rotate(-14deg) translateY(1px);
+      .pending-drinks-card.pending:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 14px 26px rgba(234, 88, 12, 0.24);
+        background: #ffedd5;
       }
 
-      .pending-drinks.compact .glass--right {
-        transform: rotate(14deg) translateY(1px);
+      /* Estado entregado - azul plano */
+      .pending-drinks-card.delivered {
+        background: #e0f2fe;
+        color: #0284c7;
+        border-color: #0ea5e9;
+        box-shadow: 0 8px 18px rgba(14, 165, 233, 0.18);
       }
 
-      .pending-drinks.compact.delivered {
-        border-color: #3b82f6;
-        background: linear-gradient(145deg, #e0f2fe, #dbeafe);
-        color: #1d4ed8;
-        box-shadow: 0 6px 14px rgba(59, 130, 246, 0.2);
+      .pending-drinks-card.delivered:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 14px 30px rgba(14, 165, 233, 0.28);
+        background: #bae6fd;
       }
 
-      .pending-drinks.compact.delivered .pending-drinks__icon {
-        color: #2563eb;
-      }
-
-      .pending-drinks.compact.delivered .pending-drinks__icon-set {
-        background: rgba(59, 130, 246, 0.16);
+      .pending-drinks-card:focus-visible {
+        outline: 3px solid rgba(59, 130, 246, 0.35);
+        outline-offset: 3px;
       }
     }
-    .check-paid {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      color: green;
-    }
+  }
+
+  .check-paid {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: green;
   }
 }
 
@@ -410,6 +419,10 @@
   color: #0f172a;
   padding: 1.15rem 1.35rem 1rem;
   animation: fadeInUp 0.22s ease;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .beverage-modal__header {
@@ -481,6 +494,8 @@
   flex-direction: column;
   gap: 1rem;
   margin-top: 0.8rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .beverage-panel {
@@ -671,8 +686,145 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@media (max-width: 640px) {
+  .pending-drinks-overlay {
+    padding: 0.85rem;
+    align-items: flex-end;
+  }
+
+  .beverage-modal {
+    width: 100%;
+    max-height: 90vh;
+    padding: 0.9rem 1rem 0.8rem;
+    border-radius: 14px;
+  }
+
+  .beverage-modal__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .beverage-modal__header h3 {
+    font-size: 1.2rem;
+  }
+
+  .beverage-modal__subtitle {
+    font-size: 0.9rem;
+  }
+
+  .beverage-panel {
+    padding: 0.75rem 0.85rem 0.8rem;
+  }
+
+  .beverage-panel__title {
+    font-size: 0.98rem;
+  }
+
+  .beverage-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .beverage-row__title {
+    font-size: 0.98rem;
+  }
+
+  .beverage-modal__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-ghost,
+  .btn-cta {
+    width: 100%;
+    text-align: center;
+  }
+
+  .beverage-modal__body {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+
+  .beverage-list {
+    max-height: 50vh;
+  }
+}
+
+/* --- Estilos explicitos para la tarjeta de bebidas pendientes (fuera del nesting) --- */
+.pay-card-section .pending-drinks-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-size: 0.92rem;
+  background: #fff7ed;
+  color: #f97316;
+  transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 6px 12px rgba(234, 88, 12, 0.12);
+  min-height: 34px;
+}
+
+.pay-card-section .pending-drinks-card__icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.22s ease;
+  color: #f97316;
+}
+
+.pay-card-section .pending-drinks-card__label {
+  font-size: 0.95rem;
+}
+
+.pay-card-section .pending-drinks-card:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
+}
+
+.pay-card-section .pending-drinks-card:hover .pending-drinks-card__icon {
+  transform: translateY(-1px) scale(1.05);
+}
+
+.pay-card-section .pending-drinks-card.pending {
+  background: #fff5eb;
+  color: #f97316;
+  border-color: #f59e0b;
+  box-shadow: 0 8px 16px rgba(234, 88, 12, 0.18);
+}
+
+.pay-card-section .pending-drinks-card.pending:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 12px 22px rgba(234, 88, 12, 0.22);
+  background: #ffedd5;
+}
+
+.pay-card-section .pending-drinks-card.delivered {
+  background: #e0f2fe;
+  color: #0284c7;
+  border-color: #0ea5e9;
+  box-shadow: 0 8px 18px rgba(14, 165, 233, 0.18);
+}
+
+.pay-card-section .pending-drinks-card.delivered:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 14px 30px rgba(14, 165, 233, 0.28);
+  background: #bae6fd;
+}
+
+.pay-card-section .pending-drinks-card:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 3px;
 }

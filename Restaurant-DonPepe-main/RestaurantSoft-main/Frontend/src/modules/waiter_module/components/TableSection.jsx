@@ -129,6 +129,37 @@ const TableSection = ({ ordenes = [] }) => {
     };
   }, [tablesFormatted]);
 
+  const sectionStats = useMemo(() => {
+    const base = {
+      Restaurante: { total: 0, libres: 0, ocupadas: 0, reservadas: 0 },
+      Patio: { total: 0, libres: 0, ocupadas: 0, reservadas: 0 }
+    };
+
+    tablesFormatted.forEach((table) => {
+      const raw = (table.ubicacion || table.location || "").toString().toLowerCase();
+      const section = raw.includes("patio") ? "Patio" : "Restaurante";
+      base[section].total += 1;
+      if (table.tableStatus === "libre") base[section].libres += 1;
+      else if (table.tableStatus === "ocupada") base[section].ocupadas += 1;
+      else if (table.tableStatus === "reservada") base[section].reservadas += 1;
+    });
+
+    return base;
+  }, [tablesFormatted]);
+
+  const filteredTablesBySection = useMemo(() => {
+    return {
+      Restaurante: filteredTables.filter((table) => {
+        const raw = (table.ubicacion || table.location || "").toString().toLowerCase();
+        return !raw.includes("patio");
+      }),
+      Patio: filteredTables.filter((table) => {
+        const raw = (table.ubicacion || table.location || "").toString().toLowerCase();
+        return raw.includes("patio");
+      })
+    };
+  }, [filteredTables]);
+
   // Renders condicionales DESPUÉS de todos los hooks
   if (loading && !mesasData) {
     return (
@@ -186,6 +217,25 @@ const TableSection = ({ ordenes = [] }) => {
       </div>
 
       {/* Layout de dos columnas */}
+      <div className="tables-section-breakdown">
+        {["Restaurante", "Patio"].map((section) => {
+          const stats = sectionStats[section] || { total: 0, libres: 0, ocupadas: 0, reservadas: 0 };
+          return (
+            <div className="section-breakdown-card" key={section}>
+              <div className="section-breakdown-header">
+                <span className="section-breakdown-title">{section}</span>
+                <span className="section-breakdown-total">{stats.total} mesas</span>
+              </div>
+              <div className="section-breakdown-chips">
+                <span className="chip libre">Libres {stats.libres}</span>
+                <span className="chip ocupada">Ocupadas {stats.ocupadas}</span>
+                <span className="chip reservada">Reservadas {stats.reservadas}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       <div className="tables-layout">
         {/* Columna izquierda: Grid de mesas */}
         <div className="tables-main">
@@ -196,17 +246,28 @@ const TableSection = ({ ordenes = [] }) => {
             </div>
           ) : (
             <>
-              <section className="tables-grid">
-                {filteredTables.map((table) => (
-                  <TableCard key={table.mesa_id || table.tableNumber} tables={table} />
-                ))}
-              </section>
-
-              {filteredTables.length === 0 && (
-                <div className="tables-empty">
-                  <p>No hay mesas que coincidan con el filtro seleccionado</p>
-                </div>
-              )}
+              {["Restaurante", "Patio"].map((section, idx) => {
+                const list = filteredTablesBySection[section] || [];
+                return (
+                  <div key={section} className="tables-section-block">
+                    <div className="tables-section-header-row">
+                      <h3 className="tables-section-title">{section}</h3>
+                      <span className="tables-section-count">{list.length} mesas</span>
+                    </div>
+                    <section className="tables-grid">
+                      {list.map((table) => (
+                        <TableCard key={table.mesa_id || table.tableNumber} tables={table} />
+                      ))}
+                    </section>
+                    {list.length === 0 && (
+                      <div className="tables-empty">
+                        <p>Sin mesas en {section}</p>
+                      </div>
+                    )}
+                    {idx === 0 && <div className="tables-section-divider" />}
+                  </div>
+                );
+              })}
             </>
           )}
         </div>

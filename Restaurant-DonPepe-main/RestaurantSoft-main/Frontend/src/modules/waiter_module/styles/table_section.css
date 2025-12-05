@@ -179,6 +179,171 @@
   font-weight: 800;
 }
 
+
+.tables-section-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+.section-breakdown-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.section-breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: #111827;
+}
+
+.section-breakdown-title {
+  font-size: 1rem;
+}
+
+.section-breakdown-total {
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.section-breakdown-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.section-breakdown-chips .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.section-breakdown-chips .chip.libre {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.section-breakdown-chips .chip.ocupada {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.section-breakdown-chips .chip.reservada {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+
+.tables-section-block {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.75rem 0.75rem 1rem;
+}
+
+.tables-section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 0.5rem;
+}
+
+.tables-section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.tables-section-count {
+  font-weight: 700;
+  color: #475569;
+}
+
+.tables-section-divider {
+  margin-top: 0.75rem;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.tables-section-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+.section-breakdown-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.section-breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: #111827;
+}
+
+.section-breakdown-title {
+  font-size: 1rem;
+}
+
+.section-breakdown-total {
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.section-breakdown-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.section-breakdown-chips .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.section-breakdown-chips .chip.libre {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.section-breakdown-chips .chip.ocupada {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.section-breakdown-chips .chip.reservada {
+  background: #fffbeb;
+  color: #92400e;
+}
+
 /* =============================================================================
    LAYOUT DE DOS COLUMNAS
 ============================================================================= */

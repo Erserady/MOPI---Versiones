@@ -14,6 +14,7 @@ export const cashierNavigationBar = [
 ];
 
 export const adminNavigationBar = [
+  { title: "Dashboard", section: "dashboard" },
   { title: "Gestion", section: "resume" },
   { title: "Menu", section: "products" },
   { title: "Personal", section: "staff" },

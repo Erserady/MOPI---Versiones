@@ -2,8 +2,9 @@
 import { User, Lock, ChefHat, Eye, EyeOff } from "lucide-react";
 import "../../styles/login.css";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { API_ENDPOINTS, apiFetch } from "../../config/api";
+import { setActiveRole, setAuthStage } from "../../utils/auth";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,6 +13,12 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Reiniciar el flujo y rol activo al mostrar la pantalla de login
+    setAuthStage("login");
+    setActiveRole(null);
+  }, []);
 
   const handleLogin = async (e) => {
     e?.preventDefault();
@@ -40,9 +47,11 @@ const Login = () => {
       // sessionStorage permite múltiples usuarios en diferentes pestañas
       sessionStorage.setItem("token", data.token);
       sessionStorage.setItem("user", JSON.stringify(data.user));
+      setActiveRole(null);
+      setAuthStage("authenticated");
       
       // Siempre ir a admin-preview después del login
-      navigate("/admin-preview");
+      navigate("/admin-preview", { replace: true });
     } catch (error) {
       setErrorMsg(error.message || "Error al iniciar sesión. Verifica tus credenciales.");
     } finally {

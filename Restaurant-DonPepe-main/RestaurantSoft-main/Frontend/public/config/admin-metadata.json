@@ -32,6 +32,7 @@
     }
   },
   "navigation": [
+    { "title": "Dashboard", "section": "dashboard", "visible": true },
     { "title": "Gestion", "section": "resume", "visible": true },
     { "title": "Menu", "section": "products", "visible": true },
     { "title": "Personal", "section": "staff", "visible": true }

@@ -1,4 +1,4 @@
-.kitchen-board {
+﻿.kitchen-board {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -370,7 +370,7 @@
   animation: pulse 1.4s ease-in-out infinite;
 }
 
-/* Nuevo diseño compacto de tarjetas de órdenes */
+/* Nuevo diseÃ±o compacto de tarjetas de Ã³rdenes */
 .order-card-compact {
   width: 100%;
   background: #ffffff;
@@ -467,7 +467,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Colores según el tiempo transcurrido */
+/* Colores segÃºn el tiempo transcurrido */
 .order-card-compact.sla-ok {
   border-color: #10b981;
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), #ffffff);
@@ -506,7 +506,7 @@
   animation: blink-text 1s ease-in-out infinite;
 }
 
-/* Animación intermitente para >30 min */
+/* AnimaciÃ³n intermitente para >30 min */
 @keyframes blink-border {
 
   0%,
@@ -929,7 +929,7 @@
 }
 
 /* ============================================
-   NUEVO DISEÑO PROFESIONAL DEL DIALOG
+   NUEVO DISEÃ‘O PROFESIONAL DEL DIALOG
    ============================================ */
 
 .order-detail-dialog {
@@ -1034,7 +1034,7 @@
   color: #0f172a;
 }
 
-/* Colores del timer según el tiempo */
+/* Colores del timer segÃºn el tiempo */
 .order-detail-timer.timer-ok {
   border-color: #86efac;
   box-shadow: 0 0 0 3px rgba(134, 239, 172, 0.15);
@@ -1085,7 +1085,7 @@
   }
 }
 
-/* Nuevo badge de estado estilo imágenes */
+/* Nuevo badge de estado estilo imÃ¡genes */
 .order-status-badge {
   display: inline-flex;
   align-items: center;
@@ -1318,7 +1318,7 @@
   margin-top: 0.1rem;
 }
 
-/* Sección de notas especiales */
+/* SecciÃ³n de notas especiales */
 .notes-section {
   background: white;
   border: 2px solid #fcd34d;
@@ -1373,7 +1373,7 @@
   font-size: 0.9rem;
 }
 
-/* Sección de platillos */
+/* SecciÃ³n de platillos */
 .dishes-list {
   display: flex;
   flex-direction: column;
@@ -1578,7 +1578,7 @@
   transform: translateY(0);
 }
 
-/* Estado vacío */
+/* Estado vacÃ­o */
 .empty-state {
   text-align: center;
   color: #94a3b8;
@@ -1776,7 +1776,7 @@
 }
 
 /* ============================================
-   DISH CARD - DISEÑO PROFESIONAL COMPLETO
+   DISH CARD - DISEÃ‘O PROFESIONAL COMPLETO
    ============================================ */
 
 .dish-card-pro {
@@ -2064,7 +2064,7 @@
   transform: translateY(-2px);
 }
 
-/* Colores de borde según SLA - ALREDEDOR DE TODO EL RECUADRO */
+/* Colores de borde segÃºn SLA - ALREDEDOR DE TODO EL RECUADRO */
 .priority-order-card.sla-ok {
   border-color: #86efac;
 }
@@ -2294,10 +2294,10 @@
 }
 
 /* ============================================
-   REDISEÑO COMPLETO DEL ORDER DIALOG
+   REDISEÃ‘O COMPLETO DEL ORDER DIALOG
    ============================================ */
 
-/* Header rediseñado - Sticky y moderno */
+/* Header rediseÃ±ado - Sticky y moderno */
 .order-header-redesign {
   position: sticky;
   top: 0;
@@ -2443,7 +2443,7 @@
   }
 }
 
-/* Fila inferior: Estado + Botón */
+/* Fila inferior: Estado + BotÃ³n */
 .header-bottom-row {
   display: flex;
   align-items: center;
@@ -2451,7 +2451,7 @@
   flex-wrap: wrap;
 }
 
-/* Badge de estado rediseñado */
+/* Badge de estado rediseÃ±ado */
 .status-badge-redesign {
   display: inline-flex;
   align-items: center;
@@ -2497,7 +2497,7 @@
   border-color: #64748b;
 }
 
-/* Botón de acción inline */
+/* BotÃ³n de acciÃ³n inline */
 .action-button-inline {
   display: inline-flex;
   align-items: center;
@@ -2527,7 +2527,7 @@
   flex-shrink: 0;
 }
 
-/* Colores del botón según el estado actual */
+/* Colores del botÃ³n segÃºn el estado actual */
 .action-button-inline.status-pendiente {
   background: #f97316;
   color: white;
@@ -2555,7 +2555,7 @@
   background: #059669;
 }
 
-/* Contenedor scrollable rediseñado */
+/* Contenedor scrollable rediseÃ±ado */
 .order-detail-content {
   display: flex;
   flex-direction: column;
@@ -2584,7 +2584,7 @@
   background: #94a3b8;
 }
 
-/* Información adicional rediseñada */
+/* InformaciÃ³n adicional rediseÃ±ada */
 .order-meta-redesign {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -2646,10 +2646,10 @@
 }
 
 /* ============================================
-   BARRA DE PROGRESO ESTILO BADGES CON BOTÓN
+   BARRA DE PROGRESO ESTILO BADGES CON BOTÃ“N
    ============================================ */
 
-/* Contenedor de barra de progreso + botón */
+/* Contenedor de barra de progreso + botÃ³n */
 .progress-with-action {
   display: flex;
   align-items: center;
@@ -2699,7 +2699,7 @@
   height: 14px;
 }
 
-/* Badge completado (✓) - Verde sólido */
+/* Badge completado (âœ“) - Verde sÃ³lido */
 .progress-badge.completed {
   background: #10b981;
   border-color: #10b981;
@@ -2707,7 +2707,7 @@
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
 }
 
-/* Badge actual - Outline con color según estado */
+/* Badge actual - Outline con color segÃºn estado */
 .progress-badge.current[data-status="pendiente"] {
   background: rgba(249, 115, 22, 0.08);
   border-color: #f97316;
@@ -2744,7 +2744,7 @@
   opacity: 0.6;
 }
 
-/* Botón de acción al lado de la barra de progreso */
+/* BotÃ³n de acciÃ³n al lado de la barra de progreso */
 .action-button-progress {
   display: inline-flex;
   align-items: center;
@@ -2777,7 +2777,7 @@
   height: 16px;
 }
 
-/* Colores del botón según el estado actual */
+/* Colores del botÃ³n segÃºn el estado actual */
 .action-button-progress.status-pendiente {
   background: #f97316;
   color: white;
@@ -2805,7 +2805,7 @@
   background: #059669;
 }
 
-/* Responsive para el rediseño */
+/* Responsive para el rediseÃ±o */
 @media (max-width: 640px) {
   .order-header-redesign {
     padding: 1.25rem;
@@ -2839,7 +2839,7 @@
     max-height: 50vh;
   }
 
-  /* Barra de progreso con botón en móvil */
+  /* Barra de progreso con botÃ³n en mÃ³vil */
   .progress-with-action {
     flex-direction: column;
     align-items: stretch;
@@ -2982,7 +2982,7 @@
   color: #94a3b8;
 }
 
-/* Estados específicos del progreso en header */
+/* Estados especÃ­ficos del progreso en header */
 .progress-timeline-header .progress-step.current.status-pendiente .step-marker {
   background: #f59e0b;
   border-color: #fef3c7;
@@ -3030,23 +3030,29 @@
 }
 
 /* ============================================
-   CHECKBOXES PERSONALIZADOS ANIMADOS
+   CHECKBOXES DE COCINA: DISENO SIMPLE + ANIMACIONES SUAVES
    ============================================ */
 
 .dish-ready-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 0.5rem;
   cursor: pointer;
   user-select: none;
-  padding: 0.5rem 0.85rem;
+  padding: 0.35rem 0.5rem;
   border-radius: 12px;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
   position: relative;
 }
 
 .dish-ready-toggle:hover {
-  background: rgba(16, 185, 129, 0.05);
+  background: #ecfdf3;
+  transform: translateY(-1px);
+}
+
+.dish-ready-toggle:active {
+  transform: translateY(0);
 }
 
 /* Ocultar el checkbox nativo */
@@ -3058,97 +3064,95 @@
   pointer-events: none;
 }
 
-/* Crear el checkbox personalizado */
+/* Caja visual minimalista */
 .dish-ready-toggle input[type="checkbox"]+span {
   position: relative;
-  padding-left: 2.25rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #64748b;
-  transition: color 0.3s ease;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* El checkbox visual (box) */
 .dish-ready-toggle input[type="checkbox"]+span::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  border: 2.5px solid #cbd5e1;
-  border-radius: 8px;
+  inset: 2px;
+  border-radius: 9px;
+  border: 2px solid #cbd5e1;
   background: #ffffff;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
-/* El check mark */
+/* Check dibujado con border */
 .dish-ready-toggle input[type="checkbox"]+span::after {
   content: '';
-  position: absolute;
-  left: 7px;
-  top: 50%;
-  transform: translateY(-50%) scale(0) rotate(-45deg);
-  width: 10px;
-  height: 5px;
-  border-left: 3px solid #ffffff;
-  border-bottom: 3px solid #ffffff;
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  width: 12px;
+  height: 6px;
+  border-left: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  transform: translateY(-1px) rotate(-45deg) scale(0);
+  transition: transform 0.2s ease;
 }
 
-/* Estado hover del checkbox */
+/* Hover antes de marcar */
 .dish-ready-toggle:hover input[type="checkbox"]:not(:checked)+span::before {
   border-color: #10b981;
-  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.18);
 }
 
-/* Estado checked */
+/* Estado marcado con micro-animaciones */
+.dish-ready-toggle input[type="checkbox"]:checked+span {
+  animation: checkbox-pop 0.28s ease;
+}
+
 .dish-ready-toggle input[type="checkbox"]:checked+span::before {
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-color: #10b981;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  transform: translateY(-50%) scale(1.05);
+  background: #10b981;
+  border-color: #0f9f7e;
+  box-shadow: 0 8px 18px rgba(16, 185, 129, 0.28);
+  transform: scale(0.98);
+  animation: checkbox-ripple 0.55s ease;
 }
 
 .dish-ready-toggle input[type="checkbox"]:checked+span::after {
-  opacity: 1;
-  transform: translateY(-50%) scale(1) rotate(-45deg);
+  border-left-color: #ffffff;
+  border-bottom-color: #ffffff;
+  transform: translateY(-1px) rotate(-45deg) scale(1);
 }
 
-.dish-ready-toggle input[type="checkbox"]:checked+span {
-  color: #047857;
-}
-
-/* Animación de "bounce" al marcar */
-.dish-ready-toggle input[type="checkbox"]:checked+span::before {
-  animation: checkbox-bounce 0.5s ease;
-}
-
-@keyframes checkbox-bounce {
+@keyframes checkbox-pop {
   0% {
-    transform: translateY(-50%) scale(1);
+    transform: scale(0.94);
   }
 
-  40% {
-    transform: translateY(-50%) scale(1.15);
-  }
-
-  70% {
-    transform: translateY(-50%) scale(0.95);
+  60% {
+    transform: scale(1.05);
   }
 
   100% {
-    transform: translateY(-50%) scale(1.05);
+    transform: scale(1);
+  }
+}
+
+@keyframes checkbox-ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
   }
 }
 
 /* Estado focus (accesibilidad) */
 .dish-ready-toggle input[type="checkbox"]:focus-visible+span::before {
-  outline: 3px solid rgba(16, 185, 129, 0.4);
-  outline-offset: 2px;
+  outline: 3px solid rgba(16, 185, 129, 0.35);
+  outline-offset: 3px;
 }
 
 /* Estado disabled */
@@ -3158,9 +3162,9 @@
 }
 
 .dish-ready-toggle input[type="checkbox"]:disabled+span::before {
-  background: #e2e8f0;
-  border-color: #cbd5e1;
-  cursor: not-allowed;
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  box-shadow: none;
 }
 
 /* ============================================
@@ -3216,7 +3220,7 @@
   width: 6px;
 }
 
-/* Animación de entrada */
+/* AnimaciÃ³n de entrada */
 @keyframes alert-slide-in {
   0% {
     transform: translateX(120%);
@@ -3229,7 +3233,7 @@
   }
 }
 
-/* Animación de salida */
+/* AnimaciÃ³n de salida */
 .custom-alert.alert-exit {
   animation: alert-slide-out 0.3s ease forwards;
 }
@@ -3280,7 +3284,7 @@
   line-height: 1.5;
 }
 
-/* Botón de cerrar */
+/* BotÃ³n de cerrar */
 .custom-alert__close {
   width: 24px;
   height: 24px;
@@ -3386,3 +3390,4 @@
     width: 100%;
   }
 }
+

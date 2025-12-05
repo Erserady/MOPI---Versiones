@@ -6,6 +6,7 @@ import CashierModal from "./Cashier.Modal";
 import TransactionDetailModal from "./TransactionDetailModal";
 import ReportDateModal from "./ReportDateModal";
 import ExpenseModal from "./ExpenseModal";
+import CloseReceiptPrinter from "./CloseReceiptPrinter";
 import {
   getCajas,
   getPagos,
@@ -33,6 +34,8 @@ const CashierSection = () => {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [closingReceiptData, setClosingReceiptData] = useState(null);
+  const [showClosingReceipt, setShowClosingReceipt] = useState(false);
   
   // Filtros para transacciones
   const [filtroMesa, setFiltroMesa] = useState('');
@@ -244,6 +247,108 @@ const CashierSection = () => {
     }
   };
 
+  const buildClosingReceiptData = (cierreResult, pagosList, egresosList, saldoContado) => {
+    const now = new Date();
+    const formatNumber = (val) => Number.parseFloat(val || 0) || 0;
+    const safeUserString =
+      getCurrentUserName() ||
+      cajaActual?.responsable ||
+      cajaActual?.usuario?.nombre ||
+      cajaActual?.usuario?.username ||
+      cajaActual?.encargado ||
+      cajaActual?.creado_por ||
+      (cierreResult?.usuario_apertura && typeof cierreResult.usuario_apertura === "string"
+        ? cierreResult.usuario_apertura
+        : "") ||
+      "N/D";
+    const facturas = (pagosList || []).map((pago) => {
+      const factura = pago.factura_detalle || pago.factura || {};
+      const numero =
+        factura.numero_factura ||
+        factura.id ||
+        pago.numero_factura ||
+        pago.id ||
+        "N/D";
+      const total =
+        formatNumber(factura.total) ||
+        formatNumber(factura.total_factura) ||
+        formatNumber(factura.total_pagar) ||
+        formatNumber(pago.monto);
+      const iva =
+        formatNumber(factura.iva) ||
+        formatNumber(factura.iva_total) ||
+        formatNumber(factura.total_iva);
+      const comensales =
+        formatNumber(factura.comensales) ||
+        formatNumber(factura.covers) ||
+        formatNumber(factura.personas) ||
+        formatNumber(factura.person_count) ||
+        (Array.isArray(factura.orders)
+          ? factura.orders.reduce(
+              (sum, ord) =>
+                sum +
+                (formatNumber(ord.personas) ||
+                  formatNumber(ord.persons) ||
+                  formatNumber(ord.covers) ||
+                  formatNumber(ord.diners)),
+              0
+            )
+          : 0);
+      return { numero, total, iva, comensales: comensales || 1 };
+    });
+
+    const facturasOrdenadas = [...facturas].sort((a, b) =>
+      String(a.numero || "").localeCompare(String(b.numero || ""), undefined, {
+        numeric: true,
+      })
+    );
+    const facturasInicio = facturasOrdenadas[0]?.numero || "N/D";
+    const facturasFin =
+      facturasOrdenadas[facturasOrdenadas.length - 1]?.numero || "N/D";
+
+    const totalFacturasMonto = facturas.reduce(
+      (sum, f) => sum + formatNumber(f.total),
+      0
+    );
+    const ivaTotal = facturas.reduce((sum, f) => sum + formatNumber(f.iva), 0);
+    const comensalesTotal = facturas.reduce(
+      (sum, f) => sum + formatNumber(f.comensales || 1),
+      0
+    );
+
+    const egresosTotal = (egresosList || []).reduce(
+      (sum, e) => sum + formatNumber(e.monto),
+      0
+    );
+
+    return {
+      closureNumber:
+        cierreResult?.numero_cierre || cierreResult?.id || cajaActual?.id || "N/D",
+      cashRegisterNumber:
+        cierreResult?.numero_caja ||
+        cierreResult?.caja ||
+        cajaActual?.numero_caja ||
+        1,
+      date: now.toLocaleDateString("es-NI"),
+      time: now.toLocaleTimeString("es-NI", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      user:
+        safeUserString,
+      comensales: comensalesTotal,
+      totalFacturas: facturas.length,
+      totalFacturasMonto,
+      facturasInicio,
+      facturasFin,
+      iva: ivaTotal,
+      egresosCount: egresosList?.length || 0,
+      egresosTotal,
+      ventasEfectivo,
+      ventasTarjeta,
+      saldoInicial: formatNumber(cajaActual?.saldo_inicial),
+      saldoFinal: formatNumber(saldoContado),
+      facturasDetalle: facturasOrdenadas,
+    };
+  };
+
   const handleSaveCashier = async (data) => {
     try {
       setLoading(true);
@@ -273,6 +378,14 @@ const CashierSection = () => {
         if (cajaActual && cajaActual.estado === 'abierta') {
           const result = await cerrarCaja(cajaActual.id, data.totalAmount, 'Cierre normal');
           console.log('Resultado de cerrar caja:', result);
+          const cierreData = buildClosingReceiptData(
+            result,
+            pagosHoy,
+            egresosHoy,
+            data.totalAmount
+          );
+          setClosingReceiptData(cierreData);
+          setShowClosingReceipt(true);
         } else {
           showNotification({
             type: 'error',
@@ -829,6 +942,15 @@ const CashierSection = () => {
         isOpen={isExpenseModalOpen}
         onClose={() => setIsExpenseModalOpen(false)}
         onSave={handleSaveExpense}
+      />
+
+      <CloseReceiptPrinter
+        isOpen={showClosingReceipt}
+        onClose={() => {
+          setShowClosingReceipt(false);
+          setClosingReceiptData(null);
+        }}
+        data={closingReceiptData}
       />
     </section>
   );

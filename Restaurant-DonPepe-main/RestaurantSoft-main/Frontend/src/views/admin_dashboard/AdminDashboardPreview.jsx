@@ -5,6 +5,12 @@ import { useState, useEffect, useMemo } from "react";
 import UserSelectionModal from "../../components/UserSelectionModal";
 import "../../styles/admin_dashboard_preview.css";
 import { API_ENDPOINTS } from "../../config/api";
+import {
+  clearAuthSession,
+  isAuthenticated,
+  setActiveRole,
+  setAuthStage,
+} from "../../utils/auth";
 
 const ROLE_CONFIG = [
   { key: "cocina", role: "cook", title: "Cocina", route: "/cook-dashboard", icon: <ChefHat size={70} /> },
@@ -37,6 +43,16 @@ const AdminDashboardPreview = () => {
   const [usersData, setUsersData] = useState(FALLBACK_ROLE_DATA);
   const [statusMessage, setStatusMessage] = useState("Cargando personal...");
   const [isLoadingRoles, setIsLoadingRoles] = useState(true);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    // Marcar que el usuario ya paso por la autenticacion y entra a seleccionar area
+    setAuthStage("area-selection");
+    setActiveRole(null);
+  }, [navigate]);
 
   // Cargar usuarios desde el backend con fallback
   useEffect(() => {
@@ -108,16 +124,20 @@ const AdminDashboardPreview = () => {
   const handleUserSelect = (user, userRole) => {
     const roleData = Object.values(usersData).find((data) => data.role === userRole);
     if (!roleData) return;
+    setActiveRole(userRole);
+    setAuthStage("role-selected");
     navigate(roleData.route, {
       state: { 
         role: userRole,
         user: user,
       },
+      replace: true,
     });
   };
 
   const handleLogout = () => {
-    navigate("/");
+    clearAuthSession();
+    navigate("/login", { replace: true });
   };
 
   return (

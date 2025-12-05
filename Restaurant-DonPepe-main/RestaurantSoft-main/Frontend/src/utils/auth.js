@@ -68,5 +68,51 @@ export const getCurrentUserRole = () => {
  * @returns {boolean} true si hay sesión activa
  */
 export const isAuthenticated = () => {
-  return sessionStorage.getItem("token") && sessionStorage.getItem("user");
+  return Boolean(sessionStorage.getItem("token") && sessionStorage.getItem("user"));
+};
+
+/**
+ * Obtiene el rol activo elegido en el flujo de seleccion
+ * @returns {string|null} Rol activo
+ */
+export const getActiveRole = () => {
+  return sessionStorage.getItem("activeRole") || null;
+};
+
+/**
+ * Define el rol activo (por ejemplo, cook/waiter/cashier/admin)
+ * @param {string|null} role
+ */
+export const setActiveRole = (role) => {
+  if (role) {
+    sessionStorage.setItem("activeRole", role);
+  } else {
+    sessionStorage.removeItem("activeRole");
+  }
+};
+
+/**
+ * Guarda la etapa actual del flujo (login, area-selection, role-selected)
+ * @param {string} stage
+ */
+export const setAuthStage = (stage) => {
+  sessionStorage.setItem("authStage", stage);
+};
+
+/**
+ * Obtiene la etapa actual del flujo de autenticacion
+ * @returns {string|null}
+ */
+export const getAuthStage = () => {
+  return sessionStorage.getItem("authStage");
+};
+
+/**
+ * Limpia toda la informacion de sesion usada en el flujo
+ */
+export const clearAuthSession = () => {
+  sessionStorage.removeItem("user");
+  sessionStorage.removeItem("token");
+  sessionStorage.removeItem("activeRole");
+  sessionStorage.removeItem("authStage");
 };

@@ -6,38 +6,71 @@ import "../styles/receipt_printer.css";
 const PAPER_WIDTH_MM = 58;
 const PRINT_MARGIN_MM = 2;
 const PRINT_INNER_WIDTH_MM = PAPER_WIDTH_MM - PRINT_MARGIN_MM * 2;
-const ITEM_GRID_TEMPLATE = "8mm 1fr 10mm 10mm";
+const ITEM_GRID_TEMPLATE = "6mm 1fr 12mm 12mm";
 
 const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
   const printRef = useRef();
+  const hasAutoPrintedRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen && receiptData) {
+    if (isOpen && receiptData && !hasAutoPrintedRef.current) {
+      hasAutoPrintedRef.current = true;
       setTimeout(() => {
         handlePrint();
-      }, 500);
+      }, 400);
+    }
+    if (!isOpen) {
+      hasAutoPrintedRef.current = false;
     }
   }, [isOpen, receiptData]);
 
   const handlePrint = () => {
     if (!receiptData) return;
-
-    const printWindowWidth = Math.ceil(
-      (PAPER_WIDTH_MM + PRINT_MARGIN_MM * 2) * 3.78
-    );
-    const printWindow = window.open(
-      "",
-      "_blank",
-      `width=${printWindowWidth},height=700`
-    );
-    if (!printWindow) {
-      alert("Por favor, habilita las ventanas emergentes para imprimir.");
+    if (!printRef.current) {
+      console.warn("No hay contenido de ticket para imprimir.");
       return;
     }
 
     const printContent = printRef.current.innerHTML;
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.setAttribute("aria-hidden", "true");
+    document.body.appendChild(iframe);
 
-    printWindow.document.write(`
+    const printDocument = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!printDocument) {
+      document.body.removeChild(iframe);
+      alert("No se pudo preparar la impresión. Intente nuevamente.");
+      return;
+    }
+
+    const triggerPrint = () => {
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (err) {
+        console.error("No se pudo abrir el diálogo de impresión", err);
+      }
+    };
+
+    const cleanUp = () => {
+      setTimeout(() => {
+        iframe.parentNode?.removeChild(iframe);
+      }, 300);
+    };
+
+    const onAfterPrint = () => cleanUp();
+    if (iframe.contentWindow) {
+      iframe.contentWindow.onafterprint = onAfterPrint;
+    }
+
+    printDocument.open();
+    printDocument.write(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -62,8 +95,8 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               width: ${PRINT_INNER_WIDTH_MM}mm;
               max-width: ${PRINT_INNER_WIDTH_MM}mm;
               font-family: "Courier New", monospace;
-              font-size: 10px;
-              line-height: 1.35;
+              font-size: 8px;
+              line-height: 1.25;
               color: black;
             }
 
@@ -79,14 +112,14 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
 
             .restaurant-name {
               font-weight: 700;
-              font-size: 11pt;
+              font-size: 9pt;
               margin-bottom: 1mm;
               letter-spacing: 0.3px;
             }
 
             .restaurant-info {
-              font-size: 9pt;
-              line-height: 1.3;
+              font-size: 7.5pt;
+              line-height: 1.25;
               font-weight: 400;
             }
 
@@ -97,9 +130,9 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             }
 
             .ticket-info {
-              font-size: 9pt;
+              font-size: 7.5pt;
               margin-bottom: 2mm;
-              line-height: 1.3;
+              line-height: 1.25;
               font-weight: 400;
             }
 
@@ -114,13 +147,13 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               font-weight: 700;
               margin-bottom: 2mm;
               text-align: center;
-              font-size: 10pt;
+              font-size: 8.5pt;
             }
 
             .items-table {
               width: 100%;
               margin: 2mm 0;
-              font-size: 9pt;
+              font-size: 7.5pt;
               font-weight: 400;
             }
 
@@ -128,7 +161,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             .item-row {
               display: grid;
               grid-template-columns: ${ITEM_GRID_TEMPLATE};
-              gap: 1mm;
+              gap: 0.6mm;
               align-items: start;
             }
 
@@ -137,7 +170,11 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               border-bottom: 1px solid #000;
               padding-bottom: 1mm;
               margin-bottom: 1mm;
-              font-size: 9pt;
+              font-size: 7.5pt;
+            }
+
+            .items-table-header div {
+              overflow-wrap: anywhere;
             }
 
             .item-row {
@@ -149,7 +186,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               word-wrap: break-word;
               overflow-wrap: break-word;
               word-break: break-word;
-              font-size: 9pt;
+              font-size: 7.5pt;
               font-weight: 400;
             }
 
@@ -162,20 +199,20 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
 
             .payment-section {
               margin-top: 2mm;
-              font-size: 9pt;
+              font-size: 7.5pt;
               font-weight: 400;
             }
 
             .total-section {
               font-weight: 700;
-              font-size: 11pt;
+              font-size: 9.5pt;
               margin-top: 2mm;
               text-align: center;
               page-break-inside: avoid;
             }
 
             .total-amount {
-              font-size: 14pt;
+              font-size: 11pt;
               margin: 1mm 0;
               letter-spacing: 0.6px;
               font-weight: 700;
@@ -184,8 +221,8 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             .footer-section {
               text-align: center;
               margin-top: 3mm;
-              font-size: 9pt;
-              line-height: 1.3;
+              font-size: 7.5pt;
+              line-height: 1.25;
               font-weight: 400;
             }
 
@@ -201,7 +238,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
 
             .attendant {
               margin-top: 2mm;
-              font-size: 9.5pt;
+              font-size: 8pt;
               font-weight: 400;
             }
 
@@ -212,7 +249,8 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
                 width: ${PRINT_INNER_WIDTH_MM}mm;
                 max-width: ${PRINT_INNER_WIDTH_MM}mm;
                 font-family: "Courier New", monospace;
-                font-size: 10px;
+                font-size: 8px;
+                line-height: 1.25;
                 color: black;
               }
 
@@ -228,7 +266,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             }
           </style>
         </head>
-        <body onload="setTimeout(function() { window.print(); window.onafterprint = function() { window.close(); }; }, 300);">
+        <body>
           <div class="no-print" style="padding: 10px; background: #fffbeb; border: 2px solid #f59e0b; border-radius: 8px; margin-bottom: 10px; font-family: Arial, sans-serif;">
             <strong style="color: #92400e; display: block; margin-bottom: 5px;">Tip: Configuracion de impresion recomendada</strong>
             <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 12px; line-height: 1.6;">
@@ -242,8 +280,14 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
         </body>
       </html>
     `);
+    printDocument.close();
 
-    printWindow.document.close();
+    const readyState = printDocument.readyState;
+    if (readyState === "complete") {
+      setTimeout(triggerPrint, 200);
+    } else {
+      iframe.onload = () => setTimeout(triggerPrint, 200);
+    }
   };
 
   if (!isOpen || !receiptData) return null;

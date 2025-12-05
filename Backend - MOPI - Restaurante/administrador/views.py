@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -21,52 +22,93 @@ class DashboardViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminOrStaff]
     
     def list(self, request):
-        hoy = timezone.now().date()
-        
-        # Métricas principales
-        ventas_hoy = Factura.objects.filter(
-            created_at__date=hoy, 
-            estado='pagada'
-        ).aggregate(total=Sum('total'))['total'] or Decimal('0')
-        
-        total_mesas = Table.objects.count()
-        mesas_ocupadas = Table.objects.filter(
-            orders__estado='pendiente'
-        ).distinct().count()
-        
-        pedidos_pendientes = WaiterOrder.objects.filter(estado='pendiente').count()
-        inventario_bajo = Inventario.objects.filter(esta_bajo=True).count()
-        
-        # Ventas últimos 7 días
-        fecha_inicio = hoy - timedelta(days=7)
-        ventas_7_dias = Factura.objects.filter(
-            created_at__date__gte=fecha_inicio,
-            estado='pagada'
-        ).values('created_at__date').annotate(
-            total=Sum('total')
-        ).order_by('created_at__date')
-        
-        # Mesas con estado
-        mesas = Table.objects.all()
-        mesa_serializer = MesaDashboardSerializer(mesas, many=True)
-        
-        # Facturas recientes
-        facturas_recientes = Factura.objects.all().order_by('-created_at')[:10]
-        factura_serializer = FacturaDashboardSerializer(facturas_recientes, many=True)
-        
-        return Response({
-            'metricas_principales': {
-                'ventas_hoy': float(ventas_hoy),
-                'total_mesas': total_mesas,
-                'mesas_ocupadas': mesas_ocupadas,
-                'mesas_disponibles': total_mesas - mesas_ocupadas,
-                'pedidos_pendientes': pedidos_pendientes,
-                'inventario_bajo': inventario_bajo,
-            },
-            'ventas_7_dias': list(ventas_7_dias),
-            'mesas': mesa_serializer.data,
-            'facturas_recientes': factura_serializer.data,
-        })
+        logger = logging.getLogger(__name__)
+        FACTURA_PAID_STATES = ['pagada', 'pagado']
+        ORDER_ACTIVE_STATES = [
+            'pendiente',
+            'en_preparacion',
+            'listo',
+            'entregado',
+            'servido',
+            'payment_requested',
+            'prefactura_enviada',
+        ]
+        try:
+            hoy = timezone.now().date()
+            # Ventas basadas en pagos (mas robusto)
+            pagos_hoy_total = Pago.objects.filter(
+                created_at__date=hoy
+            ).aggregate(total=Sum('monto'))['total'] or Decimal('0')
+            
+            # Métricas principales
+            ventas_hoy = pagos_hoy_total
+            total_mesas = Table.objects.count()
+            mesas_ocupadas = Table.objects.filter(
+                orders__estado__in=ORDER_ACTIVE_STATES
+            ).distinct().count()
+            
+            pedidos_pendientes = WaiterOrder.objects.filter(
+                estado__in=ORDER_ACTIVE_STATES
+            ).count()
+            inventario_bajo = Inventario.objects.filter(esta_bajo=True).count()
+            
+            # Ventas últimos 7 días
+            fecha_inicio = hoy - timedelta(days=7)
+            ventas_7_dias = Pago.objects.filter(
+                created_at__date__gte=fecha_inicio
+            ).values('created_at__date').annotate(
+                total=Sum('monto')
+            ).order_by('created_at__date')
+            # Si no hay ventas en 7 días pero existen pagos, ampliar ventana a 30 días
+            if not ventas_7_dias.exists():
+                fecha_inicio_30 = hoy - timedelta(days=30)
+                ventas_7_dias = Pago.objects.filter(
+                    created_at__date__gte=fecha_inicio_30
+                ).values('created_at__date').annotate(
+                    total=Sum('monto')
+                ).order_by('created_at__date')
+            
+            # Mesas con estado
+            mesas = Table.objects.all()
+            mesa_serializer = MesaDashboardSerializer(mesas, many=True)
+            
+            # Facturas recientes
+            facturas_recientes = Factura.objects.filter(
+                estado__in=FACTURA_PAID_STATES
+            ).order_by('-created_at')[:10]
+            factura_serializer = FacturaDashboardSerializer(facturas_recientes, many=True)
+            
+            return Response({
+                'metricas_principales': {
+                    'ventas_hoy': float(ventas_hoy),
+                    'total_mesas': total_mesas,
+                    'mesas_ocupadas': mesas_ocupadas,
+                    'mesas_disponibles': total_mesas - mesas_ocupadas,
+                    'pedidos_pendientes': pedidos_pendientes,
+                    'inventario_bajo': inventario_bajo,
+                },
+                'ventas_7_dias': list(ventas_7_dias),
+                'mesas': mesa_serializer.data,
+                'facturas_recientes': factura_serializer.data,
+            })
+        except Exception as e:
+            logger.error("Error en DashboardViewSet: %s", str(e), exc_info=True)
+            # Respuesta segura para no romper el frontend
+            fallback = {
+                'metricas_principales': {
+                    'ventas_hoy': 0,
+                    'total_mesas': 0,
+                    'mesas_ocupadas': 0,
+                    'mesas_disponibles': 0,
+                    'pedidos_pendientes': 0,
+                    'inventario_bajo': 0,
+                },
+                'ventas_7_dias': [],
+                'mesas': [],
+                'facturas_recientes': [],
+                'detail': 'fallback',
+            }
+            return Response(fallback, status=status.HTTP_200_OK)
 
 class CategoriaMenuViewSet(viewsets.ModelViewSet):
     queryset = CategoriaMenu.objects.all()

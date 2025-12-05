@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useState } from "react";
 import "../styles/header.css";
 import { LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { clearAuthSession } from "../utils/auth";
 
 const Header = ({ userRole, welcomeTitle, currentView, userName, children }) => {
   const navigate = useNavigate();
@@ -9,13 +10,11 @@ const Header = ({ userRole, welcomeTitle, currentView, userName, children }) => 
   const [userVerified, setUserVerified] = useState(false);
 
   const logOutFunction = () => {
-    // Limpiar completamente el sessionStorage
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("token");
-    
+    // Limpiar completamente el sessionStorage y reiniciar el flujo
+    clearAuthSession();
     alert("Cerrando sesion...");
     console.log("Cerrando sesion...");
-    navigate("/");
+    navigate("/login", { replace: true });
   };
 
   const locationRole = location.state?.role;
@@ -36,14 +35,14 @@ const Header = ({ userRole, welcomeTitle, currentView, userName, children }) => 
       // Validar que el objeto tenga las propiedades básicas esperadas
       if (!parsed || typeof parsed !== 'object') {
         console.warn("⚠️ Usuario en sessionStorage inválido, limpiando...");
-        sessionStorage.removeItem("user");
+        clearAuthSession();
         return null;
       }
       
       return parsed;
     } catch (error) {
       console.error("⚠️ Error al recuperar usuario, limpiando sessionStorage:", error);
-      sessionStorage.removeItem("user");
+      clearAuthSession();
       return null;
     }
   }, []);
@@ -57,8 +56,7 @@ const Header = ({ userRole, welcomeTitle, currentView, userName, children }) => 
       // Si hay token pero no hay usuario, o viceversa, limpiar ambos
       if ((currentToken && !currentUser) || (!currentToken && currentUser)) {
         console.warn("⚠️ Inconsistencia detectada en sessionStorage, limpiando...");
-        sessionStorage.removeItem("user");
-        sessionStorage.removeItem("token");
+        clearAuthSession();
       }
       
       setUserVerified(true);

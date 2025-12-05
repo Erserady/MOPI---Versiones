@@ -124,6 +124,15 @@ export async function ajustarStock(id, cantidad, motivo, tipo = 'ajuste') {
 // Dashboard
 export async function getDashboardData() {
   const res = await apiFetch(`${API_BASE_URL}/api/administrador/dashboard/`);
-  if (!res.ok) throw new Error('Error obteniendo datos del dashboard');
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      const errJson = await res.json();
+      detail = errJson?.error || errJson?.detail || detail;
+    } catch {
+      // sin cuerpo legible
+    }
+    throw new Error(`Error obteniendo datos del dashboard: ${detail}`);
+  }
   return res.json();
 }

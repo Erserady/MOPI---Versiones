@@ -7,17 +7,29 @@ import { Settings } from "lucide-react";
 import AdminProducts from "../../modules/admin_module/components/AdminProducts";
 import AdminStaff from "../../modules/admin_module/components/AdminStaff";
 import AdminOverview from "../../modules/admin_module/components/AdminOverview";
+import AdminDashboardCharts from "../../modules/admin_module/components/AdminDashboardCharts";
 import { useMetadata } from "../../hooks/useMetadata";
 import ErrorBoundary from "../../components/ErrorBoundary";
 
 const AdminDashboard = () => {
   const welcomeTitle = "Panel de Administrador";
-  const [currentSection, setcurrentSection] = useState("resume");
+  const [currentSection, setcurrentSection] = useState("dashboard");
   const currentView = "admin-dashboard";
   const { data: adminMeta } = useMetadata("admin");
-  // Forzar ocultar inventario aunque llegue en metadata o config
+  // Forzar orden y presencia de Dashboard, respetando metadata pero sin inventario
+  const baseNav = [
+    { title: "Dashboard", section: "dashboard", visible: true },
+    { title: "Gestion", section: "resume", visible: true },
+    { title: "Menu", section: "products", visible: true },
+    { title: "Personal", section: "staff", visible: true },
+  ];
   const rawNav = adminMeta?.navigation || adminNavigationBar;
-  const navItems = rawNav.filter((n) => n.visible !== false && n.section !== "inventory");
+  const navItems = baseNav
+    .map((item) => {
+      const override = rawNav.find((n) => n.section === item.section) || {};
+      return { ...item, ...override };
+    })
+    .filter((n) => n.visible !== false && n.section !== "inventory");
 
   // Si la sección actual es inventario u otra no listada, regresar a la primera disponible
   useEffect(() => {
@@ -53,6 +65,8 @@ const AdminDashboard = () => {
     }
     
     switch (subview) {
+      case "dashboard":
+        return <ErrorBoundary><AdminDashboardCharts /></ErrorBoundary>;
       case "resume":
         return <ErrorBoundary><AdminOverview /></ErrorBoundary>;
       case "products":

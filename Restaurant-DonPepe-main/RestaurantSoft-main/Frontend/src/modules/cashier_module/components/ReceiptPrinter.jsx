@@ -3,10 +3,12 @@ import { X, Printer } from "lucide-react";
 import { RESTAURANT_INFO } from "../../../config/restaurant";
 import "../styles/receipt_printer.css";
 
+// Medidas seguras para impresoras termicas de 58mm (ancho imprimible real ~48mm).
 const PAPER_WIDTH_MM = 58;
-const PRINT_MARGIN_MM = 2;
-const PRINT_INNER_WIDTH_MM = PAPER_WIDTH_MM - PRINT_MARGIN_MM * 2;
-const ITEM_GRID_TEMPLATE = "6mm 1fr 12mm 12mm";
+const CONTENT_WIDTH_MM = 48;
+const SIDE_PADDING_MM = (PAPER_WIDTH_MM - CONTENT_WIDTH_MM) / 2;
+const ITEM_GRID_TEMPLATE = "6mm 1fr 11mm 12mm";
+const FONT_STACK = '"SFMono-Regular","Consolas","Courier New",monospace';
 
 const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
   const printRef = useRef();
@@ -23,6 +25,11 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
       hasAutoPrintedRef.current = false;
     }
   }, [isOpen, receiptData]);
+
+  const formatMoney = (value = 0) => {
+    const amount = Number(value) || 0;
+    return amount.toFixed(2);
+  };
 
   const handlePrint = () => {
     if (!receiptData) return;
@@ -45,7 +52,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
     const printDocument = iframe.contentDocument || iframe.contentWindow?.document;
     if (!printDocument) {
       document.body.removeChild(iframe);
-      alert("No se pudo preparar la impresión. Intente nuevamente.");
+      alert("No se pudo preparar la impresion. Intente nuevamente.");
       return;
     }
 
@@ -54,7 +61,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
       } catch (err) {
-        console.error("No se pudo abrir el diálogo de impresión", err);
+        console.error("No se pudo abrir el dialogo de impresion", err);
       }
     };
 
@@ -91,18 +98,23 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
 
             body {
               margin: 0;
-              padding: ${PRINT_MARGIN_MM}mm;
-              width: ${PRINT_INNER_WIDTH_MM}mm;
-              max-width: ${PRINT_INNER_WIDTH_MM}mm;
-              font-family: "Courier New", monospace;
-              font-size: 8px;
-              line-height: 1.25;
+              padding: ${SIDE_PADDING_MM}mm;
+              width: ${CONTENT_WIDTH_MM}mm;
+              max-width: ${CONTENT_WIDTH_MM}mm;
+              margin-left: auto;
+              margin-right: auto;
+              font-family: ${FONT_STACK};
+              font-size: 8pt;
+              line-height: 1.35;
               color: black;
+              letter-spacing: 0;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
 
             .receipt-container {
               width: 100%;
-              max-width: ${PRINT_INNER_WIDTH_MM}mm;
+              max-width: ${CONTENT_WIDTH_MM}mm;
             }
 
             .receipt-header {
@@ -118,7 +130,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             }
 
             .restaurant-info {
-              font-size: 7.5pt;
+              font-size: 7.4pt;
               line-height: 1.25;
               font-weight: 400;
             }
@@ -130,7 +142,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             }
 
             .ticket-info {
-              font-size: 7.5pt;
+              font-size: 7.4pt;
               margin-bottom: 2mm;
               line-height: 1.25;
               font-weight: 400;
@@ -147,13 +159,13 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               font-weight: 700;
               margin-bottom: 2mm;
               text-align: center;
-              font-size: 8.5pt;
+              font-size: 8pt;
             }
 
             .items-table {
               width: 100%;
               margin: 2mm 0;
-              font-size: 7.5pt;
+              font-size: 7.4pt;
               font-weight: 400;
             }
 
@@ -170,7 +182,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               border-bottom: 1px solid #000;
               padding-bottom: 1mm;
               margin-bottom: 1mm;
-              font-size: 7.5pt;
+              font-size: 7.4pt;
             }
 
             .items-table-header div {
@@ -186,8 +198,24 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
               word-wrap: break-word;
               overflow-wrap: break-word;
               word-break: break-word;
-              font-size: 7.5pt;
+              font-size: 7.4pt;
               font-weight: 400;
+              line-height: 1.35;
+            }
+
+            .item-name {
+              font-weight: 700;
+              letter-spacing: 0.1px;
+            }
+
+            .item-qty {
+              font-weight: 700;
+            }
+
+            .item-note {
+              font-size: 7pt;
+              opacity: 0.85;
+              margin-top: 0.5mm;
             }
 
             .text-right {
@@ -199,7 +227,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
 
             .payment-section {
               margin-top: 2mm;
-              font-size: 7.5pt;
+              font-size: 7.4pt;
               font-weight: 400;
             }
 
@@ -221,7 +249,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             .footer-section {
               text-align: center;
               margin-top: 3mm;
-              font-size: 7.5pt;
+              font-size: 7.4pt;
               line-height: 1.25;
               font-weight: 400;
             }
@@ -245,12 +273,12 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             @media print {
               body {
                 margin: 0;
-                padding: ${PRINT_MARGIN_MM}mm;
-                width: ${PRINT_INNER_WIDTH_MM}mm;
-                max-width: ${PRINT_INNER_WIDTH_MM}mm;
-                font-family: "Courier New", monospace;
-                font-size: 8px;
-                line-height: 1.25;
+                padding: ${SIDE_PADDING_MM}mm;
+                width: ${CONTENT_WIDTH_MM}mm;
+                max-width: ${CONTENT_WIDTH_MM}mm;
+                font-family: ${FONT_STACK};
+                font-size: 8pt;
+                line-height: 1.35;
                 color: black;
               }
 
@@ -260,7 +288,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
 
               .receipt-container {
                 width: 100%;
-                max-width: ${PRINT_INNER_WIDTH_MM}mm;
+                max-width: ${CONTENT_WIDTH_MM}mm;
                 box-shadow: none;
               }
             }
@@ -271,8 +299,8 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
             <strong style="color: #92400e; display: block; margin-bottom: 5px;">Tip: Configuracion de impresion recomendada</strong>
             <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 12px; line-height: 1.6;">
               <li>Calidad: Alta/Maxima (160x144 DPI)</li>
-              <li>Tamano de papel: ${PAPER_WIDTH_MM}mm</li>
-              <li>Margenes: 0mm</li>
+              <li>Tamano de papel: ${PAPER_WIDTH_MM}mm (ancho util ${CONTENT_WIDTH_MM}mm)</li>
+              <li>Margenes: 0mm / Centrados</li>
               <li>Escala: 100%</li>
             </ul>
           </div>
@@ -345,8 +373,8 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
                   <span>VENDEDOR {receiptData.vendorId || "1"}</span>
                 </div>
                 <div className="info-row">
-                  <span>/{receiptData.correlativo || "001"}</span>
-                  <span>HORA: {formatTime(currentDate)}</span>
+                  <span>ORDEN {receiptData.correlativo || "001"}</span>
+                  <span>HORA {formatTime(currentDate)}</span>
                 </div>
                 <div className="info-row">
                   <span>FECHA {formatDate(currentDate)}</span>
@@ -367,20 +395,31 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
 
               <div className="items-table">
                 <div className="items-table-header">
-                  <div>UNID.</div>
-                  <div>DESCRIPCION</div>
-                  <div className="text-right">PRECIO</div>
-                  <div className="text-right">IMPORTE</div>
+                  <div>CANT.</div>
+                  <div>DETALLE</div>
+                  <div className="text-right">P.UNIT</div>
+                  <div className="text-right">TOTAL</div>
                 </div>
 
-                {receiptData.items && receiptData.items.map((item, index) => (
-                  <div key={index} className="item-row">
-                    <div>{item.quantity}</div>
-                    <div className="item-description">{item.name}</div>
-                    <div className="text-right">{item.unitPrice.toFixed(2)}</div>
-                    <div className="text-right">{(item.quantity * item.unitPrice).toFixed(2)}</div>
-                  </div>
-                ))}
+                {receiptData.items && receiptData.items.map((item, index) => {
+                  const qty = Number(item.quantity) || 0;
+                  const name = item.name || item.description || "Producto";
+                  const displayName = qty > 1 ? `${name} x${qty}` : name;
+                  const unitPrice = Number(item.unitPrice) || 0;
+                  const lineTotal = qty * unitPrice;
+
+                  return (
+                    <div key={index} className="item-row">
+                      <div className="item-qty">{qty}</div>
+                      <div className="item-description">
+                        <div className="item-name">{displayName}</div>
+                        {item.notes && <div className="item-note">{item.notes}</div>}
+                      </div>
+                      <div className="text-right">{formatMoney(unitPrice)}</div>
+                      <div className="text-right">{formatMoney(lineTotal)}</div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="divider"></div>
@@ -391,7 +430,7 @@ const ReceiptPrinter = ({ isOpen, onClose, receiptData }) => {
 
               <div className="total-section">
                 <div>TOTAL A PAGAR:</div>
-                <div className="total-amount">{receiptData.total.toFixed(2)}</div>
+                <div className="total-amount">{formatMoney(receiptData.total)}</div>
               </div>
 
               <div className="divider"></div>

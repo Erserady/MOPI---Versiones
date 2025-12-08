@@ -99,13 +99,13 @@
 /* Optimizado para preview de ticket 58mm */
 .receipt-container {
   background: white;
-  width: 54mm;
+  width: 48mm;
   margin: 0 auto;
-  padding: 2mm;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 8px;
+  padding: 5mm;
+  font-family: "SFMono-Regular", "Consolas", "Courier New", monospace;
+  font-size: 8pt;
   font-weight: 400;
-  line-height: 1.25;
+  line-height: 1.35;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
 }
@@ -124,7 +124,7 @@
 }
 
 .restaurant-info {
-  font-size: 7.5pt;
+  font-size: 7.4pt;
   font-weight: 400;
   line-height: 1.25;
   color: #374151;
@@ -137,7 +137,7 @@
 }
 
 .ticket-info {
-  font-size: 7.5pt;
+  font-size: 7.4pt;
   font-weight: 400;
   margin-bottom: 2mm;
   line-height: 1.25;
@@ -155,14 +155,14 @@
   font-weight: 700;
   margin-bottom: 2mm;
   text-align: center;
-  font-size: 8.5pt;
+  font-size: 8pt;
   color: #111827;
 }
 
 .items-table {
   width: 100%;
   margin: 2mm 0;
-  font-size: 7.5pt;
+  font-size: 7.4pt;
   font-weight: 400;
 }
 
@@ -172,9 +172,9 @@
   padding-bottom: 1mm;
   margin-bottom: 1mm;
   display: grid;
-  grid-template-columns: 6mm 1fr 12mm 12mm;
+  grid-template-columns: 6mm 1fr 11mm 12mm;
   gap: 0.6mm;
-  font-size: 7.5pt;
+  font-size: 7.4pt;
   color: #111827;
 }
 
@@ -184,7 +184,7 @@
 
 .item-row {
   display: grid;
-  grid-template-columns: 6mm 1fr 12mm 12mm;
+  grid-template-columns: 6mm 1fr 11mm 12mm;
   gap: 0.6mm;
   margin-bottom: 1mm;
   align-items: start;
@@ -194,9 +194,24 @@
 .item-description {
   word-wrap: break-word;
   overflow-wrap: break-word;
-  font-size: 7.5pt;
+  font-size: 7.4pt;
   font-weight: 400;
-  line-height: 1.25;
+  line-height: 1.35;
+}
+
+.item-name {
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+.item-qty {
+  font-weight: 700;
+}
+
+.item-note {
+  font-size: 7pt;
+  opacity: 0.85;
+  margin-top: 0.5mm;
 }
 
 .text-right {
@@ -249,7 +264,7 @@
 
 .payment-section {
   margin-top: 2mm;
-  font-size: 7.5pt;
+  font-size: 7.4pt;
   font-weight: 400;
   color: #374151;
 }
@@ -273,7 +288,7 @@
 .footer-section {
   text-align: center;
   margin-top: 3mm;
-  font-size: 7.5pt;
+  font-size: 7.4pt;
   font-weight: 400;
   line-height: 1.25;
   color: #374151;
@@ -330,8 +345,8 @@
   .receipt-container {
     box-shadow: none;
     border-radius: 0;
-    width: 54mm;
-    padding: 2mm;
+    width: 48mm;
+    padding: 5mm;
   }
 
   .receipt-preview {
